@@ -1,0 +1,379 @@
+# Italian translation for timer-applet
+# Copyright (c) (c) 2005 Canonical Ltd, and Rosetta Contributors 2005
+# This file is distributed under the same license as the timer-applet package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2005.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: timer-applet\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-07-05 16:45-0400\n"
+"PO-Revision-Date: 2010-07-09 02:17+0000\n"
+"Last-Translator: enigmatichus <enigmatichus@gmail.com>\n"
+"Language-Team: Italian <it@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Launchpad-Export-Date: 2010-07-10 03:54+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: ../data/TimerApplet.server.in.in.h:1
+msgid "A Timer Applet factory that creates Timer Applets"
+msgstr "Un creatore di Timer Applet"
+
+#: ../data/TimerApplet.server.in.in.h:2
+msgid "Start a timer and receive a notification when it is finished"
+msgstr ""
+
+#: ../data/TimerApplet.server.in.in.h:3
+msgid "Timer"
+msgstr "Timer"
+
+#: ../data/TimerApplet.server.in.in.h:4
+msgid "Timer Applet Factory"
+msgstr "Creatore di Timer Applet"
+
+#: ../data/TimerApplet.xml.h:1
+msgid "Ma_nage Presets"
+msgstr "_Gestisci le preimpostazioni"
+
+#: ../data/TimerApplet.xml.h:2
+msgid "Pa_use"
+msgstr "Pa_usa"
+
+#: ../data/TimerApplet.xml.h:3
+msgid "Pre_sets"
+msgstr "Preimpo_stazioni"
+
+#: ../data/TimerApplet.xml.h:4
+msgid "R_estart"
+msgstr "Ria_vvia"
+
+#: ../data/TimerApplet.xml.h:5
+msgid "_About"
+msgstr "_Informazioni"
+
+#: ../data/TimerApplet.xml.h:6
+msgid "_Continue"
+msgstr "_Continua"
+
+#: ../data/TimerApplet.xml.h:7
+msgid "_Preferences"
+msgstr "_Preferenze"
+
+#: ../data/TimerApplet.xml.h:8
+msgid "_Stop"
+msgstr "_Ferma"
+
+#: ../data/timer-applet.glade.h:1
+msgid "<b>_Duration</b>"
+msgstr "<b>_Durata</b>"
+
+#: ../data/timer-applet.glade.h:2
+msgid "<b>_Name</b>"
+msgstr "<b>_Nome</b>"
+
+#: ../data/timer-applet.glade.h:3
+msgid "<b>_Presets</b>"
+msgstr "<b>_Preimpostazioni</b>"
+
+#: ../data/timer-applet.glade.h:4
+msgid "A timer applet for the perfect egg and beyond!"
+msgstr ""
+"Un timer applet per una perfetta cottura delle uova e molto altro ancora!"
+
+#: ../data/timer-applet.glade.h:5
+#: ../src/timerapplet/controllers/GlobalController.py:47
+msgid "Add Preset"
+msgstr "Aggiungi preimpostazione"
+
+#: ../data/timer-applet.glade.h:6
+msgid "Choose A Sound File"
+msgstr "Seleziona un file audio"
+
+#: ../data/timer-applet.glade.h:7
+msgid "Mana_ge Presets"
+msgstr "_Gestisci preimpostazioni"
+
+#: ../data/timer-applet.glade.h:8
+msgid "Manage Presets"
+msgstr "Gestisci preimpostazioni"
+
+#. TRANSLATORS: Replace this string with your names, one name per line.
+#: ../data/timer-applet.glade.h:10
+msgid ""
+"Miguel Anxo Bouzada\n"
+"Bundo\n"
+"C&#xE9;dric VALMARY (Tot en &#xF2;c) 16 points"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:13
+msgid "S_ave as Preset"
+msgstr "S_alva come preimpostazione"
+
+#: ../data/timer-applet.glade.h:14
+msgid "S_tart Timer"
+msgstr "_Avvia il timer"
+
+#: ../data/timer-applet.glade.h:15
+msgid "Start Timer"
+msgstr "Avvia il timer"
+
+#: ../data/timer-applet.glade.h:16
+msgid "Timer Applet"
+msgstr "Timer Applet"
+
+#: ../data/timer-applet.glade.h:17
+msgid "Timer Preferences"
+msgstr "Preferenze del timer"
+
+#: ../data/timer-applet.glade.h:18
+msgid "Use c_ustom sound"
+msgstr "Utilizza suono _personalizzato"
+
+#: ../data/timer-applet.glade.h:19
+msgid "Use d_efault sound"
+msgstr "Usa il suono di d_efault"
+
+#: ../data/timer-applet.glade.h:20
+msgid "_Add..."
+msgstr "_Aggiungi..."
+
+#: ../data/timer-applet.glade.h:21
+msgid "_Delete"
+msgstr "_Elimina"
+
+#: ../data/timer-applet.glade.h:22
+msgid "_Edit..."
+msgstr "_Modifica"
+
+#: ../data/timer-applet.glade.h:23
+msgid "_Name:"
+msgstr "_Nome:"
+
+#: ../data/timer-applet.glade.h:24
+msgid "_Play notification sound"
+msgstr "_Riproduci suono di notifica"
+
+#: ../data/timer-applet.glade.h:25
+msgid "_Show remaining time while timer is running"
+msgstr "Mo_stra tempo rimanente mentre il timer è avviato"
+
+#: ../data/timer-applet.schemas.in.h:1
+msgid "Path to a custom notification sound"
+msgstr "Percorso del suono di notifica personalizzato"
+
+#: ../data/timer-applet.schemas.in.h:2
+msgid ""
+"Path to a sound file that will be played when the timer finishes a countdown"
+msgstr "Percorso del file audio che verrà riprodotto quando il timer termina"
+
+#: ../data/timer-applet.schemas.in.h:3
+msgid "Play a beep sound"
+msgstr "Riproduci un suono di sistema"
+
+#: ../data/timer-applet.schemas.in.h:4
+msgid ""
+"Play a beep sound on a computer's internal speaker when the timer finishes. "
+"This may not have an effect on all computers."
+msgstr ""
+"Riproduci un suono di sistema tramite lo speaker interno del computer quando "
+"il timer termina. Potrebbe non funzionare su tutti i computer."
+
+#: ../data/timer-applet.schemas.in.h:5
+msgid "Play a notification sound when the timer finishes a countdown"
+msgstr "Riproduci un suono di notifica quando il timer termina"
+
+#: ../data/timer-applet.schemas.in.h:6
+msgid "Play notification sound"
+msgstr "Riproduci suono di notifica"
+
+#: ../data/timer-applet.schemas.in.h:7
+msgid "Show remaining time"
+msgstr "Mostra il tempo rimanente"
+
+#: ../data/timer-applet.schemas.in.h:8
+msgid "Show the remaining time while the timer is running or paused"
+msgstr "Mostra tempo rimanente mentre il timer è avviato o in pausa"
+
+#: ../data/timer-applet.schemas.in.h:9
+msgid "Use a custom notification sound"
+msgstr "Utilizza un suono di notifica personalizzato"
+
+#: ../data/timer-applet.schemas.in.h:10
+msgid ""
+"Use the custom notification sound specified in custom_notification_sound_path"
+msgstr ""
+"Usa il suono di notifica personalizzato specificato in "
+"custom_notification_sound_path"
+
+#: ../src/timerapplet/controllers/GlobalController.py:60
+msgid "Edit Preset"
+msgstr "Modifica preimpostazione"
+
+#. HH:MM:SS
+#: ../src/timerapplet/controllers/TimerApplet.py:45
+#: ../src/timerapplet/controllers/TimerApplet.py:360
+#, python-format
+msgid "%02d:%02d:%02d"
+msgstr "%02d:%02d:%02d"
+
+#. HH:MM
+#. MM:SS
+#: ../src/timerapplet/controllers/TimerApplet.py:49
+#: ../src/timerapplet/controllers/TimerApplet.py:52
+#, python-format
+msgid "%02d:%02d"
+msgstr "%02d:%02d"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:111
+msgid "Continue timer countdown?"
+msgstr "Continuare con il conto alla rovescia?"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:112
+msgid "The timer is currently paused. Would you like to continue countdown?"
+msgstr "Il timer è in pausa. Vuoi continuare il conto alla rovescia?"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:192
+msgid "Click to start a new timer countdown."
+msgstr "Clicca per avviare un nuovo conto alla rovescia."
+
+#: ../src/timerapplet/controllers/TimerApplet.py:197
+msgid "Paused. Click to continue timer countdown."
+msgstr "In pausa. Premi per riprendere il conto alla rovescia."
+
+#: ../src/timerapplet/controllers/TimerApplet.py:200
+msgid "Finished"
+msgstr "Terminato"
+
+#. "<timer name>" finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:205
+#, python-format
+msgid ""
+"\"%s\" finished at %s.\n"
+"Click to stop timer."
+msgstr "\"%s\" terminato alle %s."
+
+#. Timer finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:208
+#, python-format
+msgid ""
+"Timer finished at %s.\n"
+"Click to stop timer."
+msgstr ""
+"Timer terminato alle %s.\n"
+"Clicca per fermare il timer."
+
+#. HH:MM:SS (<timer name>)
+#: ../src/timerapplet/controllers/TimerApplet.py:357
+#, python-format
+msgid "%02d:%02d:%02d (%s)"
+msgstr "%02d:%02d:%02d (%s)"
+
+#. "<timer name>" Finished
+#: ../src/timerapplet/controllers/TimerApplet.py:379
+#, python-format
+msgid "\"%s\" Finished"
+msgstr "\"%s\" Terminato"
+
+#. "<timer name>" finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:382
+#, python-format
+msgid "\"%s\" finished at %s"
+msgstr "\"%s\" terminato alle %s"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:384
+msgid "Timer Finished"
+msgstr "Timer Terminato"
+
+#. Timer finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:387
+#, python-format
+msgid "Timer finished at %s"
+msgstr "Timer terminato alle %s"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:394
+#, python-format
+msgid "Timer finished about <b>%d second</b> ago"
+msgid_plural "Timer finished about <b>%d seconds</b> ago"
+msgstr[0] "Timer terminato circa <b>%d secondo</b> fa"
+msgstr[1] "Timer terminato circa <b>%d secondi</b> fa"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:399
+#, python-format
+msgid "Timer finished about <b>%d minute</b> ago"
+msgid_plural "Timer finished about <b>%d minutes</b> ago"
+msgstr[0] "Timer terminato circa <b>%d minuto</b> fa"
+msgstr[1] "Timer terminato circa <b>%d minuti</b> fa"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:24
+msgid "Continue Timer"
+msgstr "Continua Timer"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:27
+msgid "_Stop Timer"
+msgstr "_Ferma il Timer"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:28
+msgid "_Keep Paused"
+msgstr "_Mantieni in pausa"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:29
+msgid "_Continue Timer"
+msgstr "_Continua Timer"
+
+#: ../src/timerapplet/ui/DurationChooser.py:31
+msgid "_Hours:"
+msgstr "_Ore:"
+
+#: ../src/timerapplet/ui/DurationChooser.py:34
+msgid "_Minutes:"
+msgstr "_Minuti:"
+
+#: ../src/timerapplet/ui/DurationChooser.py:37
+msgid "_Seconds:"
+msgstr "_Secondi:"
+
+#. <preset name> (HH:MM:SS)
+#: ../src/timerapplet/utils.py:42
+#, python-format
+msgid "%s (%02d:%02d:%02d)"
+msgstr "%s (%02d:%02d:%02d)"
+
+#~ msgid "Released under the GNU General Public License"
+#~ msgstr "Rilasciato sotto licenza GNU General Public License"
+
+#~ msgid "Copyright (c) 2007 by Jimmy Do"
+#~ msgstr "Copyright (c) 2007 by Jimmy Do"
+
+#~ msgid "Start a timer and recive a notification when it is finished"
+#~ msgstr "Avvia il timer e ricevi una notifica quando termina"
+
+#~ msgid "translator-credits"
+#~ msgstr ""
+#~ "Launchpad Contributions:\n"
+#~ "  Fabrizio Tarizzo https://launchpad.net/~bluviolin\n"
+#~ "  Ivan Prignano https://launchpad.net/~ivanprignano\n"
+#~ "  enigmatichus https://launchpad.net/~enigmatichus"
+
+#~ msgid "_Help"
+#~ msgstr "_Aiuto"
+
+#~ msgid "Copyright (c) 2004-2005 by Jimmy Do"
+#~ msgstr "Copyright (c) 2004-2005 by Jimmy Do"
+
+#~ msgid "<span weight=\"bold\">_Name</span>"
+#~ msgstr "<span weight=\"bold\">_Nome</span>"
+
+#~ msgid "<span weight=\"bold\">_Duration</span>"
+#~ msgstr "<span weight=\"bold\">_Durata</span>"
+
+#~ msgid "<span weight=\"bold\">_Timer Presets</span>"
+#~ msgstr "<span weight=\"bold\">Preimpostazioni del _timer</span>"
+
+#~ msgid "<span weight=\"bold\">Presets</span>"
+#~ msgstr "<span weight=\"bold\">Preimpostazioni</span>"
+
+#~ msgid "Show the remaining time in the GNOME panel"
+#~ msgstr "Mostra il tempo rimenente nel pannello di GNOME"

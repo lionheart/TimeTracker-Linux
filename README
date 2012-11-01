@@ -1,0 +1,61 @@
+TimeTracker applet for GNOME
+======================
+
+TimeTracker applet allows you to manage your time with harvestapp.com from GNOME.
+
+Manage your time more accurately while you work on client projects.
+
+The user interface follows the GNOME Human Interface Guidelines.
+
+Dependencies
+------------
+
+gobject # >= 2.12
+gtk # >= 2.10, includes pango
+gtk.glade # >= 2.10
+gconf # >= 2.18
+gnome # >= 2.18, includes bonobo.ui
+gnomeapplet # >= 2.18, included in python-gnome2-desktop
+pynotify # >= 0.1.1
+
+Documentation
+-------------
+
+If you're a good writer and have some free time, consider writing documentation
+for TimeTracker Applet!
+
+
+Contribute
+==========
+
+Your contribution will be merited a lot!
+
+Fix/report bugs
+---------------
+
+Please, refer to the bug tracker on Launchpad for reporting bugs and submitting
+patches. [2]
+
+Questions? Answers!
+-------------------
+
+If you have any questions related to the project contact us directly on the
+Launchpad Answer Tracker. [3]
+
+Translate
+---------
+
+Check if there are any pending translations missing:
+
+	https://translations.launchpad.net/timer-applet
+
+Contact
+=======
+
+Get in touch with the developers on Launchpad. [1]
+
+References:
+===========
+[1] https://launchpad.net/timer-applet
+[2] https://bugs.launchpad.net/timer-applet
+[3] https://answers.launchpad.net/timer-applet

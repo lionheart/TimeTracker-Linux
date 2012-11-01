@@ -1,0 +1,450 @@
+# Polish translation of PACKAGE.
+# Copyright (C) 2005 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Michał Kastelik <m.kastelik@wp.pl>, 2005.
+# , fuzzy
+#
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-07-05 16:45-0400\n"
+"PO-Revision-Date: 2010-07-09 02:16+0000\n"
+"Last-Translator: Michal Fotyga <michal.fotyga@gmail.com>\n"
+"Language-Team: Polish\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2;\n"
+"X-Launchpad-Export-Date: 2010-07-10 03:54+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: ../data/TimerApplet.server.in.in.h:1
+msgid "A Timer Applet factory that creates Timer Applets"
+msgstr "Fabryka appletu Minutnika, która tworzą applet Minutnik"
+
+#: ../data/TimerApplet.server.in.in.h:2
+msgid "Start a timer and receive a notification when it is finished"
+msgstr ""
+
+#: ../data/TimerApplet.server.in.in.h:3
+msgid "Timer"
+msgstr "Minutnik"
+
+#: ../data/TimerApplet.server.in.in.h:4
+msgid "Timer Applet Factory"
+msgstr "Fabryka Appletu Minutnik"
+
+#: ../data/TimerApplet.xml.h:1
+msgid "Ma_nage Presets"
+msgstr "Zarządzaj schematami"
+
+#: ../data/TimerApplet.xml.h:2
+msgid "Pa_use"
+msgstr "Pauza"
+
+#: ../data/TimerApplet.xml.h:3
+msgid "Pre_sets"
+msgstr "Schematy"
+
+#: ../data/TimerApplet.xml.h:4
+msgid "R_estart"
+msgstr "Rozpocznij od nowa"
+
+#: ../data/TimerApplet.xml.h:5
+msgid "_About"
+msgstr "_O Programie"
+
+#: ../data/TimerApplet.xml.h:6
+msgid "_Continue"
+msgstr "_Kontunuuj"
+
+#: ../data/TimerApplet.xml.h:7
+msgid "_Preferences"
+msgstr "_Właściwości"
+
+#: ../data/TimerApplet.xml.h:8
+msgid "_Stop"
+msgstr "_Zatrzymaj"
+
+#: ../data/timer-applet.glade.h:1
+msgid "<b>_Duration</b>"
+msgstr "<b>_Czas trwania</b>"
+
+#: ../data/timer-applet.glade.h:2
+msgid "<b>_Name</b>"
+msgstr "<b>_Nazwa</b>"
+
+#: ../data/timer-applet.glade.h:3
+msgid "<b>_Presets</b>"
+msgstr "<b>_Schematy</b>"
+
+#: ../data/timer-applet.glade.h:4
+msgid "A timer applet for the perfect egg and beyond!"
+msgstr "Minutnik do perfekcyjnie ugotowanych jajek i nie tylko."
+
+#: ../data/timer-applet.glade.h:5
+#: ../src/timerapplet/controllers/GlobalController.py:47
+msgid "Add Preset"
+msgstr "Dodaj schemat"
+
+#: ../data/timer-applet.glade.h:6
+msgid "Choose A Sound File"
+msgstr "Wybierz dźwięk"
+
+#: ../data/timer-applet.glade.h:7
+msgid "Mana_ge Presets"
+msgstr "Zarządzaj schematami"
+
+#: ../data/timer-applet.glade.h:8
+msgid "Manage Presets"
+msgstr "Zarządzaj schematami"
+
+#. TRANSLATORS: Replace this string with your names, one name per line.
+#: ../data/timer-applet.glade.h:10
+msgid ""
+"Miguel Anxo Bouzada\n"
+"Bundo\n"
+"C&#xE9;dric VALMARY (Tot en &#xF2;c) 16 points"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:13
+msgid "S_ave as Preset"
+msgstr "Zapisz jako schemat"
+
+#: ../data/timer-applet.glade.h:14
+msgid "S_tart Timer"
+msgstr "Uruchom minu_tnik"
+
+#: ../data/timer-applet.glade.h:15
+msgid "Start Timer"
+msgstr "Uruchom minutnik"
+
+#: ../data/timer-applet.glade.h:16
+msgid "Timer Applet"
+msgstr "Minutnik"
+
+#: ../data/timer-applet.glade.h:17
+msgid "Timer Preferences"
+msgstr "Właściwości Minutnika"
+
+#: ../data/timer-applet.glade.h:18
+msgid "Use c_ustom sound"
+msgstr "Użyj własny dźwięk"
+
+#: ../data/timer-applet.glade.h:19
+msgid "Use d_efault sound"
+msgstr "Użyj domyślnego dźwięku"
+
+#: ../data/timer-applet.glade.h:20
+msgid "_Add..."
+msgstr "_Dodaj..."
+
+#: ../data/timer-applet.glade.h:21
+msgid "_Delete"
+msgstr "_Usuń"
+
+#: ../data/timer-applet.glade.h:22
+msgid "_Edit..."
+msgstr "_Modyfikuj..."
+
+#: ../data/timer-applet.glade.h:23
+msgid "_Name:"
+msgstr "_Nazwa:"
+
+#: ../data/timer-applet.glade.h:24
+msgid "_Play notification sound"
+msgstr "_Odtwarzaj dźwięk powiadomienia"
+
+#: ../data/timer-applet.glade.h:25
+msgid "_Show remaining time while timer is running"
+msgstr "_Pokaż pozostały czas gdy trwa odliczanie"
+
+#: ../data/timer-applet.schemas.in.h:1
+msgid "Path to a custom notification sound"
+msgstr "Lokalizacja Twojego dźwięku powiadomienia"
+
+#: ../data/timer-applet.schemas.in.h:2
+msgid ""
+"Path to a sound file that will be played when the timer finishes a countdown"
+msgstr ""
+"Lokalizacja pliku dźwiękowego, który zostanie odegrany gdy Minutnik zakończy "
+"odliczanie"
+
+#: ../data/timer-applet.schemas.in.h:3
+msgid "Play a beep sound"
+msgstr "Użyj brzęczyka"
+
+#: ../data/timer-applet.schemas.in.h:4
+msgid ""
+"Play a beep sound on a computer's internal speaker when the timer finishes. "
+"This may not have an effect on all computers."
+msgstr ""
+"Odegraj dźwięk brzęczyka z wewnętrznego głośnika komputera gdy Minutnik "
+"zakończy odliczanie. Może to nie działać ze wszystkimi komputerami."
+
+#: ../data/timer-applet.schemas.in.h:5
+msgid "Play a notification sound when the timer finishes a countdown"
+msgstr "Odtwórz dźwięk kiedy odliczanie zostanie zakończone"
+
+#: ../data/timer-applet.schemas.in.h:6
+msgid "Play notification sound"
+msgstr "Odtwórz dźwięk powiadomienia"
+
+#: ../data/timer-applet.schemas.in.h:7
+msgid "Show remaining time"
+msgstr "Pokaż pozostały czas"
+
+#: ../data/timer-applet.schemas.in.h:8
+msgid "Show the remaining time while the timer is running or paused"
+msgstr "Pokaż upływający czas gdy Minutnik jest uruchomiony lub spauzowany"
+
+#: ../data/timer-applet.schemas.in.h:9
+msgid "Use a custom notification sound"
+msgstr "Użyj własnego dźwieku powiadomienia"
+
+#: ../data/timer-applet.schemas.in.h:10
+msgid ""
+"Use the custom notification sound specified in custom_notification_sound_path"
+msgstr ""
+"Użyj własnego dźwięku powiadomienia określonego w "
+"lokalizacja_włansego_dźwięku_powiadomienia"
+
+#: ../src/timerapplet/controllers/GlobalController.py:60
+msgid "Edit Preset"
+msgstr "Modyfikuj schemat"
+
+#. HH:MM:SS
+#: ../src/timerapplet/controllers/TimerApplet.py:45
+#: ../src/timerapplet/controllers/TimerApplet.py:360
+#, python-format
+msgid "%02d:%02d:%02d"
+msgstr "%02d:%02d:%02d"
+
+#. HH:MM
+#. MM:SS
+#: ../src/timerapplet/controllers/TimerApplet.py:49
+#: ../src/timerapplet/controllers/TimerApplet.py:52
+#, python-format
+msgid "%02d:%02d"
+msgstr "%02d:%02d"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:111
+msgid "Continue timer countdown?"
+msgstr "Kontynuuwać odliczanie?"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:112
+msgid "The timer is currently paused. Would you like to continue countdown?"
+msgstr "Minutnik jest aktualnie spauzowany. Czy chcesz wznowić odliczanie?"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:192
+msgid "Click to start a new timer countdown."
+msgstr "Kliknij aby uruchomić nowe odliczanie."
+
+#: ../src/timerapplet/controllers/TimerApplet.py:197
+msgid "Paused. Click to continue timer countdown."
+msgstr "Spauzowany. Kliknij aby kontynuować odliczanie."
+
+#: ../src/timerapplet/controllers/TimerApplet.py:200
+msgid "Finished"
+msgstr "Zakończne"
+
+#. "<timer name>" finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:205
+#, python-format
+msgid ""
+"\"%s\" finished at %s.\n"
+"Click to stop timer."
+msgstr ""
+"\"%s\" zakończono o %s.\n"
+"Kliknij by zatrzymać odliczanie."
+
+#. Timer finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:208
+#, python-format
+msgid ""
+"Timer finished at %s.\n"
+"Click to stop timer."
+msgstr ""
+"Odliczanie zakończone o %s.\n"
+"Kliknij by zakończyć odliczanie."
+
+#. HH:MM:SS (<timer name>)
+#: ../src/timerapplet/controllers/TimerApplet.py:357
+#, python-format
+msgid "%02d:%02d:%02d (%s)"
+msgstr "%02d:%02d:%02d (%s)"
+
+#. "<timer name>" Finished
+#: ../src/timerapplet/controllers/TimerApplet.py:379
+#, python-format
+msgid "\"%s\" Finished"
+msgstr "\"%s\" Zakończony"
+
+#. "<timer name>" finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:382
+#, python-format
+msgid "\"%s\" finished at %s"
+msgstr "\"%s\" zakończono o %s"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:384
+msgid "Timer Finished"
+msgstr "Odliczanie zakończone"
+
+#. Timer finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:387
+#, python-format
+msgid "Timer finished at %s"
+msgstr "Odliczanie zakończono o %s"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:394
+#, python-format
+msgid "Timer finished about <b>%d second</b> ago"
+msgid_plural "Timer finished about <b>%d seconds</b> ago"
+msgstr[0] "Odliczanie zakończone około <b>%d sekundy</b> temu"
+msgstr[1] "Odliczanie zakończono około <b>%d sekund</b> temu"
+msgstr[2] "Odliczanie zakończono około <b>%d sekund</b> temu"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:399
+#, python-format
+msgid "Timer finished about <b>%d minute</b> ago"
+msgid_plural "Timer finished about <b>%d minutes</b> ago"
+msgstr[0] "Odliczanie zakończono około <b>%d minuty</b> temu"
+msgstr[1] "Odliczanie zakończono około <b>%d minut</b> temu"
+msgstr[2] "Odliczanie zakończono około <b>%d minut</b> temu"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:24
+msgid "Continue Timer"
+msgstr "Kontynuuj odliczanie"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:27
+msgid "_Stop Timer"
+msgstr "_Zatrzymaj odliczanie"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:28
+msgid "_Keep Paused"
+msgstr "_Pozostaw spauzowany"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:29
+msgid "_Continue Timer"
+msgstr "_Kontynuuj odliczanie"
+
+#: ../src/timerapplet/ui/DurationChooser.py:31
+msgid "_Hours:"
+msgstr "_Godzin:"
+
+#: ../src/timerapplet/ui/DurationChooser.py:34
+msgid "_Minutes:"
+msgstr "_Minut:"
+
+#: ../src/timerapplet/ui/DurationChooser.py:37
+msgid "_Seconds:"
+msgstr "_Sekund:"
+
+#. <preset name> (HH:MM:SS)
+#: ../src/timerapplet/utils.py:42
+#, python-format
+msgid "%s (%02d:%02d:%02d)"
+msgstr "%s (%02d:%02d:%02d)"
+
+#~ msgid "Copyright (c) 2007 by Jimmy Do"
+#~ msgstr "Copyright (c) 2004-2005 by Jimmy Do"
+
+#~ msgid "Start a timer and recive a notification when it is finished"
+#~ msgstr "Uruchom Timer i zostań powiadomiony gdy odliczanie dobiegnie końca"
+
+#~ msgid "Released under the GNU General Public License"
+#~ msgstr "Wydane na licencji GNU General Public License"
+
+#~ msgid "translator-credits"
+#~ msgstr ""
+#~ "Launchpad Contributions:\n"
+#~ "  Michal Fotyga https://launchpad.net/~michal-fotyga\n"
+#~ "  Michał Kastelik https://launchpad.net/~m-kastelik"
+
+#~ msgid "Get a notification after a specified interval of time elapses"
+#~ msgstr "Wyświetla powiadomienia po skończeniu odliczania"
+
+#~ msgid "_Help"
+#~ msgstr "_Pomoc"
+
+#~ msgid "Copyright (c) 2004-2005 by Jimmy Do"
+#~ msgstr "Copyright (c) 2004-2005 by Jimmy Do"
+
+#~ msgid ""
+#~ "Released under the GNU General Public License.\n"
+#~ "\n"
+#~ "A timer applet for the perfect egg and beyond."
+#~ msgstr "Minutnik do perfekcyjnie ugotowanych jajek i nie tylko."
+
+#~ msgid "<span weight=\"bold\">_Name</span>"
+#~ msgstr "<span weight=\"bold\">_Nazwa</span>"
+
+#~ msgid "<span weight=\"bold\">_Duration</span>"
+#~ msgstr "<span weight=\"bold\">_Czas trwania</span>"
+
+#~ msgid "<span weight=\"bold\">_Timer Presets</span>"
+#~ msgstr "<span weight=\"bold\">_Schematy odliczania</span>"
+
+#~ msgid "_Show remaining time in panel"
+#~ msgstr "_Pokaż pozostały czas na panelu"
+
+#~ msgid "_Keep notification dialog on top of all other windows"
+#~ msgstr "Utrzymuj powiadomienia zawsze na wierzchu"
+
+#~ msgid "_Display notification dialog on all workspaces"
+#~ msgstr "Wyświetlaj powiadomienia na wszystkich obszarach roboczych"
+
+#~ msgid "Untitled Preset"
+#~ msgstr "Nienazwane odliczanie"
+
+#~ msgid "Delete the selected timer preset?"
+#~ msgstr "Czy chcesz usunąć zaznaczony schemat?"
+
+#~ msgid "<span weight=\"bold\">Presets</span>"
+#~ msgstr "<span weight=\"bold\">Schematy</span>"
+
+#~ msgid "_Load Selected Preset"
+#~ msgstr "_Wczytaj zaznaczony schemat"
+
+#~ msgid "Click to start timer"
+#~ msgstr "Kliknij aby uruchomić odliczanie"
+
+#~ msgid "Resume Timer"
+#~ msgstr "Kontynuowanie odliczania"
+
+#~ msgid "_Start Over"
+#~ msgstr "_Uruchom ponownie"
+
+#~ msgid "_Resume Timer"
+#~ msgstr "_Kontynuuj odliczanie"
+
+#~ msgid "Resume the \"%s\" timer?"
+#~ msgstr "Czy chcesz kontynuować odliczanie \"%s\"?"
+
+#~ msgid "Resume the timer?"
+#~ msgstr "Kontynuować odliczanie?"
+
+#~ msgid ""
+#~ "The timer is currently paused. Would you like to resume countdown from %s?"
+#~ msgstr "Minutnik zostały zatrzymany. Czy chcesz kontynuować odliczanie %s?"
+
+#~ msgid "Display the notification dialog on all workspaces"
+#~ msgstr "Wyświetlaj powiadomienia na wszystkich obszarach roboczych"
+
+#~ msgid "Keep the notification dialog on top of all other windows"
+#~ msgstr "Utrzymuj powiadomienia zawsze na wierzchu"
+
+#~ msgid "Kep notification dialog always on top"
+#~ msgstr "Utrzymuj powiadomienia zawsze na wierzchu"
+
+#~ msgid "Last-used timer duration"
+#~ msgstr "Ostatnio używany czas odliczania"
+
+#~ msgid "Last-used timer name"
+#~ msgstr "Ostatnio używana nazwa minutnika"
+
+#~ msgid "Show the remaining time in the GNOME panel"
+#~ msgstr "Pokaż upływający czas w panelu GNOME"

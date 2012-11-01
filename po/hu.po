@@ -1,0 +1,354 @@
+# Hungarian translation for timer-applet
+# Copyright (c) 2007 Rosetta Contributors and Canonical Ltd 2007
+# This file is distributed under the same license as the timer-applet package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2007.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: timer-applet\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-07-05 16:45-0400\n"
+"PO-Revision-Date: 2008-12-01 22:04+0000\n"
+"Last-Translator: sipiatti <sipiatti@gmail.com>\n"
+"Language-Team: Hungarian <hu@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Launchpad-Export-Date: 2010-07-10 03:54+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: ../data/TimerApplet.server.in.in.h:1
+msgid "A Timer Applet factory that creates Timer Applets"
+msgstr "Egy időmérő kisalkalmazás visszaszámlálásokhoz"
+
+#: ../data/TimerApplet.server.in.in.h:2
+msgid "Start a timer and receive a notification when it is finished"
+msgstr ""
+
+#: ../data/TimerApplet.server.in.in.h:3
+msgid "Timer"
+msgstr "Időmérő"
+
+#: ../data/TimerApplet.server.in.in.h:4
+msgid "Timer Applet Factory"
+msgstr "Időmérő kisalkalmazás"
+
+#: ../data/TimerApplet.xml.h:1
+msgid "Ma_nage Presets"
+msgstr "Mentettek _kezelése"
+
+#: ../data/TimerApplet.xml.h:2
+msgid "Pa_use"
+msgstr "_Szünet"
+
+#: ../data/TimerApplet.xml.h:3
+msgid "Pre_sets"
+msgstr "_Mentett időmérők"
+
+#: ../data/TimerApplet.xml.h:4
+msgid "R_estart"
+msgstr "_Újraindítás"
+
+#: ../data/TimerApplet.xml.h:5
+msgid "_About"
+msgstr "_Névjegy"
+
+#: ../data/TimerApplet.xml.h:6
+msgid "_Continue"
+msgstr "_Folytatás"
+
+#: ../data/TimerApplet.xml.h:7
+msgid "_Preferences"
+msgstr "_Beállítások"
+
+#: ../data/TimerApplet.xml.h:8
+msgid "_Stop"
+msgstr "_Leállítás"
+
+#: ../data/timer-applet.glade.h:1
+msgid "<b>_Duration</b>"
+msgstr "<b>_Időtartam</b>"
+
+#: ../data/timer-applet.glade.h:2
+msgid "<b>_Name</b>"
+msgstr "<b>_Név</b>"
+
+#: ../data/timer-applet.glade.h:3
+msgid "<b>_Presets</b>"
+msgstr "<b>_Mentett időmérők</b>"
+
+#: ../data/timer-applet.glade.h:4
+msgid "A timer applet for the perfect egg and beyond!"
+msgstr "Egy időmérő a tökéletes tojásfőzéshez, és még sok máshoz!"
+
+#: ../data/timer-applet.glade.h:5
+#: ../src/timerapplet/controllers/GlobalController.py:47
+msgid "Add Preset"
+msgstr "Időmérő elmentése"
+
+#: ../data/timer-applet.glade.h:6
+msgid "Choose A Sound File"
+msgstr "Hangfálj kiválasztása"
+
+#: ../data/timer-applet.glade.h:7
+msgid "Mana_ge Presets"
+msgstr "Mentett időmérők _kezelése"
+
+#: ../data/timer-applet.glade.h:8
+msgid "Manage Presets"
+msgstr "Mentett időmérők _kezelése"
+
+#. TRANSLATORS: Replace this string with your names, one name per line.
+#: ../data/timer-applet.glade.h:10
+msgid ""
+"Miguel Anxo Bouzada\n"
+"Bundo\n"
+"C&#xE9;dric VALMARY (Tot en &#xF2;c) 16 points"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:13
+msgid "S_ave as Preset"
+msgstr "Időmérő _mentése"
+
+#: ../data/timer-applet.glade.h:14
+msgid "S_tart Timer"
+msgstr "Időmérő _indítása"
+
+#: ../data/timer-applet.glade.h:15
+msgid "Start Timer"
+msgstr "Időmérő indítása"
+
+#: ../data/timer-applet.glade.h:16
+msgid "Timer Applet"
+msgstr "Időmérő kisalkalmazás"
+
+#: ../data/timer-applet.glade.h:17
+msgid "Timer Preferences"
+msgstr "Idémérő beállításai"
+
+#: ../data/timer-applet.glade.h:18
+msgid "Use c_ustom sound"
+msgstr "Saját _hang"
+
+#: ../data/timer-applet.glade.h:19
+msgid "Use d_efault sound"
+msgstr "_Alapértelmezett hang"
+
+#: ../data/timer-applet.glade.h:20
+msgid "_Add..."
+msgstr "Hozzá_adás..."
+
+#: ../data/timer-applet.glade.h:21
+msgid "_Delete"
+msgstr "_Törlés"
+
+#: ../data/timer-applet.glade.h:22
+msgid "_Edit..."
+msgstr "_Szerkesztés..."
+
+#: ../data/timer-applet.glade.h:23
+msgid "_Name:"
+msgstr "_Név:"
+
+#: ../data/timer-applet.glade.h:24
+msgid "_Play notification sound"
+msgstr "Figyelmeztető hang _lejátszása"
+
+#: ../data/timer-applet.glade.h:25
+msgid "_Show remaining time while timer is running"
+msgstr "M_utasd a hátralévő időt"
+
+#: ../data/timer-applet.schemas.in.h:1
+msgid "Path to a custom notification sound"
+msgstr "Saját hang elérési újta"
+
+#: ../data/timer-applet.schemas.in.h:2
+msgid ""
+"Path to a sound file that will be played when the timer finishes a countdown"
+msgstr "A visszaszámlálás végén lejátszandó hangfájl elérési útja"
+
+#: ../data/timer-applet.schemas.in.h:3
+msgid "Play a beep sound"
+msgstr "Csipogjon"
+
+#: ../data/timer-applet.schemas.in.h:4
+msgid ""
+"Play a beep sound on a computer's internal speaker when the timer finishes. "
+"This may not have an effect on all computers."
+msgstr ""
+"A visszaszámlálás lejártakor a számítógép belső hangszóróján csipogjon. Ez "
+"nem működik minden számítógépen."
+
+#: ../data/timer-applet.schemas.in.h:5
+msgid "Play a notification sound when the timer finishes a countdown"
+msgstr "A visszaszámlálás végén játsszon le egy figyelmeztető hangot"
+
+#: ../data/timer-applet.schemas.in.h:6
+msgid "Play notification sound"
+msgstr "Figyelmeztető hang lejátszása"
+
+#: ../data/timer-applet.schemas.in.h:7
+msgid "Show remaining time"
+msgstr "Mutassa a hátralévő időt"
+
+#: ../data/timer-applet.schemas.in.h:8
+msgid "Show the remaining time while the timer is running or paused"
+msgstr "Mutassa a hátralévő időt, amíg a visszaszámlálás fut vagy szünetel"
+
+#: ../data/timer-applet.schemas.in.h:9
+msgid "Use a custom notification sound"
+msgstr "Saját figyelmeztető hang használata"
+
+#: ../data/timer-applet.schemas.in.h:10
+msgid ""
+"Use the custom notification sound specified in custom_notification_sound_path"
+msgstr ""
+"Használja a custom_notification_sound_path alatt megadott saját "
+"figyelmeztető hangot"
+
+#: ../src/timerapplet/controllers/GlobalController.py:60
+msgid "Edit Preset"
+msgstr "Mentések szerkesztése"
+
+#. HH:MM:SS
+#: ../src/timerapplet/controllers/TimerApplet.py:45
+#: ../src/timerapplet/controllers/TimerApplet.py:360
+#, python-format
+msgid "%02d:%02d:%02d"
+msgstr "%02d:%02d:%02d"
+
+#. HH:MM
+#. MM:SS
+#: ../src/timerapplet/controllers/TimerApplet.py:49
+#: ../src/timerapplet/controllers/TimerApplet.py:52
+#, python-format
+msgid "%02d:%02d"
+msgstr "%02d:%02d"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:111
+msgid "Continue timer countdown?"
+msgstr "Visszaszámlálás folytatása?"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:112
+msgid "The timer is currently paused. Would you like to continue countdown?"
+msgstr "Az időmérő jelenleg áll. Szeretné folytatni a visszaszámlálást?"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:192
+msgid "Click to start a new timer countdown."
+msgstr "Kattintson új visszaszámlálás elkezdéséhez."
+
+#: ../src/timerapplet/controllers/TimerApplet.py:197
+msgid "Paused. Click to continue timer countdown."
+msgstr "Szüneteltetve. Kattintson a visszaszámlálás folytatásához."
+
+#: ../src/timerapplet/controllers/TimerApplet.py:200
+msgid "Finished"
+msgstr "Kész"
+
+#. "<timer name>" finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:205
+#, python-format
+msgid ""
+"\"%s\" finished at %s.\n"
+"Click to stop timer."
+msgstr "\"%s\" %s-kor befejeződött"
+
+#. Timer finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:208
+#, python-format
+msgid ""
+"Timer finished at %s.\n"
+"Click to stop timer."
+msgstr "A visszaszámlálás %s-kor befejeződött"
+
+#. HH:MM:SS (<timer name>)
+#: ../src/timerapplet/controllers/TimerApplet.py:357
+#, python-format
+msgid "%02d:%02d:%02d (%s)"
+msgstr "%02d:%02d:%02d (%s)"
+
+#. "<timer name>" Finished
+#: ../src/timerapplet/controllers/TimerApplet.py:379
+#, python-format
+msgid "\"%s\" Finished"
+msgstr "\"%s\" kész"
+
+#. "<timer name>" finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:382
+#, python-format
+msgid "\"%s\" finished at %s"
+msgstr "\"%s\" befejeződött %s-kor"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:384
+msgid "Timer Finished"
+msgstr "A visszaszámlálás befejeződött"
+
+#. Timer finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:387
+#, python-format
+msgid "Timer finished at %s"
+msgstr "A visszaszámlálás befejeződött %s-kor"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:394
+#, python-format
+msgid "Timer finished about <b>%d second</b> ago"
+msgid_plural "Timer finished about <b>%d seconds</b> ago"
+msgstr[0] "A visszaszámlálás körülbelül <b>%d másodperce</b> fejeződött be"
+msgstr[1] "A visszaszámlálás körülbelül <b>%d másodperce</b> fejeződött be"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:399
+#, python-format
+msgid "Timer finished about <b>%d minute</b> ago"
+msgid_plural "Timer finished about <b>%d minutes</b> ago"
+msgstr[0] "A visszaszámlálás körülbelül <b>%d perce</b> fejeződött be"
+msgstr[1] "A visszaszámlálás körülbelül <b>%d perce</b> fejeződött be"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:24
+msgid "Continue Timer"
+msgstr "Visszaszámlálás folytatása"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:27
+msgid "_Stop Timer"
+msgstr "Visszaszámlálás _leállítása"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:28
+msgid "_Keep Paused"
+msgstr "S_züneteljen tovább"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:29
+msgid "_Continue Timer"
+msgstr "_Folytatás"
+
+#: ../src/timerapplet/ui/DurationChooser.py:31
+msgid "_Hours:"
+msgstr "_Órák:"
+
+#: ../src/timerapplet/ui/DurationChooser.py:34
+msgid "_Minutes:"
+msgstr "_Percek:"
+
+#: ../src/timerapplet/ui/DurationChooser.py:37
+msgid "_Seconds:"
+msgstr "_Másodpercek"
+
+#. <preset name> (HH:MM:SS)
+#: ../src/timerapplet/utils.py:42
+#, python-format
+msgid "%s (%02d:%02d:%02d)"
+msgstr "%s (%02d:%02d:%02d)"
+
+#~ msgid "Released under the GNU General Public License"
+#~ msgstr "A szoftverre a GNU General Public License érvényes"
+
+#~ msgid "Start a timer and recive a notification when it is finished"
+#~ msgstr "Elindít egy visszaszámlálást, és figyelmeztet, amikor a végére ér"
+
+#~ msgid "Copyright (c) 2007 by Jimmy Do"
+#~ msgstr "Copyright (c) 2007 by Jimmy Do"
+
+#~ msgid "translator-credits"
+#~ msgstr ""
+#~ "Launchpad Contributions:\n"
+#~ "  ViktorNagy https://launchpad.net/~viktor-nagy\n"
+#~ "  sipiatti https://launchpad.net/~sipiatti"

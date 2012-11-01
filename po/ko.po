@@ -1,0 +1,459 @@
+# Korean translation for timer-applet
+# Copyright (c) (c) 2006 Canonical Ltd, and Rosetta Contributors 2006
+# This file is distributed under the same license as the timer-applet package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2006.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: timer-applet\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-07-10 05:19+0000\n"
+"PO-Revision-Date: 2010-07-10 05:12+0000\n"
+"Last-Translator: Kenny Meyer <knny.myer@gmail.com>\n"
+"Language-Team: Korean <ko@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Launchpad-Export-Date: 2010-07-11 03:37+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: ../data/TimerApplet.server.in.in.h:1
+msgid "A Timer Applet factory that creates Timer Applets"
+msgstr "타이머 애플릿을 만드는 타이머 애플릿 제작 프로그램"
+
+#: ../data/TimerApplet.server.in.in.h:2
+msgid "Start a timer and receive a notification when it is finished"
+msgstr ""
+
+#: ../data/TimerApplet.server.in.in.h:3
+msgid "Timer"
+msgstr "타이머"
+
+#: ../data/TimerApplet.server.in.in.h:4
+msgid "Timer Applet Factory"
+msgstr "타이머 애플릿 제작 프로그램"
+
+#: ../data/TimerApplet.xml.h:1
+msgid "Ma_nage Presets"
+msgstr "시간조절 관리(_N)"
+
+#: ../data/TimerApplet.xml.h:2
+msgid "Pa_use"
+msgstr "일시정지(_U)"
+
+#: ../data/TimerApplet.xml.h:3
+msgid "Pre_sets"
+msgstr "시간조절(_S)"
+
+#: ../data/TimerApplet.xml.h:4
+msgid "R_estart"
+msgstr "재시작(_E)"
+
+#: ../data/TimerApplet.xml.h:5
+msgid "_About"
+msgstr "정보(_A)"
+
+#: ../data/TimerApplet.xml.h:6
+msgid "_Continue"
+msgstr "계속(_C)"
+
+#: ../data/TimerApplet.xml.h:7
+msgid "_Preferences"
+msgstr "기본 설정(_P)"
+
+#: ../data/TimerApplet.xml.h:8
+msgid "_Stop"
+msgstr "중지(_S)"
+
+#: ../data/timer-applet.glade.h:1
+msgid "<b>_Duration</b>"
+msgstr "<b>지속(_D)</b>"
+
+#: ../data/timer-applet.glade.h:2
+msgid "<b>_Name</b>"
+msgstr "<b>이름(_N)</b>"
+
+#: ../data/timer-applet.glade.h:3
+msgid "<b>_Presets</b>"
+msgstr "<b>프리셋(_P)</b>"
+
+#: ../data/timer-applet.glade.h:4
+msgid "A timer applet for the perfect egg and beyond!"
+msgstr "\"삶은 계란 완숙\" 위한 타이머 애플릿"
+
+#: ../data/timer-applet.glade.h:5
+#: ../src/timerapplet/controllers/GlobalController.py:47
+msgid "Add Preset"
+msgstr "시간조절 추가"
+
+#: ../data/timer-applet.glade.h:6
+msgid "Choose A Sound File"
+msgstr "사운드 파일 선택"
+
+#: ../data/timer-applet.glade.h:7
+msgid "Mana_ge Presets"
+msgstr "설정 관리(_G)"
+
+#: ../data/timer-applet.glade.h:8
+msgid "Manage Presets"
+msgstr "시간조절 관리"
+
+#. TRANSLATORS: Replace this string with your names, one name per line.
+#: ../data/timer-applet.glade.h:10
+msgid ""
+"Miguel Anxo Bouzada\n"
+"Bundo\n"
+"C&#xE9;dric VALMARY (Tot en &#xF2;c) 16 points"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:13
+msgid "S_ave as Preset"
+msgstr "프리셋으로 저장(_A)"
+
+#: ../data/timer-applet.glade.h:14
+msgid "S_tart Timer"
+msgstr "타이머 시작(_T)"
+
+#: ../data/timer-applet.glade.h:15
+msgid "Start Timer"
+msgstr "타이머 시작"
+
+#: ../data/timer-applet.glade.h:16
+msgid "Timer Applet"
+msgstr "타이머 애플릿"
+
+#: ../data/timer-applet.glade.h:17
+msgid "Timer Preferences"
+msgstr "타이머 설정사항"
+
+#: ../data/timer-applet.glade.h:18
+msgid "Use c_ustom sound"
+msgstr "사용자 지정 소리 사용(_U)"
+
+#: ../data/timer-applet.glade.h:19
+msgid "Use d_efault sound"
+msgstr "기본 소리 사용(_E)"
+
+#: ../data/timer-applet.glade.h:20
+msgid "_Add..."
+msgstr "추가(_A)..."
+
+#: ../data/timer-applet.glade.h:21
+msgid "_Delete"
+msgstr "삭제(_D)"
+
+#: ../data/timer-applet.glade.h:22
+msgid "_Edit..."
+msgstr "편집(_E)..."
+
+#: ../data/timer-applet.glade.h:23
+msgid "_Name:"
+msgstr "이름(_N):"
+
+#: ../data/timer-applet.glade.h:24
+msgid "_Play notification sound"
+msgstr "알림 소리 연주(_P)"
+
+#: ../data/timer-applet.glade.h:25
+msgid "_Show remaining time while timer is running"
+msgstr "실행하는 동안 남은시간을 표시(_S)"
+
+#: ../data/timer-applet.schemas.in.h:1
+msgid "Path to a custom notification sound"
+msgstr "사용자 지정 알림 소리 경로"
+
+#: ../data/timer-applet.schemas.in.h:2
+msgid ""
+"Path to a sound file that will be played when the timer finishes a countdown"
+msgstr "타이머가 초읽기를 마쳤을 때 연주될 소리 파일이 있는 경로"
+
+#: ../data/timer-applet.schemas.in.h:3
+msgid "Play a beep sound"
+msgstr "알림소리 재생"
+
+#: ../data/timer-applet.schemas.in.h:4
+msgid ""
+"Play a beep sound on a computer's internal speaker when the timer finishes. "
+"This may not have an effect on all computers."
+msgstr "타이머 알림시간에 컴퓨터 내부 스피커로  알림소리 재생. 모든 컴퓨터에 효과."
+
+#: ../data/timer-applet.schemas.in.h:5
+msgid "Play a notification sound when the timer finishes a countdown"
+msgstr "타이머가 초읽기를 마쳤을 때 알림 소리 연주"
+
+#: ../data/timer-applet.schemas.in.h:6
+msgid "Play notification sound"
+msgstr "알림 소리 연주"
+
+#: ../data/timer-applet.schemas.in.h:7
+msgid "Show remaining time"
+msgstr "남은 시간 표시"
+
+#: ../data/timer-applet.schemas.in.h:8
+msgid "Show the remaining time while the timer is running or paused"
+msgstr "타이머를 실행하거나 일시 중지 했을때 남은 시간이 표시 됩니다."
+
+#: ../data/timer-applet.schemas.in.h:9
+msgid "Use a custom notification sound"
+msgstr "사용자 지정 알림 소리"
+
+#: ../data/timer-applet.schemas.in.h:10
+msgid ""
+"Use the custom notification sound specified in custom_notification_sound_path"
+msgstr "사용자 지정 알림 소리 파일 경로에서 사용자 지정 알림 소리 정하여 사용"
+
+#: ../src/timerapplet/controllers/GlobalController.py:60
+msgid "Edit Preset"
+msgstr "시간조절 편집"
+
+#. HH:MM:SS
+#: ../src/timerapplet/controllers/TimerApplet.py:45
+#: ../src/timerapplet/controllers/TimerApplet.py:360
+#, python-format
+msgid "%02d:%02d:%02d"
+msgstr "%02d:%02d:%02d"
+
+#. HH:MM
+#. MM:SS
+#: ../src/timerapplet/controllers/TimerApplet.py:49
+#: ../src/timerapplet/controllers/TimerApplet.py:52
+#, python-format
+msgid "%02d:%02d"
+msgstr "%02d:%02d"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:111
+msgid "Continue timer countdown?"
+msgstr "타이머를 계속 진행(카운트다운)하시겠습니까?"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:112
+msgid "The timer is currently paused. Would you like to continue countdown?"
+msgstr "현재 타이머가 일시정지 상태 입니다. 계속 진행(카운트다운)할까요?"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:192
+msgid "Click to start a new timer countdown."
+msgstr "클릭하여 새로운 카운트 다운을 시작합니다."
+
+#: ../src/timerapplet/controllers/TimerApplet.py:197
+msgid "Paused. Click to continue timer countdown."
+msgstr "일시정지됨. 클릭으로 계속 진행(카운트다운)합니다."
+
+#: ../src/timerapplet/controllers/TimerApplet.py:200
+msgid "Finished"
+msgstr "종료됨"
+
+#. "<timer name>" finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:205
+#, python-format
+msgid ""
+"\"%s\" finished at %s.\n"
+"Click to stop timer."
+msgstr ""
+"\"%s\" 로 %s를 완료 합니다.\n"
+"클릭으로 타이머를 정지합니다."
+
+#. Timer finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:208
+#, python-format
+msgid ""
+"Timer finished at %s.\n"
+"Click to stop timer."
+msgstr ""
+"%s 타이어 끝남\n"
+"클릭으로 타이머를 정지합니다."
+
+#. HH:MM:SS (<timer name>)
+#: ../src/timerapplet/controllers/TimerApplet.py:357
+#, python-format
+msgid "%02d:%02d:%02d (%s)"
+msgstr "%02d:%02d:%02d (%s)"
+
+#. "<timer name>" Finished
+#: ../src/timerapplet/controllers/TimerApplet.py:379
+#, python-format
+msgid "\"%s\" Finished"
+msgstr "\"%s\" 끝남"
+
+#. "<timer name>" finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:382
+#, python-format
+msgid "\"%s\" finished at %s"
+msgstr "\"%s\" %s 에 종료됨"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:384
+msgid "Timer Finished"
+msgstr "타이머 종료됨"
+
+#. Timer finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:387
+#, python-format
+msgid "Timer finished at %s"
+msgstr "%s 에 타이머 종료됨"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:394
+#, python-format
+msgid "Timer finished about <b>%d second</b> ago"
+msgid_plural "Timer finished about <b>%d seconds</b> ago"
+msgstr[0] "타이머가 <b>%d 초</b> 전에 끝남"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:399
+#, python-format
+msgid "Timer finished about <b>%d minute</b> ago"
+msgid_plural "Timer finished about <b>%d minutes</b> ago"
+msgstr[0] "타이머가 <b>%d 분</b> 전에 끝남"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:24
+msgid "Continue Timer"
+msgstr "타이머 계속"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:27
+msgid "_Stop Timer"
+msgstr "타이머 정지(_S)"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:28
+msgid "_Keep Paused"
+msgstr "일시정지 유지(_K)"
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:29
+msgid "_Continue Timer"
+msgstr "타이머 계속(_C)"
+
+#: ../src/timerapplet/ui/DurationChooser.py:31
+msgid "_Hours:"
+msgstr "시간(_H):"
+
+#: ../src/timerapplet/ui/DurationChooser.py:34
+msgid "_Minutes:"
+msgstr "분(_M):"
+
+#: ../src/timerapplet/ui/DurationChooser.py:37
+msgid "_Seconds:"
+msgstr "초(_S):"
+
+#. <preset name> (HH:MM:SS)
+#: ../src/timerapplet/utils.py:42
+#, python-format
+msgid "%s (%02d:%02d:%02d)"
+msgstr "%s (%02d:%02d:%02d)"
+
+#~ msgid "Get a notification after a specified interval of time elapses"
+#~ msgstr "지정된 간격의 시간이 지난 후 알림"
+
+#~ msgid "_Help"
+#~ msgstr "도움말(_H)"
+
+#~ msgid "_Resume"
+#~ msgstr "재개(_R)"
+
+#~ msgid "Copyright (c) 2004-2005 by Jimmy Do"
+#~ msgstr "Copyright (c) 2004-2005 by Jimmy Do"
+
+#~ msgid ""
+#~ "Released under the GNU General Public License.\n"
+#~ "\n"
+#~ "A timer applet for the perfect egg and beyond."
+#~ msgstr ""
+#~ "GNU 일반 공개 라이센스 하에 발표.\n"
+#~ "\n"
+#~ "달걀 완숙과 그 이상을 위한 타이머 애플릿."
+
+#~ msgid "<span weight=\"bold\">_Name</span>"
+#~ msgstr "<span weight=\"bold\">이름(_N)</span>"
+
+#~ msgid "<span weight=\"bold\">_Duration</span>"
+#~ msgstr "<span weight=\"bold\">지속(_D)</span>"
+
+#~ msgid "<span weight=\"bold\">_Timer Presets</span>"
+#~ msgstr "<span weight=\"bold\">타이머 시간조절(_T)</span>"
+
+#~ msgid "_Show remaining time in panel"
+#~ msgstr "패널에 남은 시간 보이기(_S)"
+
+#~ msgid "Choose a Sound File"
+#~ msgstr "소리 파일 선택"
+
+#~ msgid "_Keep notification dialog on top of all other windows"
+#~ msgstr "알림 창을 모든 다른 창 위에 유지(_K)"
+
+#~ msgid "_Display notification dialog on all workspaces"
+#~ msgstr "모든 작업 공간에 알림 창 표시(_D)"
+
+#~ msgid "Untitled Preset"
+#~ msgstr "제목없는 시간조절"
+
+#~ msgid "Delete the selected timer preset?"
+#~ msgstr "선택된 타이머 시간조절을 삭제 합니까?"
+
+#~ msgid "<span weight=\"bold\">Presets</span>"
+#~ msgstr "<span weight=\"bold\">시간조절</span>"
+
+#~ msgid "_Load Selected Preset"
+#~ msgstr "선택된 시간조절 불러오기(_L)"
+
+#~ msgid "Click to start timer"
+#~ msgstr "타이머 시작을 위해 클릭"
+
+#~ msgid "%s (%s)"
+#~ msgstr "%s (%s)"
+
+#~ msgid "Paused. Click to resume timer."
+#~ msgstr "일시정지. 타이머 재개를 위해 클릭"
+
+#~ msgid "%I:%M %p"
+#~ msgstr "%I:%M %p"
+
+#~ msgid "Resume Timer"
+#~ msgstr "타이머 재개"
+
+#~ msgid "_Start Over"
+#~ msgstr "새로 시작(_S)"
+
+#~ msgid "_Resume Timer"
+#~ msgstr "타이머 재개(_R)"
+
+#~ msgid "Resume the \"%s\" timer?"
+#~ msgstr "타이머 \"%s\" (을)를 재개 합니까?"
+
+#~ msgid "Resume the timer?"
+#~ msgstr "타이머 재개?"
+
+#~ msgid ""
+#~ "The timer is currently paused. Would you like to resume countdown from %s?"
+#~ msgstr "타이머는 현재 일시 정지중 입니다. %s 에서 초읽기를 재개하길 바랍니까?"
+
+#~ msgid "Display the notification dialog on all workspaces"
+#~ msgstr "모든 작업 공간에 알림 창 표시"
+
+#~ msgid "Keep the notification dialog on top of all other windows"
+#~ msgstr "알림 창을 모든 다른 창 위에 유지"
+
+#~ msgid "Kep notification dialog always on top"
+#~ msgstr "항상 알림 창 위에 유지"
+
+#~ msgid "Last-used timer duration"
+#~ msgstr "마지막 사용된 타이머 간격"
+
+#~ msgid "Last-used timer name"
+#~ msgstr "마지막 사용된 타이머 이름"
+
+#~ msgid "Make notification dialog sticky"
+#~ msgstr "알림창 끈적이로 만들기"
+
+#~ msgid "Show the remaining time in the GNOME panel"
+#~ msgstr "그놈 패널에 남은 시간 보이기"
+
+#~ msgid "Whether to use a custom notification sound"
+#~ msgstr "사용자 정의 소리를 사용할 지 여부"
+
+#~ msgid ""
+#~ "Whether to use the custom notification sound specified in "
+#~ "custom_notification_sound_path"
+#~ msgstr "custom_notification_sound_path에 지정된 사용자 지정 알림 소리를 사용할 지 여부"
+
+#~ msgid "translator-credits"
+#~ msgstr ""
+#~ "Launchpad Contributions:\n"
+#~ "  Bundo https://launchpad.net/~kang-bundo\n"
+#~ "  Jimmy Do https://launchpad.net/~jimmydo\n"
+#~ "  Kenny Meyer https://launchpad.net/~knny-myer\n"
+#~ "  atie https://launchpad.net/~atie-at-matrix"

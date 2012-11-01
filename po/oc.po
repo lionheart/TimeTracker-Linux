@@ -1,0 +1,353 @@
+# Occitan (post 1500) translation for timer-applet
+# Copyright (c) 2007 Rosetta Contributors and Canonical Ltd 2007
+# This file is distributed under the same license as the timer-applet package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2007.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: timer-applet\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-07-10 05:19+0000\n"
+"PO-Revision-Date: 2010-07-10 05:12+0000\n"
+"Last-Translator: Yannig MARCHEGAY (Kokoyaya) <yannig@marchegay.org>\n"
+"Language-Team: Occitan (post 1500) <oc@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Launchpad-Export-Date: 2010-07-11 03:37+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: ../data/TimerApplet.server.in.in.h:1
+msgid "A Timer Applet factory that creates Timer Applets"
+msgstr ""
+
+#: ../data/TimerApplet.server.in.in.h:2
+msgid "Start a timer and receive a notification when it is finished"
+msgstr ""
+
+#: ../data/TimerApplet.server.in.in.h:3
+msgid "Timer"
+msgstr "Cronomètre"
+
+#: ../data/TimerApplet.server.in.in.h:4
+msgid "Timer Applet Factory"
+msgstr ""
+
+#: ../data/TimerApplet.xml.h:1
+msgid "Ma_nage Presets"
+msgstr ""
+
+#: ../data/TimerApplet.xml.h:2
+msgid "Pa_use"
+msgstr "Pa_usa"
+
+#: ../data/TimerApplet.xml.h:3
+msgid "Pre_sets"
+msgstr "Pre_seleccions"
+
+#: ../data/TimerApplet.xml.h:4
+msgid "R_estart"
+msgstr "_Tornar aviar"
+
+#: ../data/TimerApplet.xml.h:5
+msgid "_About"
+msgstr "_A prepaus de"
+
+#: ../data/TimerApplet.xml.h:6
+msgid "_Continue"
+msgstr "_Contunhar"
+
+#: ../data/TimerApplet.xml.h:7
+msgid "_Preferences"
+msgstr "_Preferéncias"
+
+#: ../data/TimerApplet.xml.h:8
+msgid "_Stop"
+msgstr "_Arrestar"
+
+#: ../data/timer-applet.glade.h:1
+msgid "<b>_Duration</b>"
+msgstr "<b>_Durada</b>"
+
+#: ../data/timer-applet.glade.h:2
+msgid "<b>_Name</b>"
+msgstr "<b>_Nom</b>"
+
+#: ../data/timer-applet.glade.h:3
+msgid "<b>_Presets</b>"
+msgstr "<b>_Preseleccions</b>"
+
+#: ../data/timer-applet.glade.h:4
+msgid "A timer applet for the perfect egg and beyond!"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:5
+#: ../src/timerapplet/controllers/GlobalController.py:47
+msgid "Add Preset"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:6
+msgid "Choose A Sound File"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:7
+msgid "Mana_ge Presets"
+msgstr "Gerir las preseleccions"
+
+#: ../data/timer-applet.glade.h:8
+msgid "Manage Presets"
+msgstr "Gerir las preseleccions"
+
+#. TRANSLATORS: Replace this string with your names, one name per line.
+#: ../data/timer-applet.glade.h:10
+msgid ""
+"Miguel Anxo Bouzada\n"
+"Bundo\n"
+"C&#xE9;dric VALMARY (Tot en &#xF2;c) 16 points"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:13
+msgid "S_ave as Preset"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:14
+msgid "S_tart Timer"
+msgstr "A_viar"
+
+#: ../data/timer-applet.glade.h:15
+msgid "Start Timer"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:16
+msgid "Timer Applet"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:17
+msgid "Timer Preferences"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:18
+msgid "Use c_ustom sound"
+msgstr "Utilizar un son _personalizat"
+
+#: ../data/timer-applet.glade.h:19
+msgid "Use d_efault sound"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:20
+msgid "_Add..."
+msgstr "_Apondre..."
+
+#: ../data/timer-applet.glade.h:21
+msgid "_Delete"
+msgstr "_Suprimir"
+
+#: ../data/timer-applet.glade.h:22
+msgid "_Edit..."
+msgstr "_Editar..."
+
+#: ../data/timer-applet.glade.h:23
+msgid "_Name:"
+msgstr "_Nom :"
+
+#: ../data/timer-applet.glade.h:24
+msgid "_Play notification sound"
+msgstr ""
+
+#: ../data/timer-applet.glade.h:25
+msgid "_Show remaining time while timer is running"
+msgstr ""
+
+#: ../data/timer-applet.schemas.in.h:1
+msgid "Path to a custom notification sound"
+msgstr ""
+
+#: ../data/timer-applet.schemas.in.h:2
+msgid ""
+"Path to a sound file that will be played when the timer finishes a countdown"
+msgstr ""
+
+#: ../data/timer-applet.schemas.in.h:3
+msgid "Play a beep sound"
+msgstr ""
+
+#: ../data/timer-applet.schemas.in.h:4
+msgid ""
+"Play a beep sound on a computer's internal speaker when the timer finishes. "
+"This may not have an effect on all computers."
+msgstr ""
+
+#: ../data/timer-applet.schemas.in.h:5
+msgid "Play a notification sound when the timer finishes a countdown"
+msgstr ""
+
+#: ../data/timer-applet.schemas.in.h:6
+msgid "Play notification sound"
+msgstr ""
+
+#: ../data/timer-applet.schemas.in.h:7
+msgid "Show remaining time"
+msgstr ""
+
+#: ../data/timer-applet.schemas.in.h:8
+msgid "Show the remaining time while the timer is running or paused"
+msgstr ""
+
+#: ../data/timer-applet.schemas.in.h:9
+msgid "Use a custom notification sound"
+msgstr ""
+
+#: ../data/timer-applet.schemas.in.h:10
+msgid ""
+"Use the custom notification sound specified in custom_notification_sound_path"
+msgstr ""
+
+#: ../src/timerapplet/controllers/GlobalController.py:60
+msgid "Edit Preset"
+msgstr "Editar la preseleccion"
+
+#. HH:MM:SS
+#: ../src/timerapplet/controllers/TimerApplet.py:45
+#: ../src/timerapplet/controllers/TimerApplet.py:360
+#, python-format
+msgid "%02d:%02d:%02d"
+msgstr "%02d:%02d:%02d"
+
+#. HH:MM
+#. MM:SS
+#: ../src/timerapplet/controllers/TimerApplet.py:49
+#: ../src/timerapplet/controllers/TimerApplet.py:52
+#, python-format
+msgid "%02d:%02d"
+msgstr "%02d:%02d"
+
+#: ../src/timerapplet/controllers/TimerApplet.py:111
+msgid "Continue timer countdown?"
+msgstr ""
+
+#: ../src/timerapplet/controllers/TimerApplet.py:112
+msgid "The timer is currently paused. Would you like to continue countdown?"
+msgstr ""
+
+#: ../src/timerapplet/controllers/TimerApplet.py:192
+msgid "Click to start a new timer countdown."
+msgstr ""
+
+#: ../src/timerapplet/controllers/TimerApplet.py:197
+msgid "Paused. Click to continue timer countdown."
+msgstr ""
+
+#: ../src/timerapplet/controllers/TimerApplet.py:200
+msgid "Finished"
+msgstr "Acabat"
+
+#. "<timer name>" finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:205
+#, python-format
+msgid ""
+"\"%s\" finished at %s.\n"
+"Click to stop timer."
+msgstr ""
+
+#. Timer finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:208
+#, python-format
+msgid ""
+"Timer finished at %s.\n"
+"Click to stop timer."
+msgstr ""
+
+#. HH:MM:SS (<timer name>)
+#: ../src/timerapplet/controllers/TimerApplet.py:357
+#, python-format
+msgid "%02d:%02d:%02d (%s)"
+msgstr "%02d:%02d:%02d (%s)"
+
+#. "<timer name>" Finished
+#: ../src/timerapplet/controllers/TimerApplet.py:379
+#, python-format
+msgid "\"%s\" Finished"
+msgstr "\"%s\" Acabat"
+
+#. "<timer name>" finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:382
+#, python-format
+msgid "\"%s\" finished at %s"
+msgstr ""
+
+#: ../src/timerapplet/controllers/TimerApplet.py:384
+msgid "Timer Finished"
+msgstr ""
+
+#. Timer finished at <time>
+#: ../src/timerapplet/controllers/TimerApplet.py:387
+#, python-format
+msgid "Timer finished at %s"
+msgstr ""
+
+#: ../src/timerapplet/controllers/TimerApplet.py:394
+#, python-format
+msgid "Timer finished about <b>%d second</b> ago"
+msgid_plural "Timer finished about <b>%d seconds</b> ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../src/timerapplet/controllers/TimerApplet.py:399
+#, python-format
+msgid "Timer finished about <b>%d minute</b> ago"
+msgid_plural "Timer finished about <b>%d minutes</b> ago"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:24
+msgid "Continue Timer"
+msgstr ""
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:27
+msgid "_Stop Timer"
+msgstr ""
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:28
+msgid "_Keep Paused"
+msgstr ""
+
+#: ../src/timerapplet/ui/ContinueTimerDialog.py:29
+msgid "_Continue Timer"
+msgstr ""
+
+#: ../src/timerapplet/ui/DurationChooser.py:31
+msgid "_Hours:"
+msgstr "_Oras :"
+
+#: ../src/timerapplet/ui/DurationChooser.py:34
+msgid "_Minutes:"
+msgstr "_Minutas :"
+
+#: ../src/timerapplet/ui/DurationChooser.py:37
+msgid "_Seconds:"
+msgstr "_Segondas :"
+
+#. <preset name> (HH:MM:SS)
+#: ../src/timerapplet/utils.py:42
+#, python-format
+msgid "%s (%02d:%02d:%02d)"
+msgstr "%s (%02d:%02d:%02d)"
+
+#~ msgid "<span weight=\"bold\">_Name</span>"
+#~ msgstr "<span weight=\"bold\">_Nom</span>"
+
+#~ msgid "%s (%s)"
+#~ msgstr "%s (%s)"
+
+#~ msgid "%.2u:%.2u:%.2u"
+#~ msgstr "%.2u:%.2u:%.2u"
+
+#~ msgid "%.2u:%.2u"
+#~ msgstr "%.2u:%.2u"
+
+#~ msgid "translator-credits"
+#~ msgstr ""
+#~ "Launchpad Contributions:\n"
+#~ "  Cédric VALMARY (Tot en òc) https://launchpad.net/~cvalmary\n"
+#~ "  Yannig MARCHEGAY (Kokoyaya) https://launchpad.net/~yannick-marchegay"

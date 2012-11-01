@@ -1,0 +1,87 @@
+<gconfschemafile>
+	<schemalist>
+		<schema>
+			<key>/schemas/apps/timetracker-applet/prefs/play_notification_sound</key>
+			<applyto>/apps/timetracker-applet/prefs/play_notification_sound</applyto>
+			<owner>timetracker-applet</owner>
+			<type>bool</type>
+			<default>false</default>
+			<locale name="C">
+				<short>Play notification sound</short>
+				<long>Play a notification sound when the timetracker finishes a countdown</long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/timetracker-applet/prefs/use_custom_notification_sound</key>
+			<applyto>/apps/timetracker-applet/prefs/use_custom_notification_sound</applyto>
+			<owner>timetracker-applet</owner>
+			<type>bool</type>
+			<default>false</default>
+			<locale name="C">
+				<short>Use a custom notification sound</short>
+				<long>Use the custom notification sound specified in custom_notification_sound_path</long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/timetracker-applet/prefs/custom_notification_sound_path</key>
+			<applyto>/apps/timetracker-applet/prefs/custom_notification_sound_path</applyto>
+			<owner>timetracker-applet</owner>
+			<type>string</type>
+			<default></default>
+			<locale name="C">
+				<short>Path to a custom notification sound</short>
+				<long>Path to a sound file that will be played when the timetracker finishes a countdown</long>
+			</locale>
+		</schema>
+		
+		<schema>
+			<key>/schemas/apps/timetracker-applet/prefs/show_pulsing_icon</key>
+			<applyto>/apps/timetracker-applet/prefs/show_pulsing_icon</applyto>
+			<owner>timetracker-applet</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short>Show Pulsing icon</short>
+				<long>Show pulsing tray icon when timetracker finished</long>
+			</locale>
+		</schema>
+		
+		<schema>
+			<key>/schemas/apps/timetracker-applet/prefs/show_popup_notification</key>
+			<applyto>/apps/timetracker-applet/prefs/show_popup_notification</applyto>
+			<owner>timetracker-applet</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short>Show Popup notification</short>
+				<long>Show Popup notification in the notification area</long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/timetracker-applet/prefs/show_remaining_time</key>
+			<applyto>/apps/timetracker-applet/prefs/show_remaining_time</applyto>
+			<owner>timetracker-applet</owner>
+			<type>bool</type>
+			<default>true</default>
+			<locale name="C">
+				<short>Show remaining time</short>
+				<long>Show the remaining time while the timetracker is running or paused</long>
+			</locale>
+		</schema>
+
+		<schema>
+			<key>/schemas/apps/timetracker-applet/prefs/play_beep</key>
+			<applyto>/apps/timetracker-applet/prefs/play_beep</applyto>
+			<owner>timetracker-applet</owner>
+			<type>bool</type>
+			<default>false</default>
+			<locale name="C">
+				<short>Play a beep sound</short>
+				<long>Play a beep sound on a computer's internal speaker when the timetracker finishes. This may not have an effect on all computers.</long>
+			</locale>
+		</schema>
+	</schemalist>
+</gconfschemafile>

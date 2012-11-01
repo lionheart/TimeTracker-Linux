@@ -1,0 +1,22 @@
+<oaf_info>
+<oaf_server iid="OAFIID:TimeTrackerApplet_Factory" type="exe" location="@LIBEXECDIR@/timetracker-applet">
+        <oaf_attribute name="repo_ids" type="stringv">
+                <item value="IDL:Bonobo/GenericFactory:1.0"/>
+                <item value="IDL:Bonobo/Unknown:1.0"/>
+        </oaf_attribute>
+        <oaf_attribute name="name" type="string" _value="TimeTracker Applet Factory"/>
+        <oaf_attribute name="description" type="string" _value="A TimeTracker Applet factory that creates TimeTracker Applets"/>
+</oaf_server>
+
+<oaf_server iid="OAFIID:TimeTrackerApplet" type="factory" location="OAFIID:TimeTrackerApplet_Factory">
+        <oaf_attribute name="repo_ids" type="stringv">
+                <item value="IDL:GNOME/Vertigo/PanelAppletShell:1.0"/>
+                <item value="IDL:Bonobo/Control:1.0"/>
+                <item value="IDL:Bonobo/Unknown:1.0"/>
+        </oaf_attribute>
+        <oaf_attribute name="name" type="string" _value="TimeTracker"/>
+        <oaf_attribute name="description" type="string" _value="Start a timetracker and receive a notification when it is finished"/>
+        <oaf_attribute name="panel:category" type="string" value="Accessories"/>
+        <oaf_attribute name="panel:icon" type="string" value="timetracker-applet.png"/>
+</oaf_server>
+</oaf_info>
