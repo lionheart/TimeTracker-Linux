@@ -1,8 +1,0 @@
-In a terminal, `cd` into this directory and then run the following commands:
-
-	./autogen.sh && ./configure --prefix=/usr/
-
-and, then:
-
-	make
-	sudo make install  # this builds and installs TimeTracker Applet system wide
