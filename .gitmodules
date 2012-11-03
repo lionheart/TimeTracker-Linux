@@ -1,3 +1,0 @@
-[submodule "src/timetrackerapplet/libs/Harvest"]
-	path = src/timetrackerapplet/libs/Harvest
-	url = git://github.com/lann/Harvest.git
