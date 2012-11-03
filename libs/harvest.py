@@ -8,6 +8,8 @@ from base64 import b64encode
 from dateutil.parser import parse as parseDate
 from xml.dom.minidom import parseString
 
+import json
+from StringIO import StringIO
 
 class HarvestError(Exception):
     pass
@@ -16,6 +18,25 @@ class HarvestError(Exception):
 class HarvestConnectionError(HarvestError):
     pass
 
+class HarvestStatus(object):
+    def __init__(self):
+        self.url = 'http://harveststatus.com/status.json'
+        self.headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'User-Agent': 'harvest.py',
+        }
+        self.__dict__.update(self._request())
+
+    def _request(self):
+        request = urllib2.Request(url=self.url, headers=self.headers)
+        try:
+            r = urllib2.urlopen(request)
+            j = r.read()
+            j = StringIO(j)
+            return json.load(j)
+        except urllib2.URLError as e:
+            raise HarvestConnectionError(e)
 
 instance_classes = []
 class HarvestItemGetterable(type):

@@ -10,7 +10,6 @@
     <child internal-child="vbox">
       <object class="GtkBox" id="messagedialog-vbox">
         <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="messagedialog-action_area">
@@ -29,6 +28,11 @@
   </object>
   <object class="GtkWindow" id="preferences_window">
     <property name="can_focus">False</property>
+    <property name="title" translatable="yes">Preferences</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="window_position">center</property>
+    <property name="gravity">south</property>
     <child>
       <object class="GtkVBox" id="vbox2">
         <property name="visible">True</property>
@@ -49,8 +53,9 @@
                 <property name="draw_indicator">True</property>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">5</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -62,8 +67,9 @@
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">5</property>
             <property name="position">0</property>
           </packing>
         </child>
@@ -78,13 +84,15 @@
                 <property name="label" translatable="yes">Interval (In hours)</property>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">5</property>
                 <property name="position">0</property>
               </packing>
             </child>
             <child>
               <object class="GtkEntry" id="interval_entry">
+                <property name="width_request">300</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="invisible_char">●</property>
@@ -92,8 +100,10 @@
                 <property name="secondary_icon_activatable">False</property>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
+                <property name="padding">5</property>
+                <property name="pack_type">end</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -102,8 +112,9 @@
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">5</property>
             <property name="position">1</property>
           </packing>
         </child>
@@ -118,13 +129,15 @@
                 <property name="label" translatable="yes">Harvest URL</property>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">5</property>
                 <property name="position">0</property>
               </packing>
             </child>
             <child>
               <object class="GtkEntry" id="harvest_url_entry">
+                <property name="width_request">300</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="invisible_char">●</property>
@@ -132,8 +145,10 @@
                 <property name="secondary_icon_activatable">False</property>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
+                <property name="padding">5</property>
+                <property name="pack_type">end</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -142,8 +157,9 @@
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">5</property>
             <property name="position">2</property>
           </packing>
         </child>
@@ -155,16 +171,18 @@
               <object class="GtkLabel" id="email_label">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Harvest Email</property>
+                <property name="label" translatable="yes">Email</property>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">5</property>
                 <property name="position">0</property>
               </packing>
             </child>
             <child>
               <object class="GtkEntry" id="harvest_email_entry">
+                <property name="width_request">300</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="invisible_char">●</property>
@@ -173,8 +191,10 @@
                 <property name="secondary_icon_activatable">False</property>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
+                <property name="padding">5</property>
+                <property name="pack_type">end</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -183,8 +203,9 @@
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">5</property>
             <property name="position">3</property>
           </packing>
         </child>
@@ -196,28 +217,33 @@
               <object class="GtkLabel" id="label2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Harvest Password</property>
+                <property name="label" translatable="yes">Password</property>
               </object>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="padding">5</property>
                 <property name="position">0</property>
               </packing>
             </child>
             <child>
               <object class="GtkEntry" id="harvest_password_entry">
+                <property name="width_request">300</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="visibility">False</property>
                 <property name="invisible_char">●</property>
                 <property name="activates_default">True</property>
                 <property name="truncate_multiline">True</property>
-                <property name="shadow_type">out</property>
+                <property name="invisible_char_set">True</property>
                 <property name="primary_icon_activatable">False</property>
                 <property name="secondary_icon_activatable">False</property>
               </object>
               <packing>
-                <property name="expand">True</property>
+                <property name="expand">False</property>
                 <property name="fill">True</property>
+                <property name="padding">5</property>
+                <property name="pack_type">end</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -226,30 +252,46 @@
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
-            <property name="fill">True</property>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">5</property>
             <property name="position">4</property>
           </packing>
         </child>
         <child>
-          <object class="GtkHButtonBox" id="hbuttonbox2">
+          <object class="GtkHBox" id="timetracker_hbuttonbox_hbox">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
             <child>
-              <object class="GtkButton" id="save_preferences_button">
-                <property name="label">gtk-save</property>
-                <property name="use_action_appearance">False</property>
+              <object class="GtkHButtonBox" id="hbuttonbox2">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
-                <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_save_preferences_button_clicked" swapped="no"/>
+                <property name="can_focus">False</property>
+                <property name="layout_style">end</property>
+                <child>
+                  <object class="GtkButton" id="save_preferences_button">
+                    <property name="label">gtk-save</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="use_stock">True</property>
+                    <signal name="clicked" handler="on_save_preferences_button_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="padding">5</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
+                <property name="padding">5</property>
+                <property name="pack_type">end</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -257,7 +299,6 @@
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="pack_type">end</property>
             <property name="position">5</property>
           </packing>
         </child>
@@ -267,6 +308,7 @@
   <object class="GtkWindow" id="timetracker_window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">TimeTracker</property>
+    <property name="resizable">False</property>
     <child>
       <object class="GtkFrame" id="frame1">
         <property name="visible">True</property>
@@ -307,10 +349,14 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">What are you doing right now?</property>
+                                <attributes>
+                                  <attribute name="font-desc" value=""/>
+                                </attributes>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="padding">5</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
@@ -318,11 +364,12 @@
                               <object class="GtkLabel" id="last_update_label">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Last Update:</property>
+                                <property name="label" translatable="yes">Last update:</property>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="padding">10</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
@@ -331,8 +378,9 @@
                             </child>
                           </object>
                           <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">10</property>
                             <property name="position">0</property>
                           </packing>
                         </child>
@@ -347,20 +395,24 @@
                                 <property name="label" translatable="yes">Project</property>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="padding">5</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
                               <object class="GtkComboBox" id="project_combobox">
+                                <property name="width_request">300</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <signal name="changed" handler="on_project_combobox_changed" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
+                                <property name="expand">False</property>
                                 <property name="fill">True</property>
+                                <property name="padding">5</property>
+                                <property name="pack_type">end</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
@@ -369,8 +421,9 @@
                             </child>
                           </object>
                           <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">5</property>
                             <property name="position">1</property>
                           </packing>
                         </child>
@@ -385,20 +438,24 @@
                                 <property name="label" translatable="yes">Client</property>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="padding">5</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
                               <object class="GtkComboBox" id="client_combobox">
+                                <property name="width_request">300</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <signal name="changed" handler="on_client_combobox_changed" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
+                                <property name="expand">False</property>
                                 <property name="fill">True</property>
+                                <property name="padding">5</property>
+                                <property name="pack_type">end</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
@@ -407,8 +464,9 @@
                             </child>
                           </object>
                           <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">5</property>
                             <property name="position">2</property>
                           </packing>
                         </child>
@@ -423,20 +481,24 @@
                                 <property name="label" translatable="yes">Task</property>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="padding">5</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
                               <object class="GtkComboBox" id="task_combobox">
+                                <property name="width_request">300</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <signal name="changed" handler="on_task_combobox_changed" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
+                                <property name="expand">False</property>
                                 <property name="fill">True</property>
+                                <property name="padding">5</property>
+                                <property name="pack_type">end</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
@@ -445,8 +507,9 @@
                             </child>
                           </object>
                           <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">5</property>
                             <property name="position">3</property>
                           </packing>
                         </child>
@@ -455,16 +518,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkLabel" id="label4">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Notes</property>
-                              </object>
-                              <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">0</property>
-                              </packing>
+                              <placeholder/>
                             </child>
                             <child>
                               <placeholder/>
@@ -474,15 +528,38 @@
                             </child>
                           </object>
                           <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="padding">5</property>
                             <property name="position">4</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkTextView" id="notes_textview">
+                          <object class="GtkExpander" id="notes_expander">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="expanded">True</property>
+                            <child>
+                              <object class="GtkScrolledWindow" id="notes_scrolledwindow">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="shadow_type">in</property>
+                                <child>
+                                  <object class="GtkTextView" id="notes_textview">
+                                    <property name="height_request">80</property>
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child type="label">
+                              <object class="GtkLabel" id="label1">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Notes</property>
+                              </object>
+                            </child>
                           </object>
                           <packing>
                             <property name="expand">True</property>
@@ -498,24 +575,26 @@
                             <property name="layout_style">end</property>
                             <child>
                               <object class="GtkButton" id="submit_button">
-                                <property name="label">gtk-save</property>
+                                <property name="label">gtk-ok</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="use_stock">True</property>
+                                <signal name="clicked" handler="on_submit_button_clicked" swapped="no"/>
                               </object>
                               <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
+                                <property name="padding">5</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
                           </object>
                           <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
                             <property name="position">6</property>
                           </packing>
                         </child>
@@ -523,6 +602,7 @@
                       <packing>
                         <property name="expand">True</property>
                         <property name="fill">True</property>
+                        <property name="padding">5</property>
                         <property name="position">1</property>
                       </packing>
                     </child>

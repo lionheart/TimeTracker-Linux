@@ -2,6 +2,7 @@ import os, sys, math
 import gtk, gobject
 from time import time
 import string
+import ConfigParser
 
 class InterfaceException(Exception):
     pass
@@ -51,9 +52,6 @@ class logicHelpers(objectify):
     def sensitive(self, control, bool = False):
         control.set_sensitive( bool )
 
-    def show_warning(self, message):
-        self.warning_dialog_message_label.set_text( message )
-        return self.warning_dialog.run()
     def center_windows(self):
         self.timetracker_window.set_position(gtk.WIN_POS_CENTER)
         self.preferences_window.set_position(gtk.WIN_POS_CENTER)
@@ -64,20 +62,41 @@ class logicFunctions(logicHelpers):
         super(self, logicFunctions).__init__(*args, **kwargs) 
         
     def init(self, *args, **kwargs):
-        self.harvest = None
-        self.projects = []
-        self.clients = []
-        self.tasks = []
-        self.icon = gtk.status_icon_new_from_file( media_path + "/idle.png")
+        #initialize state variables
+        self.logged_in = False #used for state whether user is logged in or not
+        self.harvest = None #harvest instance
+        self.projects = [] #list of projects
+        self.clients = [] #list of clients
+        self.tasks = [] #list of tasks
+
+        self.config_filename = kwargs.get('config', 'harvest.cfg')
+
+        self.init_status_icon()
+
+        self.get_config_file()
+
+        self.auth()
+
+        self.center_windows()
+
+    def init_status_icon(self):
+        self.icon = gtk.status_icon_new_from_file(media_path + "/idle.png")
         self.icon.set_tooltip("Idle")
         self.state = "idle"
         self.tick_interval = 10 #number of seconds between each poll
 
         self.icon.set_visible(True)
         self.start_working_time = 0
-        self.get_projects()
 
-        self.center_windows()
+    def get_config_file(self):
+        self.config = ConfigParser.SafeConfigParser({
+            'uri': '',
+            'username': '',
+        })
+        self.config.read(self.config_filename)
+
+        if not self.config.has_section('timetracker_login'):
+            self.config.add_section('timetracker_login')
 
     def format_time(self, seconds):
         minutes = math.floor(seconds / 60)
@@ -103,6 +122,7 @@ class logicFunctions(logicHelpers):
             delta = time() - self.start_working_time
             self.icon.set_tooltip("Working for %s..." % self.format_time(delta))
         self.state = state
+
     def show_about_dialog(self, widget):
         about_dialog = gtk.AboutDialog()
 
@@ -115,19 +135,13 @@ class logicFunctions(logicHelpers):
         about_dialog.destroy()
 
     def left_click(self, event):
+        print event
         self.timetracker_window.show()
-        delta = time() - self.start_working_time
-        if self.state == "idle":
-            self.set_state("working")
-        else:
-            self.set_state("idle")
-        if not self.harvest:
-            self.auth(None, None, None)
+        
 
 
     def update(self):
         delta = time() - self.start_working_time
-        print delta
         if self.state == "idle":
             pass
         else:
@@ -138,7 +152,7 @@ class logicFunctions(logicHelpers):
         source_id = gobject.timeout_add(self.tick_interval * 1000, self.update)
     def right_click(self, icon, button, time):
         menu = gtk.Menu()
-
+        print icon
         away = gtk.MenuItem("Away for meeting")
         updates = gtk.MenuItem("Check for updates")
         prefs = gtk.MenuItem("Preferences")
