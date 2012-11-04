@@ -247,7 +247,7 @@ class logicFunctions(logicHelpers):
 
     def show_timetracker_after_interval(self):
         if self.running:
-            self.call_notify("TimeTracker", "interval elapsed: %s"%self.interval)
+            self.call_notify("TimeTracker", "Are you still working on?\n%s"%self.current['text'])
             self.timetracker_window.show()
             self.timetracker_window.present()
 

@@ -190,11 +190,20 @@ class uiSignals(uiSignalHelpers):
             if not i[1]['active']:
                 button = gtk.Button(stock="gtk-ok")
                 self.set_custom_label(button, "Proceed")
+                edit_button = None
             else:
                 button = gtk.Button(stock="gtk-stop")
+                edit_button = gtk.Button(stock="gtk-edit")
+                self.set_custom_label(edit_button, "Modify")
+                edit_button.connect("clicked", self.on_edit_timer_entry, i[0])
+
 
             button.connect('clicked', self.on_timer_toggle_clicked, i[0]) #timer entry id
             hbox.pack_start(button)
+
+            #show edit button for current task so user can modify the entry
+            if edit_button:
+                hbox.pack_start(edit_button)
 
             label = gtk.Label()
             label.set_text(i[1]['text'])
@@ -249,7 +258,7 @@ class uiSignals(uiSignalHelpers):
             self.set_comboboxes(self.task_combobox, self.current['task_id'])
             self.set_comboboxes(self.client_combobox, self.current['client_id'])
 
-            self.hours_entry.set_text("")
+            self.hours_entry.set_text("%s"%(self.current['hours']))
 
             textbuffer = gtk.TextBuffer()
             textbuffer.set_text(self.current['notes'])
@@ -347,4 +356,15 @@ class uiSignals(uiSignalHelpers):
 
     def on_timer_entry_removed(self, widget, entry_id):
         self.daily.delete(entry_id)
+        self.set_entries()
+    def on_edit_timer_entry(self, widget, entry_id):
+        self.daily.update( entry_id, {
+            "request": {
+                'notes': self.get_textview_text(self.notes_textview),
+                'hours': self.hours_entry.get_text(),
+                'project_id': self.get_combobox_selection(self.project_combobox),
+                'task_id': self.get_combobox_selection(self.task_combobox)
+            }
+        })
+
         self.set_entries()

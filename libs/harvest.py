@@ -282,13 +282,11 @@ class Harvest(object):
     def _time_entries(self,root,start,end):
         url = root + 'entries?from=%s&to=%s' % (start.strftime('%Y%m%d'), end.strftime('%Y%m%d'))
         for element in self._get_element_values( url, 'day-entry' ):
-            #print element
             yield Entry( self, element )
 
     def toggle_entry(self, entry_id):
         url = '/daily/timer/%d' % (entry_id)
         for element in self._get_element_values(url, 'day_entry'):
-            print element
             yield Entry(self, element)
 
 
@@ -354,6 +352,11 @@ class Daily(Harvest):
     def add(self, data):
         garbage = []
         for element in self._get_element_values('/daily/add', 'add', data):
+            garbage.append(element) # have to do this to yield the iterator
+
+    def update(self, entry_id, data):
+        garbage = []
+        for element in self._get_element_values('/daily/update/%s'%(entry_id), 'update', data):
             garbage.append(element) # have to do this to yield the iterator
 
     def delete(self, entry_id):

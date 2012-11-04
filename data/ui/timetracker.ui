@@ -658,6 +658,7 @@
                               <object class="GtkEntry" id="hours_entry">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">leave empty to start new task else create time entry with amount of hours</property>
                                 <property name="invisible_char">●</property>
                               </object>
                               <packing>
@@ -743,6 +744,7 @@
                                     <property name="height_request">80</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
+                                    <property name="tooltip_text" translatable="yes">new task notes/current task notes</property>
                                   </object>
                                 </child>
                               </object>
