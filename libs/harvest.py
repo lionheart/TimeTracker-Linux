@@ -354,7 +354,13 @@ class Daily(Harvest):
     def add(self, data):
         garbage = []
         for element in self._get_element_values('/daily/add', 'add', data):
-            garbage.append(element)
+            garbage.append(element) # have to do this to yield the iterator
+
+    def delete(self, entry_id):
+        opener = urllib2.build_opener(urllib2.HTTPHandler)
+        request = urllib2.Request(url = "%s/%s/%s" % (self.uri, "daily/delete", entry_id), headers=self.headers)
+        request.get_method = lambda: 'DELETE'
+        return opener.open(request)
 
     def _request(self, url, data={}):
         request = urllib2.Request(url=self.uri + url, headers=self.headers)

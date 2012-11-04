@@ -178,6 +178,7 @@ class uiSignals(uiSignalHelpers):
         for task in self.harvest.tasks():
             t = "%s" % (task)
             self.tasks[task.id] = t.replace('Task: ', '')
+
     def _update_entries_box(self):
         if self.entries_vbox:
             self.entries_viewport.remove(self.entries_vbox)
@@ -188,18 +189,20 @@ class uiSignals(uiSignalHelpers):
             hbox = gtk.HBox(False, 0)
             if not i[1]['active']:
                 button = gtk.Button(stock="gtk-ok")
-                self.set_custom_label(button, "Start")
+                self.set_custom_label(button, "Proceed")
             else:
                 button = gtk.Button(stock="gtk-stop")
 
-            button.connect('clicked', self.on_timer_toggle_clicked, i[0])
-
+            button.connect('clicked', self.on_timer_toggle_clicked, i[0]) #timer entry id
             hbox.pack_start(button)
 
             label = gtk.Label()
-
             label.set_text(i[1]['text'])
-            hbox.pack_start(label, True, True, 5)
+            hbox.pack_start(label)
+
+            button = gtk.Button(stock="gtk-remove")
+            button.connect('clicked', self.on_timer_entry_removed, i[0])
+            hbox.pack_start(button)
 
             self.entries_vbox.pack_start(hbox)
         self.entries_vbox.show_all()
@@ -208,13 +211,11 @@ class uiSignals(uiSignalHelpers):
     def set_entries(self):
         total = 0
 
-        start = datetime.today().replace(hour=0, minute=0, second=0)
-        end = start + timedelta(1)
         self.current['all'] = {}
         current_id = None
         for user in self.harvest.users():
             entries_count = 0
-            for i in user.entries(start, end):
+            for i in user.entries(self.today_start, self.today_end):
                 entries_count += 1
                 total += i.hours
 
@@ -247,10 +248,13 @@ class uiSignals(uiSignalHelpers):
             self.set_comboboxes(self.project_combobox, self.current['project_id'])
             self.set_comboboxes(self.task_combobox, self.current['task_id'])
             self.set_comboboxes(self.client_combobox, self.current['client_id'])
-            self.hours_entry.set_text("%s"%self.current['hours'])
+
+            self.hours_entry.set_text("")
+
             textbuffer = gtk.TextBuffer()
             textbuffer.set_text(self.current['notes'])
             self.notes_textview.set_buffer(textbuffer)
+
             self.start_time = time()
 
             self.running = True
@@ -331,15 +335,16 @@ class uiSignals(uiSignalHelpers):
         self.set_entries()
 
     def on_submit_button_clicked(self, widget):
-        daily = Daily(self.uri, self.username, self.password)
-        daily.add({
+        self.daily.add({
             "request": {
                 'notes': self.get_textview_text(self.notes_textview),
                 'hours': self.hours_entry.get_text(),
                 'project_id': self.get_combobox_selection(self.project_combobox),
                 'task_id': self.get_combobox_selection(self.task_combobox)
-
             }
         })
-        sleep(3) #timeout so harvest can process and we get complete data about active
+        self.set_entries()
+
+    def on_timer_entry_removed(self, widget, entry_id):
+        self.daily.delete(entry_id)
         self.set_entries()
