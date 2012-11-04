@@ -57,6 +57,9 @@ class logicHelpers(objectify):
         self.timetracker_window.set_position(gtk.WIN_POS_CENTER)
         self.preferences_window.set_position(gtk.WIN_POS_CENTER)
 
+    def get_textview_text(self, widget):
+        buffer = self.notes_textview.get_buffer()
+        return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter())
 
 class logicFunctions(logicHelpers):
     def __init__(self, *args, **kwargs):
@@ -64,6 +67,8 @@ class logicFunctions(logicHelpers):
         
     def init(self, *args, **kwargs):
         #initialize state variables
+        self.running = False #timer is running and tracking time
+        self.timeout_instance = None #gint of the timeout_add
         self.logged_in = False #used for state whether user is logged in or not
         self.user_id = None #current user id
         self.harvest = None #harvest instance
@@ -72,18 +77,14 @@ class logicFunctions(logicHelpers):
         self.clients = [] #list of clients
         self.tasks = [] #list of tasks
         self.entries_vbox = None #used to hold the entries and to empty easily
-        self.today_start = datetime.today().replace(hour=0, minute=0, second=0)
+        self.today_start = datetime.today().replace(hour=0, minute=0, second=0) #today_$time for when day changes to keep view intact
         self.today_end = self.today_start + timedelta(1)
+        self.start_time = time() #when self.running == True this is used to calculate the notification interval
         self.today_total = 0 #total hours today
         self.current = {
             'all': {}, #holds all the current entries for the day
-            'project_id': None,
-            'client_id': None,
-            'task_id': None,
-            'notes': None,
-            'started_at': None,
-            'active': False,
         }
+        self.set_custom_label(self.stop_all_button, 'Force Stop')
         self.config_filename = kwargs.get('config', 'harvest.cfg')
 
         self.init_status_icon()
@@ -95,6 +96,18 @@ class logicFunctions(logicHelpers):
         self.interval = self.config.get('prefs', 'interval')
 
         self.center_windows()
+
+
+
+    def start_interval_timer(self):
+        if self.timeout_instance:
+            gobject.source_remove(self.timeout_instance)
+
+        interval = int(round(3600.0 * float(self.interval)))
+        print interval
+        if self.running:
+            self.timeout_instance = gobject.timeout_add(100, self.show_timetracker_after_interval)
+
     def set_prefs(self):
         self.interval_entry.set_text(self.interval)
         self.harvest_url_entry.set_text(self.uri)
@@ -148,6 +161,7 @@ class logicFunctions(logicHelpers):
 
         #write file in case write not exists or options missing
         self.config.write(open(self.config_filename, 'w'))
+
     def get_password(self):
         if self.username:
             try:
@@ -195,9 +209,11 @@ class logicFunctions(logicHelpers):
             delta = time() - self.start_working_time
             self.icon.set_tooltip("Working for %s..." % self.format_time(delta))
         self.state = state
+
     def set_message_text(self, text):
         self.prefs_message_label.set_text(text)
         self.main_message_label.set_text(text)
+
     def show_about_dialog(self, widget):
         about_dialog = gtk.AboutDialog()
 
@@ -213,16 +229,12 @@ class logicFunctions(logicHelpers):
         self.timetracker_window.show()
         self.timetracker_window.present()
 
-    def update(self):
-        delta = time() - self.start_working_time
-        if self.state == "idle":
-            pass
-        else:
-            self.icon.set_tooltip("Working for %s..." % self.format_time(delta))
-            if self.state == "working":
-                if delta > MIN_WORK_TIME:
-                    self.set_state("ok")
-        source_id = gobject.timeout_add(self.tick_interval * 1000, self.update)
+    def show_timetracker_after_interval(self):
+        self.timetracker_window.show()
+        self.timetracker_window.present()
+
+        self.start_interval_timer()
+
     def right_click(self, icon, button, time):
         menu = gtk.Menu()
         away = gtk.MenuItem("Away for meeting")

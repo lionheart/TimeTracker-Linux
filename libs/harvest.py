@@ -282,11 +282,13 @@ class Harvest(object):
     def _time_entries(self,root,start,end):
         url = root + 'entries?from=%s&to=%s' % (start.strftime('%Y%m%d'), end.strftime('%Y%m%d'))
         for element in self._get_element_values( url, 'day-entry' ):
+            #print element
             yield Entry( self, element )
 
     def toggle_entry(self, entry_id):
         url = '/daily/timer/%d' % (entry_id)
         for element in self._get_element_values(url, 'day_entry'):
+            print element
             yield Entry(self, element)
 
 

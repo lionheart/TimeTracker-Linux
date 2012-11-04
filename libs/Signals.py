@@ -1,11 +1,12 @@
 import gtk
 import os, sys
-from time import sleep
+from time import sleep, time
 from datetime import datetime, timedelta
 from harvest import Harvest, Daily, HarvestStatus, HarvestError
 
 import ConfigParser
 import keyring
+import pytz
 
 class uiSignalHelpers(object):
     def __init__(self, *args, **kwargs):
@@ -38,14 +39,27 @@ class uiSignalHelpers(object):
         messagedialog = gtk.MessageDialog(widget, 0, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, message)
         messagedialog.run()
         messagedialog.destroy()
+
     def set_custom_label(self, widget, text):
         #set custom label on stock button
         Label = widget.get_children()[0]
         Label = Label.get_children()[0].get_children()[1]
-        Label = Label.set_label("Start")
+        Label = Label.set_label(text)
 
     def is_entry_active(self, entry):
-        return ("%s" % (entry.timer_started_at) == "%s" % (entry.updated_at))
+        return entry.timer_started_at.replace(tzinfo=pytz.utc) >= entry.updated_at.replace(tzinfo=pytz.utc)
+
+    def set_comboboxes(self, widget, id):
+        model = widget.get_model()
+        i = 0
+
+        for m in model:
+            iter = model.get_iter(i)
+            if "%s"%model.get_value(iter, 1) == "%s"%id:
+                widget.set_active(i)
+                break
+            i += 1
+
 class uiSignals(uiSignalHelpers):
     def __init__(self, *args, **kwargs):
         super(uiSignals, self).__init__(*args, **kwargs)
@@ -130,14 +144,20 @@ class uiSignals(uiSignalHelpers):
         '''
             Create a liststore filled with items, connect it to a combobox and activate the first index
         '''
-        liststore = gtk.ListStore(str, str)
-        cell = gtk.CellRendererText()
-        combobox.pack_start(cell)
-        combobox.add_attribute(cell, 'text', 0)
-        combobox.add_attribute(cell, 'text', 0)
+        liststore = combobox.get_model()
+        if not liststore:
+            liststore = gtk.ListStore(str, str)
+            cell = gtk.CellRendererText()
+            combobox.pack_start(cell)
+            combobox.add_attribute(cell, 'text', 0)
+            combobox.add_attribute(cell, 'text', 0)
+
+        else:
+            liststore.clear()
 
         for p in items:
             liststore.append([items[p], p])
+
         combobox.set_model(liststore)
         combobox.set_active(0)
 
@@ -158,7 +178,7 @@ class uiSignals(uiSignalHelpers):
         for task in self.harvest.tasks():
             t = "%s" % (task)
             self.tasks[task.id] = t.replace('Task: ', '')
-    def _update_entries(self):
+    def _update_entries_box(self):
         if self.entries_vbox:
             self.entries_viewport.remove(self.entries_vbox)
         self.entries_vbox = gtk.VBox(False, 0)
@@ -190,12 +210,18 @@ class uiSignals(uiSignalHelpers):
 
         start = datetime.today().replace(hour=0, minute=0, second=0)
         end = start + timedelta(1)
-
+        self.current['all'] = {}
+        current_id = None
         for user in self.harvest.users():
             entries_count = 0
             for i in user.entries(start, end):
                 entries_count += 1
                 total += i.hours
+
+                active = self.is_entry_active(i)
+                if active:
+                    current_id = i.id
+
                 self.current['all'][i.id] = {
                     'id': i.id,
                     'text': "%s" %(i),
@@ -203,7 +229,7 @@ class uiSignals(uiSignalHelpers):
                     'task_id': i.task_id,
                     'notes': i.notes,
                     'hours': i.hours,
-                    'active': self.is_entry_active(i),
+                    'active': active,
                     'spent_at': i.spent_at,
                     'timer_started_at': i.timer_started_at,
                     'updated_at': i.updated_at,
@@ -213,7 +239,28 @@ class uiSignals(uiSignalHelpers):
                     'project': i.project,
 
                 }
-        self._update_entries()
+
+        if current_id:
+            self.current.update(self.current['all'][current_id])
+            self.current['client_id'] = self.harvest.project(self.current['project_id']).client_id
+
+            self.set_comboboxes(self.project_combobox, self.current['project_id'])
+            self.set_comboboxes(self.task_combobox, self.current['task_id'])
+            self.set_comboboxes(self.client_combobox, self.current['client_id'])
+            textbuffer = gtk.TextBuffer()
+            textbuffer.set_text(self.current['notes'])
+            self.notes_textview.set_buffer(textbuffer)
+            self.start_time = time()
+            self.start_interval_timer()
+            self.running = True
+        else:
+            self.running = False
+
+        self._update_entries_box()
+
+
+        self.status_label.set_text("%s"%("Running %s"%(datetime.fromtimestamp(self.start_time).strftime("%Y-%m-%d %H:%M:%S")) if self.running else "Stopped"))
+
         self.entries_expander_label.set_text("%s Entries %0.02f hours Total"%(entries_count, total))
 
     def _harvest_login(self, URI, EMAIL, PASS):
@@ -283,11 +330,10 @@ class uiSignals(uiSignalHelpers):
         self.set_entries()
 
     def on_submit_button_clicked(self, widget):
-        buffer = self.notes_textview.get_buffer()
         daily = Daily(self.uri, self.username, self.password)
         daily.add({
             "request": {
-                'notes': buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()),
+                'notes': self.get_textview_text(self.notes_textview),
                 'hours': '',
                 'project_id': self.get_combobox_selection(self.project_combobox),
                 'task_id': self.get_combobox_selection(self.task_combobox)
