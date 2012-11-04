@@ -1,11 +1,10 @@
 import gtk
 import os, sys
+from time import sleep
 from datetime import datetime, timedelta
-from harvest import Harvest, HarvestStatus, HarvestError
+from harvest import Harvest, Daily, HarvestStatus, HarvestError
 
-import getpass
 import ConfigParser
-
 import keyring
 
 class uiSignalHelpers(object):
@@ -39,7 +38,14 @@ class uiSignalHelpers(object):
         messagedialog = gtk.MessageDialog(widget, 0, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, message)
         messagedialog.run()
         messagedialog.destroy()
+    def set_custom_label(self, widget, text):
+        #set custom label on stock button
+        Label = widget.get_children()[0]
+        Label = Label.get_children()[0].get_children()[1]
+        Label = Label.set_label("Start")
 
+    def is_entry_active(self, entry):
+        return ("%s" % (entry.timer_started_at) == "%s" % (entry.updated_at))
 class uiSignals(uiSignalHelpers):
     def __init__(self, *args, **kwargs):
         super(uiSignals, self).__init__(*args, **kwargs)
@@ -49,27 +55,29 @@ class uiSignals(uiSignalHelpers):
         self.icon.connect("popup-menu", self.right_click)
 
     def on_save_preferences_button_clicked(self, widget):
-        self.uri = self.harvest_url_entry.get_text()
-        self.username = self.harvest_email_entry.get_text()
-        self.password = self.harvest_password_entry.get_text()
-        if URI != "" and EMAIL != "" and PASS != "":
-            self.auth(URI, EMAIL, PASS)
+        uri = self.harvest_url_entry.get_text()
+        username = self.harvest_email_entry.get_text()
+        password = self.harvest_password_entry.get_text()
+        if self.auth(uri, username, password):
             self.preferences_window.hide()
+            self.timetracker_window.show()
+            self.timetracker_window.present()
         else:
-            self.warning_message(self.preferences_window, "Invalid Login Information")
+            self.preferences_window.show()
+            self.preferences_window.present()
 
     def on_task_combobox_changed(self, widget):
-        print widget
+        pass #print widget
 
     def on_project_combobox_changed(self, widget):
-        print widget
+        pass #print widget
 
     def on_client_combobox_changed(self, widget):
-        print widget
+        pass #print widget
 
     def show_preferences(self, widget):
-        self.center_windows()
         self.preferences_window.show()
+        self.preferences_window.present()
 
 
     def get_projects(self):
@@ -89,39 +97,39 @@ class uiSignals(uiSignalHelpers):
        if not self.config.has_option('timetracker_login', "username"):
            self.config.set('timetracker_login', "username", username)
 
-    def auth(self):
-    # config file init
+    def auth(self, uri = None, username = None, password = None):
+        #check harvest status
         if not self.check_harvest_up():
             return False
 
-        uri = self.config.get('timetracker_login', 'uri')
-        username = self.config.get('timetracker_login', 'username')
-        password = ''
-        if username != '':
-            password = keyring.get_password('timetracker_login', username)
+        if not uri or not username or not password:
+            uri = self.config.get('auth', 'uri')
+            username = self.config.get('auth', 'username')
+            password = ''
+            print "using auth from config: ", username
+            if username != '':
+                password = keyring.get_password('auth', username)
+
+                return self._harvest_login(uri, username, password)
+            else:
+                return self.logged_in
         else:
-            self.preferences_window.show()
+            print "using auth from dialog: ", username
+            return self._harvest_login(uri, username, password)
 
-        if password == '' or not self.harvest_login(uri, username, password):
-            while not self.logged_in:
-
-                if self.harvest_login(self.harvest_url_entry.get_text(), self.harvest_email_entry.get_text(), self.harvest_password_entry.get_text()):
-                    break
-                else:
-                    self.preferences_window.show()
-
-            # store the username
-            config.set('timetracker_login', 'username', EMAIL)
-            config.write(open(config_file, 'w'))
-
-            # store the password
-            keyring.set_password('timetracker_login', EMAIL, password)
     def check_harvest_up(self):
         if HarvestStatus().status == "down":
             self.warning_message(self.preferences_window, "Harvest Is Down")
             exit(1)
+            return False
+        else:
+            #status is "up"
+            return True
 
     def create_liststore(self, combobox, items):
+        '''
+            Create a liststore filled with items, connect it to a combobox and activate the first index
+        '''
         liststore = gtk.ListStore(str, str)
         cell = gtk.CellRendererText()
         combobox.pack_start(cell)
@@ -133,52 +141,158 @@ class uiSignals(uiSignalHelpers):
         combobox.set_model(liststore)
         combobox.set_active(0)
 
-    def harvest_login(self, URI, EMAIL, PASS):
-        print URI, EMAIL, PASS
-        try:
-            self.harvest = Harvest(URI, EMAIL, PASS)
-        except HarvestError:
-            self.warning_message(None, "Error Connecting!")
+    def get_data_from_harvest(self):
+        '''
+        Gets projects, clients and tasks defined in the account
+        '''
+        self.projects = {}
+        self.clients = {}
+        self.tasks = {}
+        for project in self.harvest.projects():
+            p = "%s" % (project)
+            self.projects[project.id] = p.replace('Project: ', '')
+        for client in self.harvest.clients():
+            c = "%s" % (client)
+            self.clients[client.id] = c.replace('Client: ', '')
+
+        for task in self.harvest.tasks():
+            t = "%s" % (task)
+            self.tasks[task.id] = t.replace('Task: ', '')
+    def _update_entries(self):
+        if self.entries_vbox:
+            self.entries_viewport.remove(self.entries_vbox)
+        self.entries_vbox = gtk.VBox(False, 0)
+        self.entries_viewport.add(self.entries_vbox)
+
+        for i in iter(sorted(self.current['all'].iteritems())):
+            hbox = gtk.HBox(False, 0)
+            if not i[1]['active']:
+                button = gtk.Button(stock="gtk-ok")
+                self.set_custom_label(button, "Start")
+            else:
+                button = gtk.Button(stock="gtk-stop")
+
+            button.connect('clicked', self.on_timer_toggle_clicked, i[0])
+
+            hbox.pack_start(button)
+
+            label = gtk.Label()
+
+            label.set_text(i[1]['text'])
+            hbox.pack_start(label, True, True, 5)
+
+            self.entries_vbox.pack_start(hbox)
+        self.entries_vbox.show_all()
+
+
+    def set_entries(self):
         total = 0
-        dose = 0
 
         start = datetime.today().replace(hour=0, minute=0, second=0)
         end = start + timedelta(1)
 
+        for user in self.harvest.users():
+            entries_count = 0
+            for i in user.entries(start, end):
+                entries_count += 1
+                total += i.hours
+                self.current['all'][i.id] = {
+                    'id': i.id,
+                    'text': "%s" %(i),
+                    'project_id': i.project_id,
+                    'task_id': i.task_id,
+                    'notes': i.notes,
+                    'hours': i.hours,
+                    'active': self.is_entry_active(i),
+                    'spent_at': i.spent_at,
+                    'timer_started_at': i.timer_started_at,
+                    'updated_at': i.updated_at,
+                    'is_closed': i.is_closed,
+                    'is_billed': i.is_billed,
+                    'task': i.task,
+                    'project': i.project,
+
+                }
+        self._update_entries()
+        self.entries_expander_label.set_text("%s Entries %0.02f hours Total"%(entries_count, total))
+
+    def _harvest_login(self, URI, EMAIL, PASS):
+        '''
+        Login to harvest and get data
+        '''
+
         try:
-            '''for user in self.harvest.users():
-                for entry in user.entries(start, end):
-                    total += entry.hours
+            PASS = self.get_password()
+            self.harvest = Harvest(URI, EMAIL, PASS)
+        except HarvestError:
+            self.warning_message(None, "Error Connecting!")
 
-            text = '%0.02f' % total
-            print text
 
-            for project in self.harvest.projects():
-                p = "%s"%(project)
-                projects_liststore.append(p)
-                print p
 
-            for client in self.harvest.clients():
-                self.clients += [client]
-            for task in self.harvest.tasks():
-                self.tasks += [task]
-                '''
-            projects = {'1': 'Sindulge Harvest', '2': 'Barn.IO', '3': 'TimeTracker', '4': 'WhiteExpress'}
-            self.create_liststore(self.project_combobox, projects)
-            clients = {'1': 'Sindulge', '2': 'Aurora', '3': 'Me', '4': 'WhiteExpress'}
-            self.create_liststore(self.client_combobox, clients)
-            tasks = {'1': 'Development', '2': 'Design', '3': 'Project Management', '4': 'Research'}
-            self.create_liststore(self.task_combobox, tasks)
+        try:
+            self.daily = Daily(URI, EMAIL, PASS)
 
+            self.get_data_from_harvest()
+            self.create_liststore(self.project_combobox, self.projects)
+            self.create_liststore(self.client_combobox, self.clients)
+            self.create_liststore(self.task_combobox, self.tasks)
+
+            self.uri = URI
+            self.username = EMAIL
+            self.password = PASS
+            self.logged_in = True
+
+            for u in self.harvest.users():
+                self.user_id = u.id
+                break
+            #save valid config
+            self.set_config()
+
+            #populate entries
+            self.set_entries()
+
+            self.set_message_text("%s Logged In"%(self.username))
+            self.preferences_window.hide()
+            self.timetracker_window.show()
+            self.timetracker_window.present()
             return True
 
         except HarvestError, e:
-            self.warning_message(self.preferences_window, "Unable to Connect to Harvest\n%s" %(e))
+            self.logged_in = False
+            self.set_message_text("Unable to Connect to Harvest\n%s" %(e))
             return False
 
         except ValueError, e:
-            self.warning_message(self.preferences_window, "ValueError\n%s" %(e))
+            self.logged_in = False
+            self.set_message_text("ValueError\n%s" %(e))
             return False
 
+    def on_timer_toggle_clicked(self, widget, id):
+        for entry in self.harvest.toggle_entry(id):
+            self.set_entries()
+
+
+
+    def get_combobox_selection(self, widget):
+            model = widget.get_model()
+            active = widget.get_active()
+            if active < 0:
+                return None
+            return model[active][1] #0 is name, 1 is id
+    def on_entries_expander_activate(self, widget):
+        self.set_entries()
+
     def on_submit_button_clicked(self, widget):
-        print widget
+        buffer = self.notes_textview.get_buffer()
+        daily = Daily(self.uri, self.username, self.password)
+        daily.add({
+            "request": {
+                'notes': buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter()),
+                'hours': '',
+                'project_id': self.get_combobox_selection(self.project_combobox),
+                'task_id': self.get_combobox_selection(self.task_combobox)
+
+            }
+        })
+        sleep(3) #timeout so harvest can process and we get complete data about active
+        self.set_entries()

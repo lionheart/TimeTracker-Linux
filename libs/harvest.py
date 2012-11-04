@@ -4,10 +4,10 @@ See http://www.getharvest.com/api
 
 '''
 import urllib2
+from urllib import urlencode
 from base64 import b64encode
 from dateutil.parser import parse as parseDate
 from xml.dom.minidom import parseString
-
 import json
 from StringIO import StringIO
 
@@ -26,6 +26,12 @@ class HarvestStatus(object):
             'Content-Type': 'application/json',
             'User-Agent': 'harvest.py',
         }
+        '''
+        merge response into self
+            self.status = "up" | "down"
+            self.last_check_time = timestamp
+            self.last_response_time = ""
+        '''
         self.__dict__.update(self._request())
 
     def _request(self):
@@ -172,7 +178,8 @@ class TaskAssignment(HarvestItemBase):
 
 class Entry(HarvestItemBase):
     def __str__(self):
-        return '%0.02f hours for project %d' % (self.hours, self.project_id)
+
+        return '%s hours for %s on %s' % (self.hours, self.task, self.project)
 
     @property
     def project(self):
@@ -212,7 +219,6 @@ class Invoice(HarvestItemBase):
         import csv
         return csv.DictReader(self.csv_line_items.split('\n'))
 
-
 class Harvest(object):
     def __init__(self,uri,email,password):
         self.uri = uri
@@ -222,7 +228,6 @@ class Harvest(object):
             'Content-Type':'application/xml',
             'User-Agent':'harvest.py',
         }
-
         # create getters
         for klass in instance_classes:
             self._create_getters( klass )
@@ -245,7 +250,7 @@ class Harvest(object):
             if id in cache:
                 return cache[id]
             else:
-                url = '%s/%d' % (klass.base_url, id)
+                url = '%s/%d' % (klass.base_url, int(id.decode('utf-8')))
                 item = self._get_element_values( url, klass.element_name ).next()
                 item = klass( self, item )
                 cache[id] = item
@@ -276,9 +281,14 @@ class Harvest(object):
 
     def _time_entries(self,root,start,end):
         url = root + 'entries?from=%s&to=%s' % (start.strftime('%Y%m%d'), end.strftime('%Y%m%d'))
-
         for element in self._get_element_values( url, 'day-entry' ):
             yield Entry( self, element )
+
+    def toggle_entry(self, entry_id):
+        url = '/daily/timer/%d' % (entry_id)
+        for element in self._get_element_values(url, 'day_entry'):
+            yield Entry(self, element)
+
 
     def _request(self,url):
         request = urllib2.Request( url=self.uri+url, headers=self.headers )
@@ -323,6 +333,71 @@ class Harvest(object):
                 if attr.nodeType == attr.ELEMENT_NODE:
                     tag = attr.tagName
                     value[tag] = get_element( attr )
+
+            if value:
+                yield value
+
+
+class Daily(Harvest):
+    def __init__(self, uri, email, password):
+        self.uri = uri
+
+        self.headers = {
+            'Authorization': 'Basic ' + b64encode('%s:%s' % (email, password)),
+            'Accept': 'application/xml',
+            'Content-Type': 'application/xml',
+            'User-Agent': 'harvest.py',
+        }
+
+    def add(self, data):
+        garbage = []
+        for element in self._get_element_values('/daily/add', 'add', data):
+            garbage.append(element)
+
+    def _request(self, url, data={}):
+        request = urllib2.Request(url=self.uri + url, headers=self.headers)
+        try:
+            import xmldict
+            r = urllib2.urlopen(request, xmldict.dict_to_xml(data))
+            xml = r.read()
+            return parseString(xml)
+        except urllib2.URLError as e:
+            raise HarvestConnectionError(e)
+
+    def _get_element_values(self, url, tagname, data):
+        def get_element(element):
+            text = ''.join(n.data for n in element.childNodes if n.nodeType == n.TEXT_NODE)
+            try:
+                entry_type = element.getAttribute('type')
+                if entry_type == 'integer':
+                    try:
+                        return int(text)
+                    except ValueError:
+                        return 0
+                elif entry_type in ('date', 'datetime'):
+                    return parseDate(text)
+                elif entry_type == 'boolean':
+                    try:
+                        return text.strip().lower() in ('true', '1')
+                    except ValueError:
+                        return False
+                elif entry_type == 'decimal':
+                    try:
+                        return float(text)
+                    except ValueError:
+                        return 0.0
+                else:
+                    return text
+            except:
+                return text
+
+        xml = self._request(url, data)
+        for entry in xml.getElementsByTagName(tagname):
+            value = {}
+            for attr in entry.childNodes:
+                if attr.nodeType == attr.ELEMENT_NODE:
+                    tag = attr.tagName
+                    value[tag] = get_element(attr)
 
             if value:
                 yield value

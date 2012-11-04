@@ -8,6 +8,7 @@ pygtk.require('2.0')
 import gtk
 import gtk.gdk
 import pango
+import gobject
 
 from threading import Thread, Lock
 from thread import error as thread_error
@@ -42,9 +43,8 @@ class App(uiSignals, uiLogic):
     @staticmethod
     def main( *args, **kwargs ):
         gtk.gdk.threads_enter()
+
         gtk.main()
-        while gtk.events_pending():
-            gtk.main_iteration()
 
         gtk.gdk.threads_leave()
         return

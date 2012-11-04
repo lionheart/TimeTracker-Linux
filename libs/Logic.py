@@ -2,6 +2,8 @@ import os, sys, math
 import gtk, gobject
 from time import time
 import string
+import keyring
+from gnomekeyring import IOError as KeyRingError
 import ConfigParser
 
 class InterfaceException(Exception):
@@ -29,7 +31,6 @@ libs_path = os.path.dirname(os.path.abspath(__file__)) + '/'
 sys.path.append(libs_path+"../data")
 import Config
 media_path = libs_path +'../' + Config.media_path_dir
-
 
 class logicHelpers(objectify):
     def __init__(self, *args, **kwargs):
@@ -64,20 +65,43 @@ class logicFunctions(logicHelpers):
     def init(self, *args, **kwargs):
         #initialize state variables
         self.logged_in = False #used for state whether user is logged in or not
+        self.user_id = None #current user id
         self.harvest = None #harvest instance
+        self.daily = None #harvest instance used for posting data
         self.projects = [] #list of projects
         self.clients = [] #list of clients
         self.tasks = [] #list of tasks
-
+        self.entries_vbox = None #used to hold the entries and to empty easily
+        self.today_start = datetime.today().replace(hour=0, minute=0, second=0)
+        self.today_end = self.today_start + timedelta(1)
+        self.today_total = 0 #total hours today
+        self.current = {
+            'all': {}, #holds all the current entries for the day
+            'project_id': None,
+            'client_id': None,
+            'task_id': None,
+            'notes': None,
+            'started_at': None,
+            'active': False,
+        }
         self.config_filename = kwargs.get('config', 'harvest.cfg')
 
         self.init_status_icon()
 
-        self.get_config_file()
-
+        self.get_config()
         self.auth()
+        self.set_prefs()
+
+        self.interval = self.config.get('prefs', 'interval')
 
         self.center_windows()
+    def set_prefs(self):
+        self.interval_entry.set_text(self.interval)
+        self.harvest_url_entry.set_text(self.uri)
+        self.harvest_email_entry.set_text(self.username)
+
+        if self.password: #password may not be saved in keyring
+            self.harvest_password_entry.set_text(self.password)
 
     def init_status_icon(self):
         self.icon = gtk.status_icon_new_from_file(media_path + "/idle.png")
@@ -88,15 +112,64 @@ class logicFunctions(logicHelpers):
         self.icon.set_visible(True)
         self.start_working_time = 0
 
-    def get_config_file(self):
-        self.config = ConfigParser.SafeConfigParser({
-            'uri': '',
-            'username': '',
-        })
+    def get_config(self):
+        self.config = ConfigParser.SafeConfigParser()
+
         self.config.read(self.config_filename)
 
-        if not self.config.has_section('timetracker_login'):
-            self.config.add_section('timetracker_login')
+        if not self.config.has_section('auth'):
+            self.config.add_section('auth')
+
+        if not self.config.has_option('auth', 'uri'):
+            self.config.set('auth', 'uri', '')
+        else:
+            self.uri = self.config.get('auth', 'uri')
+
+        if not self.config.has_option('auth', 'username'):
+            self.config.set('auth', 'username', '')
+        else:
+            self.username = self.config.get('auth', 'username')
+
+        if not self.config.has_section('prefs'):
+            self.config.add_section('prefs')
+
+        if not self.config.has_option('prefs', 'interval'):
+            self.config.set('prefs', 'interval', '0.33')
+        else:
+            self.interval = self.config.get('prefs', 'interval')
+
+        if not self.config.has_option('prefs', 'countdown'):
+            self.config.set('prefs', 'countdown', 'False')
+        else:
+            self.countdown = self.config.get('prefs', 'countdown')
+            # store the username
+
+        self.password = self.get_password()
+
+        #write file in case write not exists or options missing
+        self.config.write(open(self.config_filename, 'w'))
+    def get_password(self):
+        if self.username:
+            try:
+                return keyring.get_password('TimeTracker', self.username)
+            except KeyRingError, e:
+                try: #try again, just in case
+                    return keyring.get_password('TimeTracker', self.username)
+                except KeyRingError, e:
+                    self.warning_message(self.preferences_window, "Unable to get Password from Gnome KeyRing")
+                    exit(1)
+
+    def save_password(self):
+        if self.username and self.password:
+            keyring.set_password('TimeTracker', self.username, self.password)
+
+    def set_config(self):
+        self.config.set('auth', 'uri', self.uri)
+        self.config.set('auth', 'username', self.username)
+
+        self.save_password()
+
+        self.config.write(open(self.config_filename, 'w'))
 
     def format_time(self, seconds):
         minutes = math.floor(seconds / 60)
@@ -122,7 +195,9 @@ class logicFunctions(logicHelpers):
             delta = time() - self.start_working_time
             self.icon.set_tooltip("Working for %s..." % self.format_time(delta))
         self.state = state
-
+    def set_message_text(self, text):
+        self.prefs_message_label.set_text(text)
+        self.main_message_label.set_text(text)
     def show_about_dialog(self, widget):
         about_dialog = gtk.AboutDialog()
 
@@ -135,10 +210,8 @@ class logicFunctions(logicHelpers):
         about_dialog.destroy()
 
     def left_click(self, event):
-        print event
         self.timetracker_window.show()
-        
-
+        self.timetracker_window.present()
 
     def update(self):
         delta = time() - self.start_working_time
@@ -152,7 +225,6 @@ class logicFunctions(logicHelpers):
         source_id = gobject.timeout_add(self.tick_interval * 1000, self.update)
     def right_click(self, icon, button, time):
         menu = gtk.Menu()
-        print icon
         away = gtk.MenuItem("Away for meeting")
         updates = gtk.MenuItem("Check for updates")
         prefs = gtk.MenuItem("Preferences")
