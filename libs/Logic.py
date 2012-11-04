@@ -63,6 +63,12 @@ class logicHelpers(objectify):
         buffer = self.notes_textview.get_buffer()
         return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter())
 
+    def string_to_bool(self, string):
+        return True if string == "True" else False
+
+    def bool_to_string(self, bool):
+        return "True" if bool else "False"
+
 class logicFunctions(logicHelpers):
     def __init__(self, *args, **kwargs):
         super(self, logicFunctions).__init__(*args, **kwargs) 
@@ -101,7 +107,7 @@ class logicFunctions(logicHelpers):
         self.start_interval_timer()
 
         self._status_button = StatusButton()
-        self._notifier = Notifier('TimerApplet', gtk.STOCK_DIALOG_INFO, self._status_button)
+        self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
 
 
     def start_interval_timer(self):
@@ -283,15 +289,11 @@ class logicFunctions(logicHelpers):
             spin.set_value( idx )
 
     def start_pulsing_button(self):
-        if self._gconf.get_bool(TimerApplet._SHOW_PULSING_ICON_KEY):
+        if self.string_to_bool(self.pulsing_icon):
             self._status_button.start_pulsing()
 
     def _stop_pulsing_button(self):
         self._status_button.stop_pulsing()
-
-    def _show_about_dialog(self):
-        self._about_dialog.run()
-        self._about_dialog.hide()
 
     def call_notify(self, summary=None, message=None,
                      reminder_message_func=None, show=True):
