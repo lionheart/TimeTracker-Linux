@@ -5,6 +5,8 @@ import string
 import keyring
 from gnomekeyring import IOError as KeyRingError
 import ConfigParser
+from Notifier import Notifier
+from StatusButton import StatusButton
 
 class InterfaceException(Exception):
     pass
@@ -96,17 +98,20 @@ class logicFunctions(logicHelpers):
         self.interval = self.config.get('prefs', 'interval')
 
         self.center_windows()
+        self.start_interval_timer()
 
+        self._status_button = StatusButton()
+        self._notifier = Notifier('TimerApplet', gtk.STOCK_DIALOG_INFO, self._status_button)
 
 
     def start_interval_timer(self):
-        if self.timeout_instance:
-            gobject.source_remove(self.timeout_instance)
-
-        interval = int(round(3600.0 * float(self.interval)))
-        print interval
         if self.running:
-            self.timeout_instance = gobject.timeout_add(100, self.show_timetracker_after_interval)
+            if self.timeout_instance:
+                gobject.source_remove(self.timeout_instance)
+
+            interval = int(round(3600000 * float(self.interval)))
+
+            self.timeout_instance = gobject.timeout_add(interval, self.show_timetracker_after_interval)
 
     def set_prefs(self):
         self.interval_entry.set_text(self.interval)
@@ -155,7 +160,12 @@ class logicFunctions(logicHelpers):
             self.config.set('prefs', 'countdown', 'False')
         else:
             self.countdown = self.config.get('prefs', 'countdown')
-            # store the username
+
+        if not self.config.has_option('prefs', 'show_notification'):
+            self.config.set('prefs', 'show_notification', 'True')
+        else:
+            self.show_notification = self.config.get('prefs', 'show_notification')
+
 
         self.password = self.get_password()
 
@@ -230,10 +240,14 @@ class logicFunctions(logicHelpers):
         self.timetracker_window.present()
 
     def show_timetracker_after_interval(self):
-        self.timetracker_window.show()
-        self.timetracker_window.present()
+        if self.running:
+            self.call_notify("TimeTracker", "interval elapsed: %s"%self.interval)
+            self.timetracker_window.show()
+            self.timetracker_window.present()
 
-        self.start_interval_timer()
+            interval = int(round(3600000 * float(self.interval)))
+
+            self.timeout_instance = gobject.timeout_add(interval, self.show_timetracker_after_interval)
 
     def right_click(self, icon, button, time):
         menu = gtk.Menu()
@@ -267,8 +281,25 @@ class logicFunctions(logicHelpers):
             spin.set_value( len( list ) + 1 )
         else:
             spin.set_value( idx )
-            
 
+    def start_pulsing_button(self):
+        if self._gconf.get_bool(TimerApplet._SHOW_PULSING_ICON_KEY):
+            self._status_button.start_pulsing()
+
+    def _stop_pulsing_button(self):
+        self._status_button.stop_pulsing()
+
+    def _show_about_dialog(self):
+        self._about_dialog.run()
+        self._about_dialog.hide()
+
+    def call_notify(self, summary=None, message=None,
+                     reminder_message_func=None, show=True):
+        if self.string_to_bool(self.show_notification):
+            if show:
+                self._notifier.begin(summary, message, reminder_message_func)
+            else:
+                self._notifier.end()
             
 class uiLogic(uiBuilder, uiCreator, logicFunctions):
     def __init__(self,*args, **kwargs):

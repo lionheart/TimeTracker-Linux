@@ -247,11 +247,12 @@ class uiSignals(uiSignalHelpers):
             self.set_comboboxes(self.project_combobox, self.current['project_id'])
             self.set_comboboxes(self.task_combobox, self.current['task_id'])
             self.set_comboboxes(self.client_combobox, self.current['client_id'])
+            self.hours_entry.set_text("%s"%self.current['hours'])
             textbuffer = gtk.TextBuffer()
             textbuffer.set_text(self.current['notes'])
             self.notes_textview.set_buffer(textbuffer)
             self.start_time = time()
-            self.start_interval_timer()
+
             self.running = True
         else:
             self.running = False
@@ -334,7 +335,7 @@ class uiSignals(uiSignalHelpers):
         daily.add({
             "request": {
                 'notes': self.get_textview_text(self.notes_textview),
-                'hours': '',
+                'hours': self.hours_entry.get_text(),
                 'project_id': self.get_combobox_selection(self.project_combobox),
                 'task_id': self.get_combobox_selection(self.task_combobox)
 
