@@ -1,10 +1,17 @@
 import os, sys, math
 import gtk, gobject
-from time import time
+from time import time, sleep
 import string
-import keyring
-from gnomekeyring import IOError as KeyRingError
+
+from base64 import b64encode
 import ConfigParser
+import keyring
+
+from gnomekeyring import IOError as KeyRingError
+
+from datetime import datetime, timedelta
+from harvest import Harvest, Daily, HarvestStatus, HarvestError
+
 from Notifier import Notifier
 from StatusButton import StatusButton
 
@@ -75,6 +82,7 @@ class logicFunctions(logicHelpers):
         
     def init(self, *args, **kwargs):
         #initialize state variables
+        self.icon = None #timetracker icon
         self.running = False #timer is running and tracking time
         self.interval_timer_timeout_instance = None #gint of the timeout_add for interval
         self.elapsed_timer_timeout_instance = None #gint of the timeout for elapsed time
@@ -97,7 +105,7 @@ class logicFunctions(logicHelpers):
         self.set_custom_label(self.stop_all_button, 'Force Stop')
         self.config_filename = kwargs.get('config', 'harvest.cfg')
 
-        self.init_status_icon()
+        self.set_status_icon()
 
         self.get_config()
         self.auth()
@@ -137,14 +145,28 @@ class logicFunctions(logicHelpers):
         if self.password: #password may not be saved in keyring
             self.harvest_password_entry.set_text(self.password)
 
-    def init_status_icon(self):
-        self.icon = gtk.status_icon_new_from_file(media_path + "/idle.png")
-        self.icon.set_tooltip("Idle")
-        self.state = "idle"
-        self.tick_interval = 10 #number of seconds between each poll
+    def set_status_icon(self):
+        if self.running:
+            if self.away_from_desk:
+                if not self.icon:
+                    self.icon = gtk.status_icon_new_from_file(media_path + "/away.png")
+                else:
+                    self.icon.set_from_file(media_path + "/away.png")
+                self.icon.set_tooltip("AWAY: Working on %s" %(self.current['text']))
+            else:
+                if not self.icon:
+                    self.icon = gtk.status_icon_new_from_file(media_path + "/working.png")
+                else:
+                    self.icon.set_from_file(media_path + "/working.png")
+                self.icon.set_tooltip("Working on %s" % (self.current['text']))
+        else:
+            if not self.icon:
+                self.icon = gtk.status_icon_new_from_file(media_path + "/idle.png")
+            else:
+                self.icon.set_from_file(media_path + "/idle.png")
+            self.icon.set_tooltip("Idle")
 
         self.icon.set_visible(True)
-        self.start_working_time = 0
 
     def get_config(self):
         self.config = ConfigParser.SafeConfigParser()
@@ -240,9 +262,6 @@ class logicFunctions(logicHelpers):
         self.prefs_message_label.set_text(text)
         self.main_message_label.set_text(text)
 
-    def show_about_dialog(self, widget):
-        self.about_dialog.show()
-
     def left_click(self, event):
         self.timetracker_window.show()
         self.timetracker_window.present()
@@ -256,17 +275,15 @@ class logicFunctions(logicHelpers):
         interval = int(round(3600000 * float(self.interval)))
         gobject.timeout_add(interval, self.interval_timer)
     def elapsed_timer(self):
+        self.set_status_icon()
         delta = round(round(time() - self.start_time)/ 3600, 2)
         self.status_label.set_text("%s" % ("Running %s started at %s" % (self.current['hours'] + delta, datetime.fromtimestamp(self.start_time).strftime("%H:%M:%S")) if self.running else "Stopped"))
         gobject.timeout_add(1000, self.elapsed_timer)
 
     def right_click(self, icon, button, time):
-        #toggle away state
-        self.away_from_desk = True if not self.away_from_desk else False
-
         #create popup menu
         menu = gtk.Menu()
-        if self.away_from_desk:
+        if not self.away_from_desk:
             away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_STOP)
             away.set_label("Away from desk")
         else:
@@ -278,10 +295,10 @@ class logicFunctions(logicHelpers):
         about = gtk.MenuItem("About")
         quit = gtk.MenuItem("Quit")
 
-        away.connect("activate", self.away_for_meeting)
-        updates.connect("activate", self.check_for_updates)
-        prefs.connect("activate", self.show_preferences)
-        about.connect("activate", self.show_about_dialog)
+        away.connect("activate", self.on_away_from_desk)
+        updates.connect("activate", self.on_check_for_updates)
+        prefs.connect("activate", self.on_show_preferences)
+        about.connect("activate", self.on_show_about_dialog)
         quit.connect("activate", gtk.main_quit)
 
         menu.append(away)
@@ -327,3 +344,278 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             #initialize application
             self.init()
 
+    def save_username_and_uri(self, uri, username):
+        if not self.config.has_option('timetracker_login', "uri"):
+            self.config.set('timetracker_login', "uri", uri)
+
+        if not self.config.has_option('timetracker_login', "username"):
+            self.config.set('timetracker_login', "username", username)
+
+    def auth(self, uri=None, username=None, password=None):
+        #check harvest status
+        if not self.check_harvest_up():
+            return False
+
+        if not uri and not username and not password:
+            uri = self.config.get('auth', 'uri')
+            username = self.config.get('auth', 'username')
+            password = ''
+            print
+            "using auth from config: ", username
+            if username != '':
+                password = keyring.get_password('TimeTracker', username)
+
+                if not password: #for cases where not saved in keyring yet
+                    self.preferences_window.show()
+                    self.preferences_window.present()
+                    return False
+
+                return self._harvest_login(uri, username, password)
+            else:
+                return self.logged_in
+        else:
+            print
+            "using auth from dialog: ", username
+            return self._harvest_login(uri, username, password)
+
+    def check_harvest_up(self):
+        if HarvestStatus().status == "down":
+            self.warning_message(self.preferences_window, "Harvest Is Down")
+            exit(1)
+            return False
+        else:
+            #status is "up"
+            return True
+
+    def create_liststore(self, combobox, items):
+        '''
+            Create a liststore filled with items, connect it to a combobox and activate the first index
+        '''
+        liststore = combobox.get_model()
+        if not liststore:
+            liststore = gtk.ListStore(str, str)
+            cell = gtk.CellRendererText()
+            combobox.pack_start(cell)
+            combobox.add_attribute(cell, 'text', 0)
+            combobox.add_attribute(cell, 'text', 0)
+
+        else:
+            liststore.clear()
+
+        for p in items:
+            liststore.append([items[p], p])
+
+        combobox.set_model(liststore)
+        combobox.set_active(0)
+
+    def get_data_from_harvest(self):
+        '''
+        Gets active/activated projects, clients and tasks defined in the account
+        '''
+        self.projects = {}
+        self.clients = {}
+        self.tasks = {}
+        for project in self.harvest.projects():
+            if project.active:
+                s = ""
+                if project.code:
+                    s = "%s - %s" % (project.code, project.name)
+                else:
+                    s = "%s" % (project.name)
+
+                self.projects[project.id] = s
+            else:
+                print
+                "Inactive Project: ", project.id, project.name
+
+        for client in self.harvest.clients():
+            self.clients[client.id] = client.name
+
+        for task in self.harvest.tasks():
+            if not task.deactivated:
+                self.tasks[task.id] = task.name
+
+    def _update_entries_box(self):
+        if self.entries_vbox:
+            self.entries_viewport.remove(self.entries_vbox)
+        self.entries_vbox = gtk.VBox(False, 0)
+        self.entries_viewport.add(self.entries_vbox)
+
+        for i in iter(sorted(self.current['all'].iteritems())):
+            hbox = gtk.HBox(False, 0)
+            if not i[1]['active']:
+                button = gtk.Button(stock="gtk-ok")
+                if self.current.has_key('id') and i[0] == self.current['id']:
+                    self.set_custom_label(button, "Continue")
+                else:
+                    self.set_custom_label(button, "Start")
+                edit_button = None
+            else:
+                button = gtk.Button(stock="gtk-stop")
+                if self.current['hours'] > 0.0:
+                    edit_button = gtk.Button(stock="gtk-edit")
+                    self.set_custom_label(edit_button, "Modify")
+                    edit_button.connect("clicked", self.on_edit_timer_entry, i[0])
+                else:
+                    edit_button = None
+
+            button.connect('clicked', self.on_timer_toggle_clicked, i[0]) #timer entry id
+            hbox.pack_start(button)
+
+            #show edit button for current task so user can modify the entry
+            if edit_button:
+                hbox.pack_start(edit_button)
+
+            label = gtk.Label()
+            label.set_text(i[1]['text'])
+            hbox.pack_start(label)
+
+            button = gtk.Button(stock="gtk-remove")
+            button.connect('clicked', self.on_timer_entry_removed, i[0])
+            hbox.pack_start(button)
+
+            self.entries_vbox.pack_start(hbox)
+        self.entries_vbox.show_all()
+
+
+    def set_entries(self):
+        total = 0
+
+        self.current['all'] = {}
+        current_id = None
+        for user in self.harvest.users():
+            if user.email == self.username:
+                entries_count = 0
+                for i in user.entries(self.today_start, self.today_end):
+                    entries_count += 1
+                    total += i.hours
+
+                    active = self.is_entry_active(i)
+                    if active:
+                        current_id = i.id
+
+                    self.current['all'][i.id] = {
+                        'id': i.id,
+                        'text': "%s" % (i),
+                        'project_id': i.project_id,
+                        'task_id': i.task_id,
+                        'notes': i.notes,
+                        'hours': i.hours,
+                        'active': active,
+                        'spent_at': i.spent_at,
+                        'timer_started_at': i.timer_started_at,
+                        'updated_at': i.updated_at,
+                        'is_closed': i.is_closed,
+                        'is_billed': i.is_billed,
+                        'task': i.task,
+                        'project': i.project,
+
+                    }
+                break
+
+        if current_id:
+            self.current.update(self.current['all'][current_id])
+            self.current['client_id'] = self.harvest.project(self.current['project_id']).client_id
+
+            self.set_comboboxes(self.project_combobox, self.current['project_id'])
+            self.set_comboboxes(self.task_combobox, self.current['task_id'])
+            self.set_comboboxes(self.client_combobox, self.current['client_id'])
+
+            self.hours_entry.set_text("%s" % (self.current['hours']))
+
+            textbuffer = gtk.TextBuffer()
+            textbuffer.set_text(self.current['notes'])
+            self.notes_textview.set_buffer(textbuffer)
+
+            self.start_time = time()
+
+            self.running = True
+        else:
+            self.hours_entry.set_text("")
+            textbuffer = gtk.TextBuffer()
+            textbuffer.set_text("")
+            self.notes_textview.set_buffer(textbuffer)
+
+            self.running = False
+
+        self._update_entries_box()
+
+        self.entries_expander_label.set_text("%s Entries %0.02f hours Total" % (entries_count, total))
+
+    def _harvest_login(self, URI, EMAIL, PASS):
+        '''
+        Login to harvest and get data
+        '''
+        if not URI or not EMAIL or not PASS:
+            return False
+
+        try:
+            if not PASS:
+                PASS = self.get_password()
+
+            EMAIL = EMAIL.replace("\r\n", "").strip()
+            PASS = PASS.replace("\r\n", "").strip()
+
+            #fail if pass not set and not in keyring
+            if not URI or not EMAIL or not PASS:
+                return False
+
+            if self.harvest: #user is logged in and changes login credentials
+                self.harvest.uri = URI #set to overwrite for when auth with diff account
+                self.harvest.headers['Authorization'] = 'Basic ' + b64encode('%s:%s' % (EMAIL, PASS))
+            else:
+                self.harvest = Harvest(URI, EMAIL, PASS)
+
+            if self.daily: #user is logged in and changes login credentials
+                self.daily.uri = URI #set to overwrite for when auth with diff account
+                self.daily.headers['Authorization'] = 'Basic ' + b64encode('%s:%s' % (EMAIL, PASS))
+            else:
+                self.daily = Daily(URI, EMAIL, PASS)
+
+        except HarvestError:
+            self.warning_message(None, "Error Connecting!")
+
+        try:
+            for u in self.harvest.users():
+                self.user_id = u.id
+                self.harvest.id = u.id #set to overwrite for when auth with diff account
+                self.daily.id = u.id #set to overwrite for when auth with diff account
+                break
+        except HarvestError, e:
+            self.logged_in = False
+            self.set_message_text("Unable to Connect to Harvest\n%s" % (e))
+            return False
+
+        try:
+            self.get_data_from_harvest()
+
+            self.create_liststore(self.project_combobox, self.projects)
+            self.create_liststore(self.client_combobox, self.clients)
+            self.create_liststore(self.task_combobox, self.tasks)
+
+            self.uri = URI
+            self.username = EMAIL
+            self.password = PASS
+            self.logged_in = True
+
+            #save valid config
+            self.set_config()
+
+            #populate entries
+            self.set_entries()
+
+            self.set_message_text("%s Logged In" % (self.username))
+            self.preferences_window.hide()
+            self.timetracker_window.show()
+            self.timetracker_window.present()
+            return True
+
+        except HarvestError, e:
+            self.logged_in = False
+            self.set_message_text("Unable to Connect to Harvest\n%s" % (e))
+            return False
+
+        except ValueError, e:
+            self.logged_in = False
+            self.set_message_text("ValueError\n%s" % (e))
+            return False
