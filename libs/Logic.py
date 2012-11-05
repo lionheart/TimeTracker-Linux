@@ -30,10 +30,6 @@ except ImportError:
     raise 'User Interface Import Error'
     sys.exit(1)
 
-
-from harvest import Harvest, HarvestError
-from datetime import datetime, timedelta
-
 from O import objectify, object_caller
 
 libs_path = os.path.dirname(os.path.abspath(__file__)) + '/'
@@ -97,8 +93,10 @@ class logicFunctions(logicHelpers):
         self.today_start = datetime.today().replace(hour=0, minute=0, second=0) #today_$time for when day changes to keep view intact
         self.today_end = self.today_start + timedelta(1)
         self.start_time = time() #when self.running == True this is used to calculate the notification interval
+        self.time_delta = 0 #difference between now and starttime
         self.today_total = 0 #total hours today
         self.away_from_desk = False #used to start stop interval timer and display away popup menu item
+        self.save_passwords = True #used to save password, toggled by checkbutton
         self.current = {
             'all': {}, #holds all the current entries for the day
         }
@@ -121,6 +119,8 @@ class logicFunctions(logicHelpers):
         self._status_button = StatusButton()
         self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
 
+        self.about_dialog.set_logo(gtk.gdk.pixbuf_new_from_file(media_path + "logo.svg"))
+
 
     def start_interval_timer(self):
         if self.running:
@@ -137,6 +137,27 @@ class logicFunctions(logicHelpers):
 
         self.elapsed_timer_timeout_instance = gobject.timeout_add(1000, self.elapsed_timer)
 
+    def interval_timer(self):
+        if self.running and not self.away_from_desk:
+            self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current['text'])
+            self.timetracker_window.show()
+            self.timetracker_window.present()
+
+        interval = int(round(3600000 * float(self.interval)))
+        gobject.timeout_add(interval, self.interval_timer)
+
+    def elapsed_timer(self):
+        self.set_status_icon()
+        if self.running:
+            self.time_delta = round(round(time() - self.start_time) / 3600, 3)
+            self.current['_hours'] = self.current['hours'] + self.time_delta
+            self.current['_label'].set_text("%0.02f on %s for %s" %(self.current['_hours'],self.current['task'].name, self.current['project'].name))
+            self.status_label.set_text("%s" % ("Running %0.02f started_at %s" % (self.current['_hours'],
+                                                                         datetime.fromtimestamp(
+                                                                             self.start_time).strftime(
+                                                                             "%H:%M:%S")) if self.running else "Idle"))
+        gobject.timeout_add(1000, self.elapsed_timer)
+
     def set_prefs(self):
         self.interval_entry.set_text(self.interval)
         self.harvest_url_entry.set_text(self.uri)
@@ -149,21 +170,21 @@ class logicFunctions(logicHelpers):
         if self.running:
             if self.away_from_desk:
                 if not self.icon:
-                    self.icon = gtk.status_icon_new_from_file(media_path + "/away.png")
+                    self.icon = gtk.status_icon_new_from_file(media_path + "away.svg")
                 else:
-                    self.icon.set_from_file(media_path + "/away.png")
+                    self.icon.set_from_file(media_path + "away.svg")
                 self.icon.set_tooltip("AWAY: Working on %s" %(self.current['text']))
             else:
                 if not self.icon:
-                    self.icon = gtk.status_icon_new_from_file(media_path + "/working.png")
+                    self.icon = gtk.status_icon_new_from_file(media_path + "working.svg")
                 else:
-                    self.icon.set_from_file(media_path + "/working.png")
+                    self.icon.set_from_file(media_path + "working.svg")
                 self.icon.set_tooltip("Working on %s" % (self.current['text']))
         else:
             if not self.icon:
-                self.icon = gtk.status_icon_new_from_file(media_path + "/idle.png")
+                self.icon = gtk.status_icon_new_from_file(media_path + "idle.svg")
             else:
-                self.icon.set_from_file(media_path + "/idle.png")
+                self.icon.set_from_file(media_path + "idle.svg")
             self.icon.set_tooltip("Idle")
 
         self.icon.set_visible(True)
@@ -204,26 +225,15 @@ class logicFunctions(logicHelpers):
         else:
             self.show_notification = self.config.get('prefs', 'show_notification')
 
+        if not self.config.has_option('prefs', 'save_passwords'):
+            self.config.set('prefs', 'save_passwords', 'True')
+        else:
+            self.save_passwords = self.config.get('prefs', 'save_passwords')
 
         self.password = self.get_password()
 
         #write file in case write not exists or options missing
         self.config.write(open(self.config_filename, 'w'))
-
-    def get_password(self):
-        if self.username:
-            try:
-                return keyring.get_password('TimeTracker', self.username)
-            except KeyRingError, e:
-                try: #try again, just in case
-                    return keyring.get_password('TimeTracker', self.username)
-                except KeyRingError, e:
-                    self.warning_message(self.preferences_window, "Unable to get Password from Gnome KeyRing")
-                    exit(1)
-
-    def save_password(self):
-        if self.username and self.password:
-            keyring.set_password('TimeTracker', self.username, self.password)
 
     def set_config(self):
         self.config.set('auth', 'uri', self.uri)
@@ -233,6 +243,22 @@ class logicFunctions(logicHelpers):
 
         self.config.write(open(self.config_filename, 'w'))
 
+    def get_password(self):
+        if self.username:
+            try:
+                return keyring.get_password('TimeTracker', self.username)
+            except KeyRingError, e:
+                try: #try again, just in case
+                    return keyring.get_password('TimeTracker', self.username)
+                except KeyRingError as e:
+                    self.warning_message(self.preferences_window, "Unable to get Password from Gnome KeyRing")
+                    exit(1)
+
+    def save_password(self):
+        if self.save_passwords and self.username and self.password:
+            keyring.set_password('TimeTracker', self.username, self.password)
+
+
     def format_time(self, seconds):
         minutes = math.floor(seconds / 60)
         if minutes > 1:
@@ -240,85 +266,9 @@ class logicFunctions(logicHelpers):
         else:
             return "%d minute" % minutes
 
-    def set_state(self, state):
-        old_state = self.state
-        self.icon.set_from_file(media_path + state + ".png")
-        if state == "idle":
-            delta = time() - self.start_working_time
-            if old_state == "ok":
-                self.icon.set_tooltip("Good! Worked for %s." %
-                                      self.format_time(delta))
-            elif old_state == "working":
-                self.icon.set_tooltip("Not good: worked for only %s." %
-                                      self.format_time(delta))
-        else:
-            if state == "working":
-                self.start_working_time = time()
-            delta = time() - self.start_working_time
-            self.icon.set_tooltip("Working for %s..." % self.format_time(delta))
-        self.state = state
-
     def set_message_text(self, text):
         self.prefs_message_label.set_text(text)
         self.main_message_label.set_text(text)
-
-    def left_click(self, event):
-        self.timetracker_window.show()
-        self.timetracker_window.present()
-
-    def interval_timer(self):
-        if self.running and not self.away_from_desk:
-            self.call_notify("TimeTracker", "Are you still working on?\n%s"%self.current['text'])
-            self.timetracker_window.show()
-            self.timetracker_window.present()
-
-        interval = int(round(3600000 * float(self.interval)))
-        gobject.timeout_add(interval, self.interval_timer)
-    def elapsed_timer(self):
-        self.set_status_icon()
-        delta = round(round(time() - self.start_time)/ 3600, 2)
-        self.status_label.set_text("%s" % ("Running %s started at %s" % (self.current['hours'] + delta, datetime.fromtimestamp(self.start_time).strftime("%H:%M:%S")) if self.running else "Stopped"))
-        gobject.timeout_add(1000, self.elapsed_timer)
-
-    def right_click(self, icon, button, time):
-        #create popup menu
-        menu = gtk.Menu()
-        if not self.away_from_desk:
-            away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_STOP)
-            away.set_label("Away from desk")
-        else:
-            away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_PLAY)
-            away.set_label("Back at desk")
-
-        updates = gtk.MenuItem("Check for updates")
-        prefs = gtk.MenuItem("Preferences")
-        about = gtk.MenuItem("About")
-        quit = gtk.MenuItem("Quit")
-
-        away.connect("activate", self.on_away_from_desk)
-        updates.connect("activate", self.on_check_for_updates)
-        prefs.connect("activate", self.on_show_preferences)
-        about.connect("activate", self.on_show_about_dialog)
-        quit.connect("activate", gtk.main_quit)
-
-        menu.append(away)
-        menu.append(updates)
-        menu.append(prefs)
-        menu.append(about)
-        menu.append(quit)
-
-        menu.show_all()
-
-        menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.icon)
-
-
-                    
-    def _reset_spin_range( self, spin, list, idx = None ):
-        spin.set_range( 1, len( list ) + 1 )  
-        if not idx:
-            spin.set_value( len( list ) + 1 )
-        else:
-            spin.set_value( idx )
 
     def start_pulsing_button(self):
         if self.string_to_bool(self.pulsing_icon):
@@ -360,8 +310,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             uri = self.config.get('auth', 'uri')
             username = self.config.get('auth', 'username')
             password = ''
-            print
-            "using auth from config: ", username
+            print "using auth from config: ", username
             if username != '':
                 password = keyring.get_password('TimeTracker', username)
 
@@ -374,8 +323,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             else:
                 return self.logged_in
         else:
-            print
-            "using auth from dialog: ", username
+            print "using auth from dialog: ", username
             return self._harvest_login(uri, username, password)
 
     def check_harvest_up(self):
@@ -425,8 +373,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
                 self.projects[project.id] = s
             else:
-                print
-                "Inactive Project: ", project.id, project.name
+                print "Inactive Project: ", project.id, project.name
 
         for client in self.harvest.clients():
             self.clients[client.id] = client.name
@@ -443,21 +390,20 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         for i in iter(sorted(self.current['all'].iteritems())):
             hbox = gtk.HBox(False, 0)
+
             if not i[1]['active']:
                 button = gtk.Button(stock="gtk-ok")
-                if self.current.has_key('id') and i[0] == self.current['id']:
+                if self.running and i[0] == self.current['id']:
                     self.set_custom_label(button, "Continue")
                 else:
                     self.set_custom_label(button, "Start")
                 edit_button = None
             else:
                 button = gtk.Button(stock="gtk-stop")
-                if self.current['hours'] > 0.0:
-                    edit_button = gtk.Button(stock="gtk-edit")
-                    self.set_custom_label(edit_button, "Modify")
-                    edit_button.connect("clicked", self.on_edit_timer_entry, i[0])
-                else:
-                    edit_button = None
+                button.set_tooltip_text("Stopping the timer will show a more accurate time. Stop, then continue, to update")
+                edit_button = gtk.Button(stock="gtk-edit")
+                self.set_custom_label(edit_button, "Modify")
+                edit_button.connect("clicked", self.on_edit_timer_entry, i[0])
 
             button.connect('clicked', self.on_timer_toggle_clicked, i[0]) #timer entry id
             hbox.pack_start(button)
@@ -465,10 +411,18 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             #show edit button for current task so user can modify the entry
             if edit_button:
                 hbox.pack_start(edit_button)
+            if self.running and i[0] == self.current['id']:
+                self.current['_label'] = gtk.Label()
+                self.current['_label'].set_text(
+                    "%0.02f on %s for %s" % (i[1]['hours'], i[1]['task'].name, i[1]['project'].name))
+                hbox.pack_start(self.current['_label'])
+            else:
+                label = gtk.Label()
+                label.set_text("%0.02f on %s for %s" % (i[1]['hours'], i[1]['task'].name, i[1]['project'].name))
+                hbox.pack_start(label)
 
-            label = gtk.Label()
-            label.set_text(i[1]['text'])
-            hbox.pack_start(label)
+                #unset some unneeded data
+            del i[1]['project'], i[1]['task']
 
             button = gtk.Button(stock="gtk-remove")
             button.connect('clicked', self.on_timer_entry_removed, i[0])
@@ -486,6 +440,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         for user in self.harvest.users():
             if user.email == self.username:
                 entries_count = 0
+                self.user_timezone = user.timezone
                 for i in user.entries(self.today_start, self.today_end):
                     entries_count += 1
                     total += i.hours
@@ -578,12 +533,17 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         try:
             for u in self.harvest.users():
                 self.user_id = u.id
+
+                if not u.is_admin:
+                    self.warning_message(self.timetracker_window, "You are not admin, cannot proceed.")
+                    exit(1)
+
                 self.harvest.id = u.id #set to overwrite for when auth with diff account
                 self.daily.id = u.id #set to overwrite for when auth with diff account
                 break
-        except HarvestError, e:
+        except HarvestError as e:
             self.logged_in = False
-            self.set_message_text("Unable to Connect to Harvest\n%s" % (e))
+            self.set_message_text("Unable to Connect to Harvest\n\nPerhaps you don't have the proper privileges in harvest\n\n%s" % (e))
             return False
 
         try:
@@ -610,12 +570,12 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.timetracker_window.present()
             return True
 
-        except HarvestError, e:
+        except HarvestError as e:
             self.logged_in = False
             self.set_message_text("Unable to Connect to Harvest\n%s" % (e))
             return False
 
-        except ValueError, e:
+        except ValueError as e:
             self.logged_in = False
             self.set_message_text("ValueError\n%s" % (e))
             return False

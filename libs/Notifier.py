@@ -16,6 +16,10 @@
 
 import gobject
 import pynotify
+import gio
+
+class NotificationError(Exception):
+    pass
 
 class Notifier(object):
     _NOTIFICATION_REDISPLAY_INTERVAL_SECONDS = 60
@@ -40,9 +44,12 @@ class Notifier(object):
             self._on_notification_closed(notification, get_reminder_message_func)
 
         self.end()
-        self._notify = pynotify.Notification(summary, body, self._icon)
-        self._handler_id = self._notify.connect('closed', closed_callback_wrapper)
-        self._notify.show()
+        try:
+            self._notify = pynotify.Notification(summary, body, self._icon)
+            self._handler_id = self._notify.connect('closed', closed_callback_wrapper)
+            self._notify.show()
+        except gio.Error as e:
+            raise NotificationError(e)
 
     def end(self):
         if self._notify is not None:

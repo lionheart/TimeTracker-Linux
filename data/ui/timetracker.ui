@@ -651,9 +651,12 @@ The GNU General Public License does not permit incorporating your program into p
                   <object class="GtkLabel" id="prefs_message_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <attributes>
+                      <attribute name="font-desc" value="Sans Bold 10"/>
+                    </attributes>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
+                    <property name="expand">True</property>
                     <property name="fill">True</property>
                     <property name="padding">10</property>
                     <property name="position">8</property>

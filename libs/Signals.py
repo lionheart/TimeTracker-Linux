@@ -2,6 +2,8 @@ import gtk
 
 import pytz
 
+from datetime import datetime
+
 class uiSignalHelpers(object):
     def __init__(self, *args, **kwargs):
         super(uiSignalHelpers, self).__init__(*args, **kwargs)
@@ -104,6 +106,9 @@ class uiSignals(uiSignalHelpers):
         for entry in self.harvest.toggle_entry(id):
             self.set_entries()
 
+        if not self.running:
+            self.status_label.set_text("Stopped")
+
 
     def get_combobox_selection(self, widget):
             model = widget.get_model()
@@ -133,13 +138,59 @@ class uiSignals(uiSignalHelpers):
 
     def on_edit_timer_entry(self, widget, entry_id):
         self.away_from_desk = False
+        hours = self.hours_entry.get_text()
+        #time_difference = self.current['timer_started_at'] - datetime.fromtimestamp(self.start_time).replace(tzinfo=pytz.utc)
+        #if time passed and the user tries to modify time, to prevent accidental modification show warning
+        if "%s"%(self.current['hours']) == "%s"%(hours) \
+            and self.time_delta > 0.01: #if its been more than six minutes notify user, of potential loss
+            self.warning_message(self.timetracker_window, "Are you sure you want to modify this entry?\n\nSome time has passed already, and you will lose time.\n\nMaybe you should stop the timer first, start it again and then modify.")
+
+            return
+
         self.daily.update( entry_id, {
             "request": {
                 'notes': self.get_textview_text(self.notes_textview),
-                'hours': self.hours_entry.get_text(),
+                'hours': hours,
                 'project_id': self.get_combobox_selection(self.project_combobox),
                 'task_id': self.get_combobox_selection(self.task_combobox)
             }
         })
 
         self.set_entries()
+
+
+    def left_click(self, widget):
+        self.set_entries()
+        self.timetracker_window.show()
+        self.timetracker_window.present()
+
+    def right_click(self, widget, button, time):
+        #create popup menu
+        menu = gtk.Menu()
+        if not self.away_from_desk:
+            away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_STOP)
+            away.set_label("Away from desk")
+        else:
+            away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_PLAY)
+            away.set_label("Back at desk")
+
+        updates = gtk.MenuItem("Check for updates")
+        prefs = gtk.MenuItem("Preferences")
+        about = gtk.MenuItem("About")
+        quit = gtk.MenuItem("Quit")
+
+        away.connect("activate", self.on_away_from_desk)
+        updates.connect("activate", self.on_check_for_updates)
+        prefs.connect("activate", self.on_show_preferences)
+        about.connect("activate", self.on_show_about_dialog)
+        quit.connect("activate", gtk.main_quit)
+
+        menu.append(away)
+        menu.append(updates)
+        menu.append(prefs)
+        menu.append(about)
+        menu.append(quit)
+
+        menu.show_all()
+
+        menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.icon)

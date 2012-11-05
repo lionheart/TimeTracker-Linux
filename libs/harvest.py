@@ -50,7 +50,6 @@ class HarvestItemGetterable(type):
         super(HarvestItemGetterable,klass).__init__(name,bases,attrs)
         instance_classes.append( klass )
 
-
 class HarvestItemBase(object):
     def __init__( self, harvest, data ):
         self.harvest = harvest
@@ -60,7 +59,6 @@ class HarvestItemBase(object):
                 setattr( self, key, value )
             except AttributeError:
                 pass
-
 
 class User(HarvestItemBase):
     __metaclass__ = HarvestItemGetterable
