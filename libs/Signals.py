@@ -298,9 +298,6 @@ class uiSignals(uiSignalHelpers):
 
         self._update_entries_box()
 
-
-        self.status_label.set_text("%s"%("Running %s"%(datetime.fromtimestamp(self.start_time).strftime("%Y-%m-%d %H:%M:%S")) if self.running else "Stopped"))
-
         self.entries_expander_label.set_text("%s Entries %0.02f hours Total"%(entries_count, total))
 
     def _harvest_login(self, URI, EMAIL, PASS):

@@ -76,7 +76,8 @@ class logicFunctions(logicHelpers):
     def init(self, *args, **kwargs):
         #initialize state variables
         self.running = False #timer is running and tracking time
-        self.timeout_instance = None #gint of the timeout_add
+        self.interval_timer_timeout_instance = None #gint of the timeout_add for interval
+        self.elapsed_timer_timeout_instance = None #gint of the timeout for elapsed time
         self.logged_in = False #used for state whether user is logged in or not
         self.user_id = None #current user id
         self.harvest = None #harvest instance
@@ -89,6 +90,7 @@ class logicFunctions(logicHelpers):
         self.today_end = self.today_start + timedelta(1)
         self.start_time = time() #when self.running == True this is used to calculate the notification interval
         self.today_total = 0 #total hours today
+        self.away_from_desk = False #used to start stop interval timer and display away popup menu item
         self.current = {
             'all': {}, #holds all the current entries for the day
         }
@@ -104,7 +106,9 @@ class logicFunctions(logicHelpers):
         self.interval = self.config.get('prefs', 'interval')
 
         self.center_windows()
+
         self.start_interval_timer()
+        self.start_elapsed_timer()
 
         self._status_button = StatusButton()
         self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
@@ -112,12 +116,18 @@ class logicFunctions(logicHelpers):
 
     def start_interval_timer(self):
         if self.running:
-            if self.timeout_instance:
-                gobject.source_remove(self.timeout_instance)
+            if self.interval_timer_timeout_instance:
+                gobject.source_remove(self.interval_timer_timeout_instance)
 
             interval = int(round(3600000 * float(self.interval)))
 
-            self.timeout_instance = gobject.timeout_add(interval, self.show_timetracker_after_interval)
+            self.interval_timer_timeout_instance = gobject.timeout_add(interval, self.interval_timer)
+
+    def start_elapsed_timer(self):
+        if self.elapsed_timer_timeout_instance:
+            gobject.source_remove(self.elapsed_timer_timeout_instance)
+
+        self.elapsed_timer_timeout_instance = gobject.timeout_add(1000, self.elapsed_timer)
 
     def set_prefs(self):
         self.interval_entry.set_text(self.interval)
@@ -237,21 +247,31 @@ class logicFunctions(logicHelpers):
         self.timetracker_window.show()
         self.timetracker_window.present()
 
-    def show_timetracker_after_interval(self):
-        if self.running:
+    def interval_timer(self):
+        if self.running and not self.away_from_desk:
             self.call_notify("TimeTracker", "Are you still working on?\n%s"%self.current['text'])
             self.timetracker_window.show()
             self.timetracker_window.present()
 
-            interval = int(round(3600000 * float(self.interval)))
-
-            self.timeout_instance = gobject.timeout_add(interval, self.show_timetracker_after_interval)
+        interval = int(round(3600000 * float(self.interval)))
+        gobject.timeout_add(interval, self.interval_timer)
+    def elapsed_timer(self):
+        delta = round(round(time() - self.start_time)/ 3600, 2)
+        self.status_label.set_text("%s" % ("Running %s started at %s" % (self.current['hours'] + delta, datetime.fromtimestamp(self.start_time).strftime("%H:%M:%S")) if self.running else "Stopped"))
+        gobject.timeout_add(1000, self.elapsed_timer)
 
     def right_click(self, icon, button, time):
-        menu = gtk.Menu()
+        #toggle away state
+        self.away_from_desk = True if not self.away_from_desk else False
 
-        away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_STOP)
-        away.set_label("Away for meeting")
+        #create popup menu
+        menu = gtk.Menu()
+        if self.away_from_desk:
+            away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_STOP)
+            away.set_label("Away from desk")
+        else:
+            away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_PLAY)
+            away.set_label("Back at desk")
 
         updates = gtk.MenuItem("Check for updates")
         prefs = gtk.MenuItem("Preferences")
