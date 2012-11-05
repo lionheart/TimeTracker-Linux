@@ -7,6 +7,7 @@ from harvest import Harvest, Daily, HarvestStatus, HarvestError
 import ConfigParser
 import keyring
 import pytz
+from base64 import b64encode
 
 class uiSignalHelpers(object):
     def __init__(self, *args, **kwargs):
@@ -65,6 +66,8 @@ class uiSignals(uiSignalHelpers):
         super(uiSignals, self).__init__(*args, **kwargs)
         self.preferences_window.connect('delete-event', lambda w, e: w.hide() or True)
         self.timetracker_window.connect('delete-event', lambda w, e: w.hide() or True)
+        self.about_dialog.connect("delete-event", lambda w, e: w.hide() or True)
+        self.about_dialog.connect("response", lambda w, e: w.hide() or True)
         self.icon.connect('activate', self.left_click)
         self.icon.connect("popup-menu", self.right_click)
 
@@ -116,13 +119,18 @@ class uiSignals(uiSignalHelpers):
         if not self.check_harvest_up():
             return False
 
-        if not uri or not username or not password:
+        if not uri and not username and not password:
             uri = self.config.get('auth', 'uri')
             username = self.config.get('auth', 'username')
             password = ''
             print "using auth from config: ", username
             if username != '':
-                password = keyring.get_password('auth', username)
+                password = keyring.get_password('TimeTracker', username)
+
+                if not password: #for cases where not saved in keyring yet
+                    self.preferences_window.show()
+                    self.preferences_window.present()
+                    return False
 
                 return self._harvest_login(uri, username, password)
             else:
@@ -163,21 +171,29 @@ class uiSignals(uiSignalHelpers):
 
     def get_data_from_harvest(self):
         '''
-        Gets projects, clients and tasks defined in the account
+        Gets active/activated projects, clients and tasks defined in the account
         '''
         self.projects = {}
         self.clients = {}
         self.tasks = {}
         for project in self.harvest.projects():
-            p = "%s" % (project)
-            self.projects[project.id] = p.replace('Project: ', '')
+            if project.active:
+                s= ""
+                if project.code:
+                    s = "%s - %s" % (project.code, project.name)
+                else:
+                    s = "%s" % (project.name)
+
+                self.projects[project.id] = s
+            else:
+                print "Inactive Project: ", project.id, project.name
+
         for client in self.harvest.clients():
-            c = "%s" % (client)
-            self.clients[client.id] = c.replace('Client: ', '')
+            self.clients[client.id] = client.name
 
         for task in self.harvest.tasks():
-            t = "%s" % (task)
-            self.tasks[task.id] = t.replace('Task: ', '')
+            if not task.deactivated:
+                self.tasks[task.id] = task.name
 
     def _update_entries_box(self):
         if self.entries_vbox:
@@ -189,7 +205,10 @@ class uiSignals(uiSignalHelpers):
             hbox = gtk.HBox(False, 0)
             if not i[1]['active']:
                 button = gtk.Button(stock="gtk-ok")
-                self.set_custom_label(button, "Proceed")
+                if self.current.has_key('id') and i[0] == self.current['id']:
+                    self.set_custom_label(button, "Continue")
+                else:
+                    self.set_custom_label(button, "Start")
                 edit_button = None
             else:
                 button = gtk.Button(stock="gtk-stop")
@@ -223,32 +242,34 @@ class uiSignals(uiSignalHelpers):
         self.current['all'] = {}
         current_id = None
         for user in self.harvest.users():
-            entries_count = 0
-            for i in user.entries(self.today_start, self.today_end):
-                entries_count += 1
-                total += i.hours
+            if user.email == self.username:
+                entries_count = 0
+                for i in user.entries(self.today_start, self.today_end):
+                    entries_count += 1
+                    total += i.hours
 
-                active = self.is_entry_active(i)
-                if active:
-                    current_id = i.id
+                    active = self.is_entry_active(i)
+                    if active:
+                        current_id = i.id
 
-                self.current['all'][i.id] = {
-                    'id': i.id,
-                    'text': "%s" %(i),
-                    'project_id': i.project_id,
-                    'task_id': i.task_id,
-                    'notes': i.notes,
-                    'hours': i.hours,
-                    'active': active,
-                    'spent_at': i.spent_at,
-                    'timer_started_at': i.timer_started_at,
-                    'updated_at': i.updated_at,
-                    'is_closed': i.is_closed,
-                    'is_billed': i.is_billed,
-                    'task': i.task,
-                    'project': i.project,
+                    self.current['all'][i.id] = {
+                        'id': i.id,
+                        'text': "%s" %(i),
+                        'project_id': i.project_id,
+                        'task_id': i.task_id,
+                        'notes': i.notes,
+                        'hours': i.hours,
+                        'active': active,
+                        'spent_at': i.spent_at,
+                        'timer_started_at': i.timer_started_at,
+                        'updated_at': i.updated_at,
+                        'is_closed': i.is_closed,
+                        'is_billed': i.is_billed,
+                        'task': i.task,
+                        'project': i.project,
 
-                }
+                    }
+                break
 
         if current_id:
             self.current.update(self.current['all'][current_id])
@@ -268,6 +289,11 @@ class uiSignals(uiSignalHelpers):
 
             self.running = True
         else:
+            self.hours_entry.set_text("")
+            textbuffer = gtk.TextBuffer()
+            textbuffer.set_text("")
+            self.notes_textview.set_buffer(textbuffer)
+
             self.running = False
 
         self._update_entries_box()
@@ -281,19 +307,51 @@ class uiSignals(uiSignalHelpers):
         '''
         Login to harvest and get data
         '''
+        if not URI or not EMAIL or not PASS:
+            return False
 
         try:
-            PASS = self.get_password()
-            self.harvest = Harvest(URI, EMAIL, PASS)
+            if not PASS:
+                PASS = self.get_password()
+
+            EMAIL = EMAIL.replace("\r\n", "").strip()
+            PASS = PASS.replace("\r\n", "").strip()
+
+            #fail if pass not set and not in keyring
+            if not URI or not EMAIL or not PASS:
+                return False
+
+            if self.harvest: #user is logged in and changes login credentials
+                self.harvest.uri = URI #set to overwrite for when auth with diff account
+                self.harvest.headers['Authorization'] = 'Basic '+b64encode('%s:%s' % (EMAIL,PASS))
+            else:
+                self.harvest = Harvest(URI, EMAIL, PASS)
+
+            if self.daily: #user is logged in and changes login credentials
+                self.daily.uri = URI #set to overwrite for when auth with diff account
+                self.daily.headers['Authorization'] = 'Basic ' + b64encode('%s:%s' % (EMAIL, PASS))
+            else:
+                self.daily = Daily(URI, EMAIL, PASS)
+
         except HarvestError:
             self.warning_message(None, "Error Connecting!")
 
+        try:
+            for u in self.harvest.users():
+                self.user_id = u.id
+                self.harvest.id = u.id #set to overwrite for when auth with diff account
+                self.daily.id = u.id #set to overwrite for when auth with diff account
+                break
+        except HarvestError, e:
+            self.logged_in = False
+            self.set_message_text("Unable to Connect to Harvest\n%s" %(e))
+            return False
 
 
         try:
-            self.daily = Daily(URI, EMAIL, PASS)
 
             self.get_data_from_harvest()
+
             self.create_liststore(self.project_combobox, self.projects)
             self.create_liststore(self.client_combobox, self.clients)
             self.create_liststore(self.task_combobox, self.tasks)
@@ -303,9 +361,6 @@ class uiSignals(uiSignalHelpers):
             self.password = PASS
             self.logged_in = True
 
-            for u in self.harvest.users():
-                self.user_id = u.id
-                break
             #save valid config
             self.set_config()
 
@@ -333,7 +388,6 @@ class uiSignals(uiSignalHelpers):
             self.set_entries()
 
 
-
     def get_combobox_selection(self, widget):
             model = widget.get_model()
             active = widget.get_active()
@@ -357,6 +411,7 @@ class uiSignals(uiSignalHelpers):
     def on_timer_entry_removed(self, widget, entry_id):
         self.daily.delete(entry_id)
         self.set_entries()
+
     def on_edit_timer_entry(self, widget, entry_id):
         self.daily.update( entry_id, {
             "request": {

@@ -231,15 +231,7 @@ class logicFunctions(logicHelpers):
         self.main_message_label.set_text(text)
 
     def show_about_dialog(self, widget):
-        about_dialog = gtk.AboutDialog()
-
-        about_dialog.set_destroy_with_parent(True)
-        about_dialog.set_name("TimeTracker")
-        about_dialog.set_version("1.0")
-        about_dialog.set_authors(["Alex Goretoy"])
-
-        about_dialog.run()
-        about_dialog.destroy()
+        self.about_dialog.show()
 
     def left_click(self, event):
         self.timetracker_window.show()
@@ -257,7 +249,10 @@ class logicFunctions(logicHelpers):
 
     def right_click(self, icon, button, time):
         menu = gtk.Menu()
-        away = gtk.MenuItem("Away for meeting")
+
+        away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_STOP)
+        away.set_label("Away for meeting")
+
         updates = gtk.MenuItem("Check for updates")
         prefs = gtk.MenuItem("Preferences")
         about = gtk.MenuItem("About")
