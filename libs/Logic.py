@@ -164,7 +164,7 @@ class logicFunctions(logicHelpers):
     def process_timer_shtuff(self):
         self.set_status_icon()
         if self.running:
-            dt = parse(self.current['updated_at'].strftime("%Y-%m-%d %H:%M:%S%z"))
+            dt = parse(self.current['updated_at'].replace(tzinfo=pytz.utc).strftime("%Y-%m-%d %H:%M:%S%z"))
             self.time_delta = round(round(time() - self.start_time) / 3600, 3)
             self.current['_hours'] = self.current['hours'] + self.time_delta
 
@@ -175,8 +175,8 @@ class logicFunctions(logicHelpers):
 
             updated_at = dt.astimezone(tzoffset(None, 3600 * timezone_offset))
             #updated_at = datetime.fromtimestamp(updated_at.timetuple())
-            minutes_running = (time() - mktime(updated_at.timetuple())) / 60  #minutes timer has been running
-            seconds_running = (time() - mktime(updated_at.timetuple())) % 60
+            minutes_running = (time() - mktime(updated_at.timetuple())+(8*60*60)) / 60  #minutes timer has been running
+            seconds_running = (time() - mktime(updated_at.timetuple())+(8*60*60)) % 60
             time_running = "%02d:%02d" % (minutes_running, seconds_running)
             self.current['_label'].set_text("%0.02f on %s for %s" % (
                 self.current['_hours'], self.current['task'].name, self.current['project'].name))
