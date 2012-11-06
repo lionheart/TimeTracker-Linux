@@ -222,7 +222,7 @@ class logicFunctions(logicHelpers):
         #self.uri = self.harvest_url_entry.get_text()
         self.interval = self.interval_entry.get_text()
         self.timezone_offset_hours = self.timezone_offset_entry.get_text()
-        self.countdown = self.bool_to_string(self.countdown_checkbutton.get_active())
+        self.show_countdown = self.bool_to_string(self.countdown_checkbutton.get_active())
         self.show_notification = self.bool_to_string(self.show_notification_checkbutton.get_active())
         self.save_passwords = self.bool_to_string(self.save_password_checkbutton.get_active())
         self.show_timetracker = self.bool_to_string(self.show_timetracker_checkbutton.get_active())
@@ -284,10 +284,10 @@ class logicFunctions(logicHelpers):
         else:
             self.interval = self.config.get('prefs', 'interval')
 
-        if not self.config.has_option('prefs', 'countdown'):
-            self.config.set('prefs', 'countdown', 'False')
+        if not self.config.has_option('prefs', 'show_countdown'):
+            self.config.set('prefs', 'show_countdown', 'False')
         else:
-            self.countdown = self.config.get('prefs', 'countdown')
+            self.show_countdown = self.string_to_bool(self.config.get('prefs', 'show_countdown'))
 
         if not self.config.has_option('prefs', 'show_notification'):
             self.config.set('prefs', 'show_notification', 'True')
@@ -324,11 +324,11 @@ class logicFunctions(logicHelpers):
         self.config.set('auth', 'uri', self.uri)
         self.config.set('auth', 'username', self.username)
         self.config.set('prefs', 'interval', self.interval)
-        self.config.set('prefs', 'countdown', self.countdown)
-        self.config.set('prefs', 'show_notification', self.show_notification)
-        self.config.set('prefs', 'show_timetracker', self.show_timetracker)
+        self.config.set('prefs', 'show_countdown', self.bool_to_string(self.show_countdown))
+        self.config.set('prefs', 'show_notification', self.bool_to_string(self.show_notification))
+        self.config.set('prefs', 'show_timetracker', self.bool_to_string(self.show_timetracker))
         self.config.set('prefs', 'timezone_offset_hours', self.timezone_offset_hours)
-        self.config.set('prefs', 'save_passwords', self.save_passwords)
+        self.config.set('prefs', 'save_passwords', self.bool_to_string(self.save_passwords))
 
         self.save_password()
 
@@ -678,7 +678,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.logged_in = True
 
 
-            self.get_prefs()
+            #self.get_prefs()
 
             self.set_prefs()
 
