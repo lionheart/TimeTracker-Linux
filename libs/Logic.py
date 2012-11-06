@@ -133,7 +133,7 @@ class logicFunctions(logicHelpers):
 
     def handle_visible_state(self):
         if self.running:
-            self.hours_hbox.show_all()
+            #self.hours_hbox.show_all()
             self.submit_button.hide()
         else:
             self.hours_hbox.hide()
@@ -166,7 +166,7 @@ class logicFunctions(logicHelpers):
         if self.running:
             dt = parse(self.current['updated_at'].replace(tzinfo=pytz.utc).strftime("%Y-%m-%d %H:%M:%S%z"))
             self.time_delta = round(round(time() - self.start_time) / 3600, 3)
-            self.current['_hours'] = self.current['hours'] + self.time_delta
+            self.current['_hours'] = self.current['hours'] + self.time_delta #amount of time to add real time in app while timer running
 
             try:
                 timezone_offset = int(self.timezone_offset_hours)
@@ -180,7 +180,7 @@ class logicFunctions(logicHelpers):
             time_running = "%02d:%02d" % (minutes_running, seconds_running)
             self.current['_label'].set_text("%0.02f on %s for %s" % (
                 self.current['_hours'], self.current['task'].name, self.current['project'].name))
-
+            self.hours_entry.set_text("%s"%(self.current['_hours'])) #set updated current time while running for modify
             self.statusbar.push(0, "%s" % ("Working %s started_at %s" % (time_running,
                                                                          updated_at) if self.running else "Idle"))
 

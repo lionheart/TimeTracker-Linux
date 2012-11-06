@@ -135,7 +135,8 @@ class uiSignals(uiSignalHelpers):
                 return None
             return model[active][1] #0 is name, 1 is id
     def on_entries_expander_activate(self, widget):
-        self.set_entries()
+        if not widget.get_expanded():
+            self.set_entries()
 
     def on_submit_button_clicked(self, widget):
         self.away_from_desk = False
@@ -156,6 +157,8 @@ class uiSignals(uiSignalHelpers):
 
     def on_edit_timer_entry(self, widget, entry_id):
         self.away_from_desk = False
+
+        #should not be required if entry if hidden altogether, since its getting updated all the time
         hours = self.hours_entry.get_text()
         #if time passed and the user tries to modify time, to prevent accidental modification show warning
         if "%s"%(self.current['hours']) == "%s"%(hours) \
