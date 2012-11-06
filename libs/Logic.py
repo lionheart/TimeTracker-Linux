@@ -154,12 +154,12 @@ class logicFunctions(logicHelpers):
         #do it here so we dont have to wait in the beginning
         self.process_timer_shtuff()
 
-        self.elapsed_timer_timeout_instance = gobject.timeout_add(10000, self.elapsed_timer)
+        self.elapsed_timer_timeout_instance = gobject.timeout_add(1000, self.elapsed_timer)
 
     def elapsed_timer(self):
         self.process_timer_shtuff()
 
-        gobject.timeout_add(10000, self.elapsed_timer)
+        gobject.timeout_add(1000, self.elapsed_timer)
 
     def process_timer_shtuff(self):
         self.set_status_icon()
@@ -174,11 +174,15 @@ class logicFunctions(logicHelpers):
                 timezone_offset = 0
 
             updated_at = dt.astimezone(tzoffset(None, 3600 * timezone_offset))
+            #updated_at = datetime.fromtimestamp(updated_at.timetuple())
+            minutes_running = (time() - mktime(updated_at.timetuple())) / 60  #minutes timer has been running
+            seconds_running = (time() - mktime(updated_at.timetuple())) % 60
+            time_running = "%02d:%02d" % (minutes_running, seconds_running)
             self.current['_label'].set_text("%0.02f on %s for %s" % (
                 self.current['_hours'], self.current['task'].name, self.current['project'].name))
-            self.statusbar.push(0, "%s" % ("Running %0.02f started_at %s" % (self.current['_hours'],
-                                                                             datetime.fromtimestamp(mktime(
-                                                                                 updated_at.timetuple()))) if self.running else "Idle"))
+
+            self.statusbar.push(0, "%s" % ("Working %s started_at %s" % (time_running,
+                                                                         updated_at) if self.running else "Idle"))
 
     def start_interval_timer(self):
         if self.running:
