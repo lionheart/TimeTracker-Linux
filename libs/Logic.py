@@ -1,7 +1,11 @@
 import os, sys, math
 import gtk, gobject
-from time import time, sleep
+from time import time, sleep, mktime
 import string
+
+import pytz
+from dateutil.parser import parse
+from dateutil.tz import tzoffset
 
 from base64 import b64encode
 import ConfigParser
@@ -67,10 +71,10 @@ class logicHelpers(objectify):
         return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter())
 
     def string_to_bool(self, string):
-        return True if string == "True" else False
+        return True if string == "True" or string == True else False
 
     def bool_to_string(self, bool):
-        return "True" if bool else "False"
+        return "True" if bool == True or bool == "True" else "False"
 
 class logicFunctions(logicHelpers):
     def __init__(self, *args, **kwargs):
@@ -84,6 +88,8 @@ class logicFunctions(logicHelpers):
         self.elapsed_timer_timeout_instance = None #gint of the timeout for elapsed time
         self.logged_in = False #used for state whether user is logged in or not
         self.user_id = None #current user id
+        self.username = None #current logged in user email
+        self.uri = None #current uri
         self.harvest = None #harvest instance
         self.daily = None #harvest instance used for posting data
         self.projects = [] #list of projects
@@ -97,6 +103,11 @@ class logicFunctions(logicHelpers):
         self.today_total = 0 #total hours today
         self.away_from_desk = False #used to start stop interval timer and display away popup menu item
         self.save_passwords = True #used to save password, toggled by checkbutton
+        self.show_timetracker = True #show timetracker window on interval, overridden by config or prefs dialog
+        self.interval_dialog_showing = False # whether or not the interval diloag is being displayed
+        self.always_on_top = False #keep timetracker iwndow always on top
+        self.attention = False #state to set attention icon
+        self.timezone_offset_hours = 0 #number of hours to add to the updated_at time that is set on time entries
         self.current = {
             'all': {}, #holds all the current entries for the day
         }
@@ -105,11 +116,10 @@ class logicFunctions(logicHelpers):
 
         self.set_status_icon()
 
-        self.get_config()
         self.auth()
-        self.set_prefs()
 
-        self.interval = self.config.get('prefs', 'interval')
+        interval = self.config.get('prefs', 'interval')
+        self.interval = 0.33 if not interval else interval
 
         self.center_windows()
 
@@ -121,6 +131,54 @@ class logicFunctions(logicHelpers):
 
         self.about_dialog.set_logo(gtk.gdk.pixbuf_new_from_file(media_path + "logo.svg"))
 
+    def handle_visible_state(self):
+        if self.running:
+            self.hours_hbox.show_all()
+            self.submit_button.hide()
+        else:
+            self.hours_hbox.hide()
+            self.submit_button.show()
+
+    def toggle_current_timer(self, id):
+        self.away_from_desk = False
+        for entry in self.harvest.toggle_entry(id):
+            self.set_entries()
+
+        if not self.running:
+            self.statusbar.push(0, "Stopped")
+
+    def start_elapsed_timer(self):
+        if self.elapsed_timer_timeout_instance:
+            gobject.source_remove(self.elapsed_timer_timeout_instance)
+
+        #do it here so we dont have to wait in the beginning
+        self.process_timer_shtuff()
+
+        self.elapsed_timer_timeout_instance = gobject.timeout_add(10000, self.elapsed_timer)
+
+    def elapsed_timer(self):
+        self.process_timer_shtuff()
+
+        gobject.timeout_add(10000, self.elapsed_timer)
+
+    def process_timer_shtuff(self):
+        self.set_status_icon()
+        if self.running:
+            dt = parse(self.current['updated_at'].strftime("%Y-%m-%d %H:%M:%S%z"))
+            self.time_delta = round(round(time() - self.start_time) / 3600, 3)
+            self.current['_hours'] = self.current['hours'] + self.time_delta
+
+            try:
+                timezone_offset = int(self.timezone_offset_hours)
+            except Exception as e:
+                timezone_offset = 0
+
+            updated_at = dt.astimezone(tzoffset(None, 3600 * timezone_offset))
+            self.current['_label'].set_text("%0.02f on %s for %s" % (
+                self.current['_hours'], self.current['task'].name, self.current['project'].name))
+            self.statusbar.push(0, "%s" % ("Running %0.02f started_at %s" % (self.current['_hours'],
+                                                                             datetime.fromtimestamp(mktime(
+                                                                                 updated_at.timetuple()))) if self.running else "Idle"))
 
     def start_interval_timer(self):
         if self.running:
@@ -131,42 +189,49 @@ class logicFunctions(logicHelpers):
 
             self.interval_timer_timeout_instance = gobject.timeout_add(interval, self.interval_timer)
 
-    def start_elapsed_timer(self):
-        if self.elapsed_timer_timeout_instance:
-            gobject.source_remove(self.elapsed_timer_timeout_instance)
-
-        self.elapsed_timer_timeout_instance = gobject.timeout_add(1000, self.elapsed_timer)
-
     def interval_timer(self):
         if self.running and not self.away_from_desk:
             self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current['text'])
             self.timetracker_window.show()
             self.timetracker_window.present()
 
+            self.interval_dialog("Are you still working on this task?")
+
         interval = int(round(3600000 * float(self.interval)))
         gobject.timeout_add(interval, self.interval_timer)
 
-    def elapsed_timer(self):
-        self.set_status_icon()
-        if self.running:
-            self.time_delta = round(round(time() - self.start_time) / 3600, 3)
-            self.current['_hours'] = self.current['hours'] + self.time_delta
-            self.current['_label'].set_text("%0.02f on %s for %s" %(self.current['_hours'],self.current['task'].name, self.current['project'].name))
-            self.status_label.set_text("%s" % ("Running %0.02f started_at %s" % (self.current['_hours'],
-                                                                         datetime.fromtimestamp(
-                                                                             self.start_time).strftime(
-                                                                             "%H:%M:%S")) if self.running else "Idle"))
-        gobject.timeout_add(1000, self.elapsed_timer)
-
     def set_prefs(self):
-        self.interval_entry.set_text(self.interval)
-        self.harvest_url_entry.set_text(self.uri)
-        self.harvest_email_entry.set_text(self.username)
+        if self.interval:
+            self.interval_entry.set_text(self.interval)
+
+        if self.uri:
+            self.harvest_url_entry.set_text(self.uri)
+
+        if self.username:
+            self.harvest_email_entry.set_text(self.username)
 
         if self.password: #password may not be saved in keyring
             self.harvest_password_entry.set_text(self.password)
 
+    def get_prefs(self):
+        #self.username = self.harvest_email_entry.get_text()
+        #self.uri = self.harvest_url_entry.get_text()
+        self.interval = self.interval_entry.get_text()
+        self.timezone_offset_hours = self.timezone_offset_entry.get_text()
+        self.countdown = self.bool_to_string(self.countdown_checkbutton.get_active())
+        self.show_notification = self.bool_to_string(self.show_notification_checkbutton.get_active())
+        self.save_passwords = self.bool_to_string(self.save_password_checkbutton.get_active())
+        self.show_timetracker = self.bool_to_string(self.show_timetracker_checkbutton.get_active())
+
     def set_status_icon(self):
+        if self.attention:
+            if not self.icon:
+                self.icon = gtk.status_icon_new_from_file(media_path + "attention.svg")
+            else:
+                self.icon.set_from_file(media_path + "attention.svg")
+            self.icon.set_tooltip("AWAY: Working on %s" % (self.current['text']))
+            return
+
         if self.running:
             if self.away_from_desk:
                 if not self.icon:
@@ -223,13 +288,29 @@ class logicFunctions(logicHelpers):
         if not self.config.has_option('prefs', 'show_notification'):
             self.config.set('prefs', 'show_notification', 'True')
         else:
-            self.show_notification = self.config.get('prefs', 'show_notification')
+            self.show_notification = self.string_to_bool(self.config.get('prefs', 'show_notification'))
 
         if not self.config.has_option('prefs', 'save_passwords'):
             self.config.set('prefs', 'save_passwords', 'True')
         else:
-            self.save_passwords = self.config.get('prefs', 'save_passwords')
+            self.save_passwords = self.string_to_bool(self.config.get('prefs', 'save_passwords'))
 
+        if not self.config.has_option('prefs', 'show_timetracker'):
+            self.config.set('prefs', 'show_timetracker', 'True')
+        else:
+            self.show_timetracker = self.string_to_bool(self.config.get('prefs', 'show_timetracker'))
+
+        if not self.config.has_option('prefs', 'always_on_top'):
+            self.config.set('prefs', 'always_on_top', 'False')
+        else:
+            self.always_on_top = self.string_to_bool(self.config.get('prefs', 'always_on_top'))
+
+        if not self.config.has_option('prefs', 'timezone_offset_hours'):
+            self.config.set('prefs', 'timezone_offset_hours', '0')
+        else:
+            self.timezone_offset_hours = self.config.get('prefs', 'timezone_offset_hours')
+
+        #get password
         self.password = self.get_password()
 
         #write file in case write not exists or options missing
@@ -238,6 +319,12 @@ class logicFunctions(logicHelpers):
     def set_config(self):
         self.config.set('auth', 'uri', self.uri)
         self.config.set('auth', 'username', self.username)
+        self.config.set('prefs', 'interval', self.interval)
+        self.config.set('prefs', 'countdown', self.countdown)
+        self.config.set('prefs', 'show_notification', self.show_notification)
+        self.config.set('prefs', 'show_timetracker', self.show_timetracker)
+        self.config.set('prefs', 'timezone_offset_hours', self.timezone_offset_hours)
+        self.config.set('prefs', 'save_passwords', self.save_passwords)
 
         self.save_password()
 
@@ -277,8 +364,7 @@ class logicFunctions(logicHelpers):
     def _stop_pulsing_button(self):
         self._status_button.stop_pulsing()
 
-    def call_notify(self, summary=None, message=None,
-                     reminder_message_func=None, show=True):
+    def call_notify(self, summary=None, message=None, reminder_message_func=None, show=True):
         if self.string_to_bool(self.show_notification):
             if show:
                 self._notifier.begin(summary, message, reminder_message_func)
@@ -306,7 +392,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         if not self.check_harvest_up():
             return False
 
+
         if not uri and not username and not password:
+            self.get_config() #set instance vars from config
             uri = self.config.get('auth', 'uri')
             username = self.config.get('auth', 'username')
             password = ''
@@ -317,6 +405,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 if not password: #for cases where not saved in keyring yet
                     self.preferences_window.show()
                     self.preferences_window.present()
+                    self.running = False
+                    self.logged_in = False
                     return False
 
                 return self._harvest_login(uri, username, password)
@@ -434,13 +524,19 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
     def set_entries(self):
         total = 0
-
+        entries_count = 0
         self.current['all'] = {}
         current_id = None
+
+        if not self.harvest:
+            self.set_message_text("Not Connected to Harvest")
+            self.attention = True #set attention icon
+            return
+
+        #store harvest data in App instance to use inside application
         for user in self.harvest.users():
             if user.email == self.username:
-                entries_count = 0
-                self.user_timezone = user.timezone
+                self.attention = False #if we get here we can safely remove attention icon
                 for i in user.entries(self.today_start, self.today_end):
                     entries_count += 1
                     total += i.hours
@@ -469,6 +565,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 break
 
         if current_id:
+            #harvest timer is running
             self.current.update(self.current['all'][current_id])
             self.current['client_id'] = self.harvest.project(self.current['project_id']).client_id
 
@@ -493,15 +590,25 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
             self.running = False
 
+        #fill the vbox with time entries
         self._update_entries_box()
 
+        #show hide button and hours entry
+        self.handle_visible_state()
+
         self.entries_expander_label.set_text("%s Entries %0.02f hours Total" % (entries_count, total))
+
+    def is_entry_active(self, entry):
+        #time_difference = self.current['timer_started_at'] - datetime.fromtimestamp(self.start_time).replace(tzinfo=pytz.utc)
+        return entry.timer_started_at.replace(tzinfo=pytz.utc) >= entry.updated_at.replace(tzinfo=pytz.utc)
 
     def _harvest_login(self, URI, EMAIL, PASS):
         '''
         Login to harvest and get data
         '''
         if not URI or not EMAIL or not PASS:
+            self.logged_in = False
+            self.running = False
             return False
 
         try:
@@ -528,12 +635,14 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 self.daily = Daily(URI, EMAIL, PASS)
 
         except HarvestError:
+            self.logged_in = False
+            self.running = False
+            self.attention = True
             self.warning_message(None, "Error Connecting!")
 
         try:
             for u in self.harvest.users():
                 self.user_id = u.id
-
                 if not u.is_admin:
                     self.warning_message(self.timetracker_window, "You are not admin, cannot proceed.")
                     exit(1)
@@ -543,20 +652,31 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 break
         except HarvestError as e:
             self.logged_in = False
+            self.running = False
+            self.attention = True
             self.set_message_text("Unable to Connect to Harvest\n\nPerhaps you don't have the proper privileges in harvest\n\n%s" % (e))
             return False
 
         try:
             self.get_data_from_harvest()
 
+
             self.create_liststore(self.project_combobox, self.projects)
             self.create_liststore(self.client_combobox, self.clients)
             self.create_liststore(self.task_combobox, self.tasks)
 
+            self.get_config()
+
             self.uri = URI
             self.username = EMAIL
             self.password = PASS
+
             self.logged_in = True
+
+
+            self.get_prefs()
+
+            self.set_prefs()
 
             #save valid config
             self.set_config()
@@ -572,10 +692,14 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         except HarvestError as e:
             self.logged_in = False
+            self.running = False
+            self.attention = True
             self.set_message_text("Unable to Connect to Harvest\n%s" % (e))
             return False
 
         except ValueError as e:
             self.logged_in = False
+            self.running = False
+            self.attention = True
             self.set_message_text("ValueError\n%s" % (e))
             return False
