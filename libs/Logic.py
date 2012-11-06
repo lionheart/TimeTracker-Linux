@@ -114,13 +114,22 @@ class logicFunctions(logicHelpers):
         self.set_custom_label(self.stop_all_button, 'Force Stop')
         self.config_filename = kwargs.get('config', 'harvest.cfg')
 
+        self.get_config()
+
         self.set_status_icon()
 
-        self.auth()
-
+        #set default interval and offset hours
         interval = self.config.get('prefs', 'interval')
         self.interval = 0.33 if not interval else interval
 
+        timezone_offset_hours = self.config.get('prefs', 'timezone_offset_hours')
+        self.timezone_offset_hours = 0 if not timezone_offset_hours else timezone_offset_hours
+
+        self.auth()
+
+
+
+        print 'self.interval', self.interval
         self.center_windows()
 
         self.start_interval_timer()
@@ -206,7 +215,10 @@ class logicFunctions(logicHelpers):
 
     def set_prefs(self):
         if self.interval:
-            self.interval_entry.set_text(self.interval)
+            self.interval_entry.set_text("%s" %(self.interval))
+
+        if self.timezone_offset_hours:
+            self.timezone_offset_entry.set_text("%s" % (self.timezone_offset_hours))
 
         if self.uri:
             self.harvest_url_entry.set_text(self.uri)
@@ -220,8 +232,8 @@ class logicFunctions(logicHelpers):
     def get_prefs(self):
         #self.username = self.harvest_email_entry.get_text()
         #self.uri = self.harvest_url_entry.get_text()
-        self.interval = self.interval_entry.get_text()
-        self.timezone_offset_hours = self.timezone_offset_entry.get_text()
+        self.interval = self.interval_entry.get_text() if self.interval_entry.get_text() != '' else 0.33
+        self.timezone_offset_hours = self.timezone_offset_entry.get_text() if self.timezone_offset_entry.get_text() != '' else 0
         self.show_countdown = self.bool_to_string(self.countdown_checkbutton.get_active())
         self.show_notification = self.bool_to_string(self.show_notification_checkbutton.get_active())
         self.save_passwords = self.bool_to_string(self.save_password_checkbutton.get_active())
@@ -283,7 +295,7 @@ class logicFunctions(logicHelpers):
             self.config.set('prefs', 'interval', '0.33')
         else:
             self.interval = self.config.get('prefs', 'interval')
-
+        print 'get config: ', self.interval
         if not self.config.has_option('prefs', 'show_countdown'):
             self.config.set('prefs', 'show_countdown', 'False')
         else:
@@ -323,11 +335,11 @@ class logicFunctions(logicHelpers):
     def set_config(self):
         self.config.set('auth', 'uri', self.uri)
         self.config.set('auth', 'username', self.username)
-        self.config.set('prefs', 'interval', self.interval)
+        self.config.set('prefs', 'interval', "%s" %(self.interval))
         self.config.set('prefs', 'show_countdown', self.bool_to_string(self.show_countdown))
         self.config.set('prefs', 'show_notification', self.bool_to_string(self.show_notification))
         self.config.set('prefs', 'show_timetracker', self.bool_to_string(self.show_timetracker))
-        self.config.set('prefs', 'timezone_offset_hours', self.timezone_offset_hours)
+        self.config.set('prefs', 'timezone_offset_hours', "%s" %(self.timezone_offset_hours))
         self.config.set('prefs', 'save_passwords', self.bool_to_string(self.save_passwords))
 
         self.save_password()
@@ -398,7 +410,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
 
         if not uri and not username and not password:
-            self.get_config() #set instance vars from config
             uri = self.config.get('auth', 'uri')
             username = self.config.get('auth', 'username')
             password = ''
@@ -678,7 +689,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.logged_in = True
 
 
-            #self.get_prefs()
+            self.get_prefs()
 
             self.set_prefs()
 
