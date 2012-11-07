@@ -23,16 +23,16 @@ class Harvest(object):
         return self._request("GET", 'http://harveststatus.com/status.json')
 
     def get_today(self):
-        return self._request('GET', "%s/daily")
+        return self._request('GET', "%s/daily"%self.uri)
 
     def get_day(self, day_of_the_year=1, year=2012):
         return self._request('GET', '%s/daily/%s/%s' % (self.uri, day_of_the_year, year))
 
     def get_entry(self, entry_id):
-        return self._request("GET", "%s/daily/show/%s"%entry_id)
+        return self._request("GET", "%s/daily/show/%s"%(self.uri, entry_id))
 
     def toggle_timer(self, entry_id):
-        return self._request("GET", "%s/daily/timer/%s" %entry_id)
+        return self._request("GET", "%s/daily/timer/%s" %(self.uri, entry_id))
 
     def add(self, data):
         return self._request("POST", '%s/daily/add' % self.uri, data)
@@ -41,14 +41,7 @@ class Harvest(object):
         return self._request("DELETE", "%s/daily/delete/%s" % (self.uri, entry_id))
 
     def update(self, entry_id, data):
-        return self._request('POST', '%s/daily/update/%s'% (self.uri, entry_id), data)
-
-
-
-
-
-
-
+        return self._request('POST', '%s/daily/update/%s'% (self.uri, entry_id), urlencode(data))
 
     def _request(self, type = "GET", url = "", data = None ):
         """
@@ -57,35 +50,25 @@ class Harvest(object):
         data = data for the request, leave empty for get requests
 
         """
-
-        try:
-            opener = urllib2.build_opener(urllib2.HTTPHandler)
-            if not data:
-                request = urllib2.Request(url=url, headers=self.headers)
+        if type != "DELETE":
+            if data:
+                request = urllib2.Request(url=url, data=data, headers=self.headers)
+                print data
             else:
-                request = urllib2.Request(url=url, headers=self.headers, data=data)
+                request = urllib2.Request(url=url, headers=self.headers)
 
-            request.get_method = lambda: type
-
-            response = opener.open(request)
-            response_data = StringIO(response)
-            return json.load(response_data)
-        except Exception as e:
-            raise HarvestError(e)
-
-
-
-        '''if data:
-            request = urllib2.Request(url=url, data=data, headers=self.headers)
+            try:
+                r = urllib2.urlopen(request)
+                j = r.read()
+                j = StringIO(j)
+                return json.load(j)
+            except Exception as e:
+                raise HarvestError(e)
         else:
-            request = urllib2.Request(url=url, headers=self.headers)
-
-        try:
-            r = urllib2.urlopen(request)
-            j = r.read()
-            j = StringIO(j)
-            return json.load(j)
-        except Exception as e:
-            raise HarvestError(e)
-
-        '''
+            try:
+                opener = urllib2.build_opener(urllib2.HTTPHandler)
+                request = urllib2.Request(url=url, headers=self.headers)
+                request.get_method = lambda: "DELETE"
+                return opener.open(request)
+            except Exception as e:
+                raise HarvestError(e)
