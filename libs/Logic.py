@@ -118,13 +118,6 @@ class logicFunctions(logicHelpers):
 
         self.set_status_icon()
 
-        #set default interval and offset hours
-        interval = self.config.get('prefs', 'interval')
-        self.interval = 0.33 if not interval else interval
-
-        timezone_offset_hours = self.config.get('prefs', 'timezone_offset_hours')
-        self.timezone_offset_hours = 0 if not timezone_offset_hours else timezone_offset_hours
-
         self.auth()
 
 
@@ -232,8 +225,8 @@ class logicFunctions(logicHelpers):
     def get_prefs(self):
         #self.username = self.harvest_email_entry.get_text()
         #self.uri = self.harvest_url_entry.get_text()
-        self.interval = self.interval_entry.get_text() if self.interval_entry.get_text() != '' else 0.33
-        self.timezone_offset_hours = self.timezone_offset_entry.get_text() if self.timezone_offset_entry.get_text() != '' else 0
+        self.interval = self.interval_entry.get_text()
+        self.timezone_offset_hours = self.timezone_offset_entry.get_text()
         self.show_countdown = self.bool_to_string(self.countdown_checkbutton.get_active())
         self.show_notification = self.bool_to_string(self.show_notification_checkbutton.get_active())
         self.save_passwords = self.bool_to_string(self.save_password_checkbutton.get_active())
@@ -245,7 +238,7 @@ class logicFunctions(logicHelpers):
                 self.icon = gtk.status_icon_new_from_file(media_path + "attention.svg")
             else:
                 self.icon.set_from_file(media_path + "attention.svg")
-            self.icon.set_tooltip("AWAY: Working on %s" % (self.current['text']))
+            self.icon.set_tooltip("ATTENTION!!!")
             return
 
         if self.running:
@@ -295,7 +288,7 @@ class logicFunctions(logicHelpers):
             self.config.set('prefs', 'interval', '0.33')
         else:
             self.interval = self.config.get('prefs', 'interval')
-        print 'get config: ', self.interval
+
         if not self.config.has_option('prefs', 'show_countdown'):
             self.config.set('prefs', 'show_countdown', 'False')
         else:
@@ -333,6 +326,12 @@ class logicFunctions(logicHelpers):
         self.config.write(open(self.config_filename, 'w'))
 
     def set_config(self):
+        if self.interval <=0 or self.interval == '':
+            self.interval = 0.33
+
+        if self.timezone_offset_hours < 0 or self.timezone_offset_hours == '':
+            self.timezone_offset_hours = 0
+
         self.config.set('auth', 'uri', self.uri)
         self.config.set('auth', 'username', self.username)
         self.config.set('prefs', 'interval', "%s" %(self.interval))
