@@ -169,7 +169,6 @@ class uiSignals(uiSignalHelpers):
         self.timetracker_window.present()
 
     def right_click(self, widget, button, time):
-        self.attention = False
         #create popup menu
         menu = gtk.Menu()
         if not self.away_from_desk:

@@ -29,19 +29,17 @@ class FunctionParameterException(ParameterException):
     pass
     
 try:
-    from UI import uiBuilder, uiCreator, uiTreeView, uiLabel, uiEntry
+    from UI import uiBuilder, uiCreator
 except ImportError:
     raise 'User Interface Import Error'
     sys.exit(1)
-
-from O import objectify, object_caller
 
 libs_path = os.path.dirname(os.path.abspath(__file__)) + '/'
 sys.path.append(libs_path+"../data")
 import Config
 media_path = libs_path +'../' + Config.media_path_dir
 
-class logicHelpers(objectify):
+class logicHelpers(object):
     def __init__(self, *args, **kwargs):
         super(logicHelpers, self).__init__(*args, **kwargs)
 
@@ -98,14 +96,13 @@ class logicFunctions(logicHelpers):
         
     def init(self, *args, **kwargs):
         #initialize state variables
-        self.icon = None #timetracker icon
+        self.icon = None #timetracker icon instance
         self.running = False #timer is running and tracking time
         self.interval_timer_timeout_instance = None #gint of the timeout_add for interval
         self.elapsed_timer_timeout_instance = None #gint of the timeout for elapsed time
         self.username = None #current logged in user email
         self.uri = None #current uri
         self.harvest = None #harvest instance
-        self.daily = None #harvest instance used for posting data
         self.projects = [] #list of projects
         self.entries_vbox = None #used to hold the entries and to empty easily on refresh
         self.today_date = None # holds the date from harvest get_today response
@@ -122,10 +119,10 @@ class logicFunctions(logicHelpers):
         self.current = {
             'all': {}, #holds all the current entries for the day
         }
-        self.set_custom_label(self.stop_all_button, 'Force Stop')
+
         self.config_filename = kwargs.get('config', 'harvest.cfg')
 
-        self.get_config()
+        self.load_config()
 
         self.set_status_icon()
 
@@ -272,20 +269,22 @@ class logicFunctions(logicHelpers):
 
         self.icon.set_visible(True)
 
-    def get_config(self):
+    def load_config(self):
         self.config = ConfigParser.SafeConfigParser()
-
         self.config.read(self.config_filename)
 
+        is_new = False
         if not self.config.has_section('auth'):
             self.config.add_section('auth')
 
         if not self.config.has_option('auth', 'uri'):
+            is_new = True
             self.config.set('auth', 'uri', '')
         else:
             self.uri = self.config.get('auth', 'uri')
 
         if not self.config.has_option('auth', 'username'):
+            is_new = True
             self.config.set('auth', 'username', '')
         else:
             self.username = self.config.get('auth', 'username')
@@ -294,36 +293,43 @@ class logicFunctions(logicHelpers):
             self.config.add_section('prefs')
 
         if not self.config.has_option('prefs', 'interval'):
+            is_new = True
             self.config.set('prefs', 'interval', '0.33')
         else:
             self.interval = self.config.get('prefs', 'interval')
 
         if not self.config.has_option('prefs', 'show_countdown'):
+            is_new = True
             self.config.set('prefs', 'show_countdown', 'False')
         else:
             self.show_countdown = self.string_to_bool(self.config.get('prefs', 'show_countdown'))
 
         if not self.config.has_option('prefs', 'show_notification'):
+            is_new = True
             self.config.set('prefs', 'show_notification', 'True')
         else:
             self.show_notification = self.string_to_bool(self.config.get('prefs', 'show_notification'))
 
         if not self.config.has_option('prefs', 'save_passwords'):
+            is_new = True
             self.config.set('prefs', 'save_passwords', 'True')
         else:
             self.save_passwords = self.string_to_bool(self.config.get('prefs', 'save_passwords'))
 
         if not self.config.has_option('prefs', 'show_timetracker'):
+            is_new = True
             self.config.set('prefs', 'show_timetracker', 'True')
         else:
             self.show_timetracker = self.string_to_bool(self.config.get('prefs', 'show_timetracker'))
 
         if not self.config.has_option('prefs', 'always_on_top'):
+            is_new = True
             self.config.set('prefs', 'always_on_top', 'False')
         else:
             self.always_on_top = self.string_to_bool(self.config.get('prefs', 'always_on_top'))
 
         if not self.config.has_option('prefs', 'timezone_offset_hours'):
+            is_new = True
             self.config.set('prefs', 'timezone_offset_hours', '0')
         else:
             self.timezone_offset_hours = self.config.get('prefs', 'timezone_offset_hours')
@@ -331,8 +337,9 @@ class logicFunctions(logicHelpers):
         #get password
         self.password = self.get_password()
 
-        #write file in case write not exists or options missing
-        self.config.write(open(self.config_filename, 'w'))
+        if is_new:
+            #write file in case write not exists or options missing
+            self.config.write(open(self.config_filename, 'w'))
 
     def set_config(self):
         if self.interval <=0 or self.interval == '':
@@ -448,7 +455,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             if entry.has_key('timer_started_at'):
                 current_id = entry.id
                 self.current.update(entry)
-
+        print self.current
         if current_id:
             #harvest timer is running
             self.current.update(self.current['all'][current_id])
@@ -621,7 +628,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         try:
             self.harvest = Harvest(self.uri, self.username, self.password)
-            self._get_data_from_harvest(self.harvest.get_today())
+            harvest_data = self.harvest.get_today()
+            print self
+            self._get_data_from_harvest(harvest_data)
         except HarvestError as e:
             self.running = False
             self.attention = True
@@ -635,7 +644,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.create_liststore(self.project_combobox, self.projects)
             self.create_liststore(self.task_combobox, self.tasks)
 
-            self.get_config()
+            self.load_config()
 
             self.uri = URI
             self.username = EMAIL
