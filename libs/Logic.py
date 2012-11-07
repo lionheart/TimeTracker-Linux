@@ -14,10 +14,10 @@ import keyring
 from gnomekeyring import IOError as KeyRingError
 
 from datetime import datetime, timedelta
-from harvest import Harvest, Daily, HarvestStatus, HarvestError
+from Harvest import Harvest, HarvestError
 
-from Notifier import Notifier
-from StatusButton import StatusButton
+#from Notifier import Notifier
+#from StatusButton import StatusButton
 
 class InterfaceException(Exception):
     pass
@@ -128,8 +128,8 @@ class logicFunctions(logicHelpers):
         self.start_interval_timer()
         self.start_elapsed_timer()
 
-        self._status_button = StatusButton()
-        self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
+        #self._status_button = StatusButton()
+        #self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
 
         self.about_dialog.set_logo(gtk.gdk.pixbuf_new_from_file(media_path + "logo.svg"))
 
