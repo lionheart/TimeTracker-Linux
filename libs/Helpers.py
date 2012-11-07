@@ -1,6 +1,9 @@
 import os, sys
 
 class _Path(object):
+    '''
+    This class basically makes it so you can run the program outside of the program path
+    '''
     _path = ''
 
     @staticmethod
