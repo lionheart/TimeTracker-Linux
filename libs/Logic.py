@@ -14,7 +14,7 @@ import keyring
 from gnomekeyring import IOError as KeyRingError
 
 from datetime import datetime, timedelta
-from Harvest import Harvest, HarvestError
+from Harvest import Harvest, HarvestError, HarvestStatus
 
 #from Notifier import Notifier
 #from StatusButton import StatusButton
@@ -154,16 +154,16 @@ class logicFunctions(logicHelpers):
             gobject.source_remove(self.elapsed_timer_timeout_instance)
 
         #do it here so we dont have to wait in the beginning
-        self.process_timer_shtuff()
+        self.process_timer()
 
         self.elapsed_timer_timeout_instance = gobject.timeout_add(1000, self.elapsed_timer)
 
     def elapsed_timer(self):
-        self.process_timer_shtuff()
+        self.process_timer()
 
         gobject.timeout_add(1000, self.elapsed_timer)
 
-    def process_timer_shtuff(self):
+    def process_timer(self):
         self.set_status_icon()
         if self.running:
             dt = parse(self.current['updated_at'].replace(tzinfo=pytz.utc).strftime("%Y-%m-%d %H:%M:%S%z"))
@@ -404,9 +404,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
     def auth(self, uri=None, username=None, password=None):
         #check harvest status
-        if not self.check_harvest_up():
-            return False
-
+        self.check_harvest_up()
 
         if not uri and not username and not password:
             uri = self.config.get('auth', 'uri')
@@ -431,10 +429,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             return self._harvest_login(uri, username, password)
 
     def check_harvest_up(self):
-        if HarvestStatus().status == "down":
-            self.warning_message(self.preferences_window, "Harvest Is Down")
-            exit(1)
-            return False
+        if HarvestStatus().get() == "down":
+            self.warning_message(self.timetracker_window, "Harvest Is Down")
+            self.attention = True
         else:
             #status is "up"
             return True
@@ -623,6 +620,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         if not URI or not EMAIL or not PASS:
             self.logged_in = False
             self.running = False
+            self.attention = True
             return False
 
         try:

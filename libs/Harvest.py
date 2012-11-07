@@ -1,7 +1,8 @@
 '''
 >>> import Harvest
+>>> Harvest.HarvestStatus().get()
+u'up'
 >>> harvest = Harvest.Harvest("https://COMPANYNAME.harvestapp.com", "EMAIL", "PASSWORD")
->>> harvest.status()[""]
 >>> data = {"notes":"test note", "project_id":"PROJECT_ID","hours":"1.0", "task_id": "TASK_ID"}
 >>> harvest.add(data)
 >>> data['notes'] = "another test"
@@ -20,7 +21,6 @@ from xml.dom.minidom import Document #to create xml out of dict
 
 class HarvestError(Exception):
     pass
-
 
 class Harvest(object):
     def __init__(self, uri, email, password):
@@ -108,3 +108,11 @@ class Harvest(object):
         _builder(root, data_dict)
         xml = doc.toprettyxml()
         return xml
+
+
+class HarvestStatus(Harvest):
+    def __init__(self):
+        self.harvest = Harvest("", "", "").status()
+
+    def get(self):
+        return self.harvest['status']
