@@ -56,17 +56,6 @@ class uiSignalHelpers(object):
         Label = Label.get_children()[0].get_children()[1]
         Label = Label.set_label(text)
 
-    def set_comboboxes(self, widget, id):
-        model = widget.get_model()
-        i = 0
-
-        for m in model:
-            iter = model.get_iter(i)
-            if "%s"%model.get_value(iter, 1) == "%s"%id:
-                widget.set_active(i)
-                break
-            i += 1
-
 class uiSignals(uiSignalHelpers):
     def __init__(self, *args, **kwargs):
         super(uiSignals, self).__init__(*args, **kwargs)
@@ -90,17 +79,11 @@ class uiSignals(uiSignalHelpers):
         dialog.destroy()
 
     def on_save_preferences_button_clicked(self, widget):
-        uri = self.harvest_url_entry.get_text()
-        username = self.harvest_email_entry.get_text()
-        password = self.harvest_password_entry.get_text()
-        self.interval = self.interval_entry.get_text()
-        if self.auth(uri, username, password):
+        self.get_prefs()
+        if self.connect_to_harvest():
             self.preferences_window.hide()
             self.timetracker_window.show()
             self.timetracker_window.present()
-        else:
-            self.preferences_window.show()
-            self.preferences_window.present()
 
     def on_task_combobox_changed(self, widget):
         pass #print widget

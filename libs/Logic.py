@@ -76,6 +76,22 @@ class logicHelpers(objectify):
     def bool_to_string(self, bool):
         return "True" if bool == True or bool == "True" else "False"
 
+
+    def set_comboboxes(self, widget, id):
+        '''
+        sets the current selected item in the combobox
+        '''
+        model = widget.get_model()
+        i = 0
+
+        for m in model:
+            iter = model.get_iter(i)
+            if "%s" % model.get_value(iter, 1) == "%s" % id:
+                widget.set_active(i)
+                break
+            i += 1
+
+
 class logicFunctions(logicHelpers):
     def __init__(self, *args, **kwargs):
         super(self, logicFunctions).__init__(*args, **kwargs) 
@@ -86,18 +102,13 @@ class logicFunctions(logicHelpers):
         self.running = False #timer is running and tracking time
         self.interval_timer_timeout_instance = None #gint of the timeout_add for interval
         self.elapsed_timer_timeout_instance = None #gint of the timeout for elapsed time
-        self.logged_in = False #used for state whether user is logged in or not
-        self.user_id = None #current user id
         self.username = None #current logged in user email
         self.uri = None #current uri
         self.harvest = None #harvest instance
         self.daily = None #harvest instance used for posting data
         self.projects = [] #list of projects
-        self.clients = [] #list of clients
-        self.tasks = [] #list of tasks
-        self.entries_vbox = None #used to hold the entries and to empty easily
-        self.today_start = datetime.today().replace(hour=0, minute=0, second=0) #today_$time for when day changes to keep view intact
-        self.today_end = self.today_start + timedelta(1)
+        self.entries_vbox = None #used to hold the entries and to empty easily on refresh
+        self.today_date = None # holds the date from harvest get_today response
         self.start_time = time() #when self.running == True this is used to calculate the notification interval
         self.time_delta = 0 #difference between now and starttime
         self.today_total = 0 #total hours today
@@ -118,11 +129,8 @@ class logicFunctions(logicHelpers):
 
         self.set_status_icon()
 
-        self.auth()
+        self.connect_to_harvest()
 
-
-
-        print 'self.interval', self.interval
         self.center_windows()
 
         self.start_interval_timer()
@@ -223,8 +231,9 @@ class logicFunctions(logicHelpers):
             self.harvest_password_entry.set_text(self.password)
 
     def get_prefs(self):
-        #self.username = self.harvest_email_entry.get_text()
-        #self.uri = self.harvest_url_entry.get_text()
+        self.username = self.harvest_email_entry.get_text()
+        self.uri = self.harvest_url_entry.get_text()
+        self.password = self.harvest_password_entry.get_Text()
         self.interval = self.interval_entry.get_text()
         self.timezone_offset_hours = self.timezone_offset_entry.get_text()
         self.show_countdown = self.bool_to_string(self.countdown_checkbutton.get_active())
@@ -402,39 +411,10 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         if not self.config.has_option('timetracker_login', "username"):
             self.config.set('timetracker_login', "username", username)
 
-    def auth(self, uri=None, username=None, password=None):
-        #check harvest status
-        self.check_harvest_up()
-
-        if not uri and not username and not password:
-            uri = self.config.get('auth', 'uri')
-            username = self.config.get('auth', 'username')
-            password = ''
-            print "using auth from config: ", username
-            if username != '':
-                password = keyring.get_password('TimeTracker', username)
-
-                if not password: #for cases where not saved in keyring yet
-                    self.preferences_window.show()
-                    self.preferences_window.present()
-                    self.running = False
-                    self.logged_in = False
-                    return False
-
-                return self._harvest_login(uri, username, password)
-            else:
-                return self.logged_in
-        else:
-            print "using auth from dialog: ", username
-            return self._harvest_login(uri, username, password)
-
     def check_harvest_up(self):
         if HarvestStatus().get() == "down":
             self.warning_message(self.timetracker_window, "Harvest Is Down")
             self.attention = True
-        else:
-            #status is "up"
-            return True
 
     def create_liststore(self, combobox, items):
         '''
@@ -457,31 +437,50 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         combobox.set_model(liststore)
         combobox.set_active(0)
 
-    def get_data_from_harvest(self):
-        '''
-        Gets active/activated projects, clients and tasks defined in the account
-        '''
-        self.projects = {}
-        self.clients = {}
-        self.tasks = {}
-        for project in self.harvest.projects():
-            if project.active:
-                s = ""
-                if project.code:
-                    s = "%s - %s" % (project.code, project.name)
-                else:
-                    s = "%s" % (project.name)
+    def _get_data_from_harvest(self, harvest_data):
+        self.projects = harvest_data['projects']
+        self.current['all'] = harvest_data['day_entries']
+        total_hours = 0
+        current_id = None
+        for entry in self.current['all']:
+            total_hours += entry.hours
 
-                self.projects[project.id] = s
-            else:
-                print "Inactive Project: ", project.id, project.name
+            if entry.has_key('timer_started_at'):
+                current_id = entry.id
+                self.current.update(entry)
 
-        for client in self.harvest.clients():
-            self.clients[client.id] = client.name
+        if current_id:
+            #harvest timer is running
+            self.current.update(self.current['all'][current_id])
+            self.current['client_id'] = self.harvest.project(self.current['project_id']).client_id
 
-        for task in self.harvest.tasks():
-            if not task.deactivated:
-                self.tasks[task.id] = task.name
+            self.set_comboboxes(self.project_combobox, self.current['project_id'])
+            self.set_comboboxes(self.task_combobox, self.current['task_id'])
+
+            self.hours_entry.set_text("%s" % (self.current['hours']))
+
+            textbuffer = gtk.TextBuffer()
+            textbuffer.set_text(self.current['notes'])
+            self.notes_textview.set_buffer(textbuffer)
+
+            self.start_time = time()
+
+            self.running = True
+        else:
+            self.hours_entry.set_text("")
+            textbuffer = gtk.TextBuffer()
+            textbuffer.set_text("")
+            self.notes_textview.set_buffer(textbuffer)
+
+            self.running = False
+
+            #fill the vbox with time entries
+        self._update_entries_box()
+
+        #show hide button and hours entry
+        self.handle_visible_state()
+
+        self.entries_expander_label.set_text("%s Entries %0.02f hours Total" % (entries_count, total))
 
     def _update_entries_box(self):
         if self.entries_vbox:
@@ -489,7 +488,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.entries_vbox = gtk.VBox(False, 0)
         self.entries_viewport.add(self.entries_vbox)
 
-        for i in iter(sorted(self.current['all'].iteritems())):
+        for i in self.current['all']:
             hbox = gtk.HBox(False, 0)
 
             if not i[1]['active']:
@@ -582,7 +581,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
             self.set_comboboxes(self.project_combobox, self.current['project_id'])
             self.set_comboboxes(self.task_combobox, self.current['task_id'])
-            self.set_comboboxes(self.client_combobox, self.current['client_id'])
 
             self.hours_entry.set_text("%s" % (self.current['hours']))
 
@@ -609,72 +607,32 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         self.entries_expander_label.set_text("%s Entries %0.02f hours Total" % (entries_count, total))
 
-    def is_entry_active(self, entry):
-        #time_difference = self.current['timer_started_at'] - datetime.fromtimestamp(self.start_time).replace(tzinfo=pytz.utc)
-        return entry.timer_started_at.replace(tzinfo=pytz.utc) >= entry.updated_at.replace(tzinfo=pytz.utc)
+    def connect_to_harvest(self):
+        #check harvest status
+        if not self.check_harvest_up():
+            return
 
-    def _harvest_login(self, URI, EMAIL, PASS):
-        '''
-        Login to harvest and get data
-        '''
-        if not URI or not EMAIL or not PASS:
-            self.logged_in = False
-            self.running = False
+        if not self.uri or not self.username or not self.password:
+            self.preferences_window.show()
+            self.preferences_window.present()
             self.attention = True
+            self.running = False
             return False
 
         try:
-            if not PASS:
-                PASS = self.get_password()
-
-            EMAIL = EMAIL.replace("\r\n", "").strip()
-            PASS = PASS.replace("\r\n", "").strip()
-
-            #fail if pass not set and not in keyring
-            if not URI or not EMAIL or not PASS:
-                return False
-
-            if self.harvest: #user is logged in and changes login credentials
-                self.harvest.uri = URI #set to overwrite for when auth with diff account
-                self.harvest.headers['Authorization'] = 'Basic ' + b64encode('%s:%s' % (EMAIL, PASS))
-            else:
-                self.harvest = Harvest(URI, EMAIL, PASS)
-
-            if self.daily: #user is logged in and changes login credentials
-                self.daily.uri = URI #set to overwrite for when auth with diff account
-                self.daily.headers['Authorization'] = 'Basic ' + b64encode('%s:%s' % (EMAIL, PASS))
-            else:
-                self.daily = Daily(URI, EMAIL, PASS)
-
-        except HarvestError:
-            self.logged_in = False
-            self.running = False
-            self.attention = True
-            self.warning_message(None, "Error Connecting!")
-
-        try:
-            for u in self.harvest.users():
-                self.user_id = u.id
-                if not u.is_admin:
-                    self.warning_message(self.timetracker_window, "You are not admin, cannot proceed.")
-                    exit(1)
-
-                self.harvest.id = u.id #set to overwrite for when auth with diff account
-                self.daily.id = u.id #set to overwrite for when auth with diff account
-                break
+            self.harvest = Harvest(self.uri, self.username, self.password)
+            self._get_data_from_harvest(self.harvest.get_today())
         except HarvestError as e:
-            self.logged_in = False
             self.running = False
             self.attention = True
-            self.set_message_text("Unable to Connect to Harvest\n\nPerhaps you don't have the proper privileges in harvest\n\n%s" % (e))
-            return False
+            self.warning_message(self.timetracker_window, "Error Connecting!\r\n%s" % e )
+
 
         try:
             self.get_data_from_harvest()
 
 
             self.create_liststore(self.project_combobox, self.projects)
-            self.create_liststore(self.client_combobox, self.clients)
             self.create_liststore(self.task_combobox, self.tasks)
 
             self.get_config()
@@ -682,9 +640,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.uri = URI
             self.username = EMAIL
             self.password = PASS
-
-            self.logged_in = True
-
 
             self.get_prefs()
 
@@ -703,14 +658,12 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             return True
 
         except HarvestError as e:
-            self.logged_in = False
             self.running = False
             self.attention = True
             self.set_message_text("Unable to Connect to Harvest\n%s" % (e))
             return False
 
         except ValueError as e:
-            self.logged_in = False
             self.running = False
             self.attention = True
             self.set_message_text("ValueError\n%s" % (e))
