@@ -94,22 +94,46 @@ class uiBuilder(gtk.Builder):
         else:
             return False
 
-class uiLabel(gtk.Label):
-    def __init__(self, *args, **kwargs):
-        super(uiLabel, self).__init__(*args, **kwargs)
-
-class uiEntry(gtk.Entry):
-    def __init__(self, *args, **kwargs):
-        super(uiEntry, self).__init__(*args, **kwargs)
-
-
 
 class uiCreator(object):
     def __init__(self, *args, **kwargs):
         super(uiCreator, self).__init__()
 
-    def generic_signal(self, w = None, e = None):
-        '''used for the purpose of connecting to a signal if no signal
-            is passed as kwargs to create_treeview function
+    def create_liststore(self, combobox, items):
         '''
-        pass
+            Create a liststore filled with items, connect it to a combobox and activate the first index
+        '''
+        liststore = combobox.get_model()
+        if not liststore:
+            liststore = gtk.ListStore(str, str)
+            cell = gtk.CellRendererText()
+            combobox.pack_start(cell)
+            combobox.add_attribute(cell, 'text', 0)
+            combobox.add_attribute(cell, 'text', 0)
+
+        else:
+            liststore.clear()
+
+        for p in items:
+            liststore.append([items[p], p])
+
+        combobox.set_model(liststore)
+        combobox.set_active(0)
+
+    def get_textview_text(self, widget):
+        buffer = self.notes_textview.get_buffer()
+        return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter())
+
+    def set_comboboxes(self, widget, id):
+        '''
+        sets the current selected item in the combobox
+        '''
+        model = widget.get_model()
+        i = 0
+
+        for m in model:
+            iter = model.get_iter(i)
+            if "%s" % model.get_value(iter, 1) == "%s" % id:
+                widget.set_active(i)
+                break
+            i += 1

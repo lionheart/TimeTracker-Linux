@@ -109,8 +109,11 @@ class uiSignals(uiSignalHelpers):
         self.timetracker_window.set_keep_above(self.always_on_top)
 
     def on_timer_toggle_clicked(self, widget, id):
+        if self.running: #if running it will turn off, lets empty the comboboxes
+            self.current_project_id = None
+            self.current_task_id = None
+            self.refresh_comboboxes()
         self.toggle_current_timer(id)
-
     def get_combobox_selection(self, widget):
             model = widget.get_model()
             active = widget.get_active()
@@ -123,19 +126,27 @@ class uiSignals(uiSignalHelpers):
 
     def on_submit_button_clicked(self, widget):
         self.away_from_desk = False
-        self.daily.add({
-            "request": {
+        if self.harvest:
+            self.harvest.add({
                 'notes': self.get_textview_text(self.notes_textview),
                 'hours': self.hours_entry.get_text(),
                 'project_id': self.get_combobox_selection(self.project_combobox),
                 'task_id': self.get_combobox_selection(self.task_combobox)
-            }
-        })
+            })
+        else:
+            self.warning_message(self.timetracker_window, "Not Connected to Harvest")
+            self.attention = True
+
         self.set_entries()
 
     def on_timer_entry_removed(self, widget, entry_id):
         self.away_from_desk = False
-        self.daily.delete(entry_id)
+        if self.harvest:
+            self.harvest.delete(entry_id)
+        else:
+            self.warning_message(self.timetracker_window, "Not Connected to Harvest")
+            self.attention = True
+
         self.set_entries()
 
     def on_edit_timer_entry(self, widget, entry_id):
@@ -149,15 +160,16 @@ class uiSignals(uiSignalHelpers):
             self.warning_message(self.timetracker_window, "Are you sure you want to modify this entry?\n\nSome time has passed already, and you will lose time.\n\nMaybe you should stop the timer first, start it again and then modify.")
 
             return
-
-        self.daily.update( entry_id, {
-            "request": {
+        if self.harvest:
+            self.harvest.update( entry_id, {
                 'notes': self.get_textview_text(self.notes_textview),
                 'hours': hours,
                 'project_id': self.get_combobox_selection(self.project_combobox),
                 'task_id': self.get_combobox_selection(self.task_combobox)
-            }
-        })
+            })
+        else:
+            self.warning_message(self.timetracker_window, "Not Connected to Harvest")
+            self.attention = True
 
         self.set_entries()
 

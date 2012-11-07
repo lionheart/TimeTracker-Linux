@@ -64,30 +64,13 @@ class logicHelpers(object):
         self.timetracker_window.set_position(gtk.WIN_POS_CENTER)
         self.preferences_window.set_position(gtk.WIN_POS_CENTER)
 
-    def get_textview_text(self, widget):
-        buffer = self.notes_textview.get_buffer()
-        return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter())
+
 
     def string_to_bool(self, string):
         return True if string == "True" or string == True else False
 
     def bool_to_string(self, bool):
         return "True" if bool == True or bool == "True" else "False"
-
-
-    def set_comboboxes(self, widget, id):
-        '''
-        sets the current selected item in the combobox
-        '''
-        model = widget.get_model()
-        i = 0
-
-        for m in model:
-            iter = model.get_iter(i)
-            if "%s" % model.get_value(iter, 1) == "%s" % id:
-                widget.set_active(i)
-                break
-            i += 1
 
 
 class logicFunctions(logicHelpers):
@@ -150,8 +133,8 @@ class logicFunctions(logicHelpers):
 
     def toggle_current_timer(self, id):
         self.away_from_desk = False
-        for entry in self.harvest.toggle_entry(id):
-            self.set_entries()
+        self.harvest.toggle_timer(id)
+        self.set_entries()
 
         if not self.running:
             self.statusbar.push(0, "Stopped")
@@ -187,8 +170,9 @@ class logicFunctions(logicHelpers):
             minutes_running = (time() - mktime(updated_at.timetuple())+(8*60*60)) / 60  #minutes timer has been running
             seconds_running = (time() - mktime(updated_at.timetuple())+(8*60*60)) % 60
             time_running = "%02d:%02d" % (minutes_running, seconds_running)
-            self.current['_label'].set_text("%0.02f on %s for %s" % (
-                self.current['_hours'], self.current['task'], self.current['project']))
+            if self.current.has_key("_label"):
+                self.current['_label'].set_text("%0.02f on %s for %s" % (
+                    self.current['_hours'], self.current['task'], self.current['project']))
             self.hours_entry.set_text("%s"%(self.current['_hours'])) #set updated current time while running for modify
             self.statusbar.push(0, "%s" % ("Working %s started_at %s" % (time_running,
                                                                          updated_at) if self.running else "Idle"))
@@ -232,7 +216,7 @@ class logicFunctions(logicHelpers):
     def get_prefs(self):
         self.username = self.harvest_email_entry.get_text()
         self.uri = self.harvest_url_entry.get_text()
-        self.password = self.harvest_password_entry.get_Text()
+        self.password = self.harvest_password_entry.get_text()
         self.interval = self.interval_entry.get_text()
         self.timezone_offset_hours = self.timezone_offset_entry.get_text()
         self.show_countdown = self.bool_to_string(self.countdown_checkbutton.get_active())
@@ -343,7 +327,7 @@ class logicFunctions(logicHelpers):
             #write file in case write not exists or options missing
             self.config.write(open(self.config_filename, 'w'))
 
-    def set_config(self):
+    def save_config(self):
         if self.interval <=0 or self.interval == '':
             self.interval = 0.33
 
@@ -413,13 +397,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             #initialize application
             self.init()
 
-    def save_username_and_uri(self, uri, username):
-        if not self.config.has_option('timetracker_login', "uri"):
-            self.config.set('timetracker_login', "uri", uri)
-
-        if not self.config.has_option('timetracker_login', "username"):
-            self.config.set('timetracker_login', "username", username)
-
     def check_harvest_up(self):
         if HarvestStatus().get() == "down":
             self.warning_message(self.timetracker_window, "Harvest Is Down")
@@ -427,57 +404,35 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             return False
         return True
 
-    def create_liststore(self, combobox, items):
-        '''
-            Create a liststore filled with items, connect it to a combobox and activate the first index
-        '''
-        liststore = combobox.get_model()
-        if not liststore:
-            liststore = gtk.ListStore(str, str)
-            cell = gtk.CellRendererText()
-            combobox.pack_start(cell)
-            combobox.add_attribute(cell, 'text', 0)
-            combobox.add_attribute(cell, 'text', 0)
-
-        else:
-            liststore.clear()
-
-        for p in items:
-            liststore.append([items[p], p])
-
-        combobox.set_model(liststore)
-        combobox.set_active(0)
-
     def _setup_current_data(self, harvest_data):
         self.current = {
             '__projects': harvest_data['projects'],
             '__all': harvest_data['day_entries'],
         }
         self.today_total = 0
+        self.running = False
+        self.current_project_id = None
+        self.current_task_id = None
         #get total hours and set current
         for entry in self.current['__all']:
             self.today_total += entry['hours']
             entry['created_at'] = datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
             entry['updated_at'] = datetime.strptime(entry['updated_at'], "%Y-%m-%dT%H:%M:%SZ")
             if entry.has_key('timer_started_at'):
-                self.current_project_id = entry['project_id']
-                self.current_task_id = entry['task_id']
+                self.current_project_id = str(entry['project_id'])
+                self.current_task_id = str(entry['task_id'])
                 self.current.update(entry)
                 self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project'])
                 self.running = True
-            else:
-                self.current_project_id = None
-                self.current_task_id = None
-                self.running = False
 
         self.projects = {}
         self.tasks = {}
         #all projects, used for liststore for combobox
         for project in self.current['__projects']:
-            self.projects[project['id']] = "%s - %s" % (project['client'], project['name'])
-            if self.running:
-                for task in project['tasks']:
-                    self.tasks[task['id']] = "%s" % task['name']
+            self.projects[str(project['id'])] = "%s - %s" % (project['client'], project['name'])
+            self.tasks[str(project['id'])] = {}
+            for task in project['tasks']:
+                self.tasks[str(project['id'])][str(task['id'])] = "%s" % task['name']
 
     def _update_entries_box(self):
         if self.entries_vbox:
@@ -528,62 +483,32 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         #show all components that were added to the vbox
         self.entries_vbox.show_all()
 
+    def refresh_comboboxes(self):
+        self.create_liststore(self.project_combobox, self.projects)
+        if self.current_project_id:
+            self.create_liststore(self.task_combobox, self.tasks[self.current_project_id])
+        elif len(self.projects.keys()) > 0:
+            self.create_liststore(self.task_combobox, self.tasks[self.projects.keys()[0]])
+
+        self.set_comboboxes(self.project_combobox, self.current_project_id)
+        self.set_comboboxes(self.task_combobox, self.current_task_id)
 
     def set_entries(self):
-        total = 0
-        entries_count = 0
-        self.current['all'] = {}
-        current_id = None
-
         if not self.harvest:
-            self.set_message_text("Not Connected to Harvest")
-            self.attention = True #set attention icon
+            self.warning_message(self.timetracker_window, "Not Connected to Harvest")
+            self.attention = True
             return
 
-        #store harvest data in App instance to use inside application
-        for user in self.harvest.users():
-            if user.email == self.username:
-                self.attention = False #if we get here we can safely remove attention icon
-                for i in user.entries(self.today_start, self.today_end):
-                    entries_count += 1
-                    total += i.hours
+        self._setup_current_data(self.harvest.get_today())
 
-                    active = self.is_entry_active(i)
-                    if active:
-                        current_id = i.id
-
-                    self.current['all'][i.id] = {
-                        'id': i.id,
-                        'text': "%s" % (i),
-                        'project_id': i.project_id,
-                        'task_id': i.task_id,
-                        'notes': i.notes,
-                        'hours': i.hours,
-                        'active': active,
-                        'spent_at': i.spent_at,
-                        'timer_started_at': i.timer_started_at,
-                        'updated_at': i.updated_at,
-                        'is_closed': i.is_closed,
-                        'is_billed': i.is_billed,
-                        'task': i.task,
-                        'project': i.project,
-
-                    }
-                break
-
-        if current_id:
-            #harvest timer is running
-            self.current.update(self.current['all'][current_id])
-            self.current['client_id'] = self.harvest.project(self.current['project_id']).client_id
-
-            self.set_comboboxes(self.project_combobox, self.current['project_id'])
-            self.set_comboboxes(self.task_combobox, self.current['task_id'])
-
+        self.attention = False #remove attention state, everything should be fine by now
+        if self.current.has_key('id'):
+            self.refresh_comboboxes()
             self.hours_entry.set_text("%s" % (self.current['hours']))
-
-            textbuffer = gtk.TextBuffer()
-            textbuffer.set_text(self.current['notes'])
-            self.notes_textview.set_buffer(textbuffer)
+            if  self.current['notes']:
+                textbuffer = gtk.TextBuffer()
+                textbuffer.set_text(self.current['notes'])
+                self.notes_textview.set_buffer(textbuffer)
 
             self.start_time = time()
 
@@ -596,13 +521,15 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
             self.running = False
 
-        #fill the vbox with time entries
+            #fill the vbox with time entries
         self._update_entries_box()
 
         #show hide button and hours entry
         self.handle_visible_state()
 
-        self.entries_expander_label.set_text("%s Entries %0.02f hours Total" % (entries_count, total))
+        self.entries_expander_label.set_text(
+            "%s Entries %0.02f hours Total" % (len(self.current['__all']), self.today_total))
+
 
     def connect_to_harvest(self):
         #check harvest status
@@ -621,40 +548,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         try:
             self.harvest = Harvest(self.uri, self.username, self.password)
-            self._setup_current_data(self.harvest.get_today())
-            if self.current.has_key('id'):
-                self.create_liststore(self.project_combobox, self.projects)
-                self.create_liststore(self.task_combobox, self.tasks)
 
-                self.set_comboboxes(self.project_combobox, self.current_project_id)
-                self.set_comboboxes(self.task_combobox, self.current_task_id)
+            self.set_entries()
 
-                self.hours_entry.set_text("%s" % (self.current['hours']))
+            #by this time no error means valid login, so lets save it to config
+            self.save_config()
 
-                textbuffer = gtk.TextBuffer()
-                textbuffer.set_text(self.current['notes'])
-                self.notes_textview.set_buffer(textbuffer)
-
-                self.start_time = time()
-
-                self.running = True
-            else:
-                self.hours_entry.set_text("")
-                textbuffer = gtk.TextBuffer()
-                textbuffer.set_text("")
-                self.notes_textview.set_buffer(textbuffer)
-
-                self.running = False
-
-                #fill the vbox with time entries
-            self._update_entries_box()
-
-            #show hide button and hours entry
-            self.handle_visible_state()
-
-            self.entries_expander_label.set_text("%s Entries %0.02f hours Total" % (len(self.current['__all']), self.today_total))
-
-            self.set_message_text("%s Logged In" % (self.username))
+            self.set_message_text("%s Logged In" % self.username)
             self.preferences_window.hide()
             self.timetracker_window.show()
             self.timetracker_window.present()
@@ -663,54 +563,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         except HarvestError as e:
             self.running = False
             self.attention = True
-            self.set_message_text("Unable to Connect to Harvest\n%s" % (e))
+            self.set_message_text("Unable to Connect to Harvest\r\n%s" % e)
             self.warning_message(self.timetracker_window, "Error Connecting!\r\n%s" % e )
             return False
         except Exception as e:
             #catch all other exceptions
             self.running = False
             self.attention = True
-            self.set_message_text("Error\r\n%s" % (e))
+            print 'here'
+            self.set_message_text("Error\r\n%s" % e)
             return False
-
-        '''try:
-            self.get_data_from_harvest()
-
-
-            self.create_liststore(self.project_combobox, self.projects)
-            self.create_liststore(self.task_combobox, self.tasks)
-
-            self.load_config()
-
-            self.uri = URI
-            self.username = EMAIL
-            self.password = PASS
-
-            self.get_prefs()
-
-            self.set_prefs()
-
-            #save valid config
-            self.set_config()
-
-            #populate entries
-            self.set_entries()
-
-            self.set_message_text("%s Logged In" % (self.username))
-            self.preferences_window.hide()
-            self.timetracker_window.show()
-            self.timetracker_window.present()
-            return True
-
-        except HarvestError as e:
-            self.running = False
-            self.attention = True
-            self.set_message_text("Unable to Connect to Harvest\n%s" % (e))
-            return False
-
-        except ValueError as e:
-            self.running = False
-            self.attention = True
-            self.set_message_text("ValueError\n%s" % (e))
-            return False
-        '''
