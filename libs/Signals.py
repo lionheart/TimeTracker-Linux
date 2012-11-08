@@ -90,8 +90,10 @@ class uiSignals(uiSignalHelpers):
         self.clear_interval_timer()
         self.start_interval_timer()
 
-        self.interval_dialog_showing = False
         dialog.destroy()
+
+        self.interval_dialog_showing = False
+
 
     def on_save_preferences_button_clicked(self, widget):
         self.get_prefs()
@@ -101,17 +103,17 @@ class uiSignals(uiSignalHelpers):
             self.timetracker_window.present()
 
     def on_task_combobox_changed(self, widget):
-        if not self.from_set_comboboxes:
-            self.current_task_id = self.get_combobox_selection(self.task_combobox)
-            self.refresh_comboboxes()
-        print widget
+        self.current_selected_task_id = self.get_combobox_selection(widget)
+        self.current_selected_task_idx = widget.get_active()
 
     def on_project_combobox_changed(self, widget):
-        if not self.from_set_comboboxes:
-            self.current_project_id = self.get_combobox_selection(self.project_combobox)
-            self.refresh_comboboxes()
-
-        print widget
+        self.current_selected_project_id = self.get_combobox_selection(widget)
+        new_idx = widget.get_active()
+        if new_idx != -1 and new_idx != self.current_selected_project_idx: #-1 is sent from pygtk loop or something
+            #reset task when new project is selected
+            self.current_selected_project_idx = new_idx
+            self.current_selected_task_id = None
+            self.current_selected_task_idx = 0
 
     def on_show_preferences(self, widget):
         self.preferences_window.show()
@@ -133,13 +135,6 @@ class uiSignals(uiSignalHelpers):
             self.current_task_id = None
             self.refresh_comboboxes()
         self.toggle_current_timer(id)
-
-    def get_combobox_selection(self, widget):
-            model = widget.get_model()
-            active = widget.get_active()
-            if active < 0:
-                return None
-            return model[active][1] #0 is name, 1 is id
 
     def on_entries_expander_activate(self, widget):
         if not widget.get_expanded():
