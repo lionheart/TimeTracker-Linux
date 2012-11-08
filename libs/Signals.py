@@ -46,6 +46,7 @@ class uiSignalHelpers(object):
         messagedialog.set_default_response(gtk.RESPONSE_YES)
         messagedialog.show()
         messagedialog.present()
+        return messagedialog
 
     def interval_dialog(self, message):
         if not self.interval_dialog_showing:
@@ -54,7 +55,7 @@ class uiSignalHelpers(object):
                 self.timetracker_window.present()
 
             self.interval_dialog_showing = True
-            self.question_message(self.timetracker_window, message, self.on_working)
+            self.message_dialog_instance = self.question_message(self.timetracker_window, message, self.on_working)
 
     def set_custom_label(self, widget, text):
         #set custom label on stock button
@@ -102,17 +103,23 @@ class uiSignals(uiSignalHelpers):
             self.timetracker_window.present()
 
     def on_task_combobox_changed(self, widget):
-        self.current_selected_task_id = self.get_combobox_selection(widget)
-        self.current_selected_task_idx = widget.get_active()
+        new_idx = widget.get_active()
+        if new_idx != -1:
+            if new_idx != self.current_selected_project_idx: #-1 is sent from pygtk loop or something
+                self.current_selected_task_id = self.get_combobox_selection(widget)
+                self.current_selected_task_idx = new_idx
+                #self.refresh_comboboxes()
 
     def on_project_combobox_changed(self, widget):
         self.current_selected_project_id = self.get_combobox_selection(widget)
         new_idx = widget.get_active()
-        if new_idx != -1 and new_idx != self.current_selected_project_idx: #-1 is sent from pygtk loop or something
-            #reset task when new project is selected
-            self.current_selected_project_idx = new_idx
-            self.current_selected_task_id = None
-            self.current_selected_task_idx = 0
+        if new_idx != -1:
+            if new_idx != self.current_selected_project_idx: #-1 is sent from pygtk loop or something
+                #reset task when new project is selected
+                self.current_selected_project_idx = new_idx
+                self.current_selected_task_id = None
+                self.current_selected_task_idx = 0
+                self.refresh_comboboxes()
 
     def on_show_preferences(self, widget):
         self.preferences_window.show()
@@ -128,6 +135,7 @@ class uiSignals(uiSignalHelpers):
     def on_top(self, widget):
         self.timetracker_window.set_keep_above(self.always_on_top)
 
+    #not needed anymore for slimmed interface
     def on_timer_toggle_clicked(self, widget, id):
         if self.running: #if running it will turn off, lets empty the comboboxes
             self.current_project_id = None
@@ -137,6 +145,7 @@ class uiSignals(uiSignalHelpers):
         #allow to start or stop a timer
         self.toggle_current_timer(id)
 
+    #not needed anymore for slimmed interface
     def on_entries_expander_activate(self, widget):
         if not widget.get_expanded():
             self.set_entries()
@@ -163,6 +172,7 @@ class uiSignals(uiSignalHelpers):
 
         self.set_entries()
 
+    #not needed anymore for slimmed interface
     def on_timer_entry_removed(self, widget, entry_id):
         self.away_from_desk = False
         if self.harvest:
@@ -173,6 +183,7 @@ class uiSignals(uiSignalHelpers):
 
         self.set_entries()
 
+    #not needed anymore for slimmed interface
     def on_edit_timer_entry(self, widget, entry_id):
         self.away_from_desk = False
 
@@ -201,7 +212,6 @@ class uiSignals(uiSignalHelpers):
         self.toggle_current_timer(self.current['id'])
 
     def left_click(self, widget):
-        self.attention = False
         self.set_entries()
         self.timetracker_window.show()
         self.timetracker_window.present()
@@ -215,7 +225,7 @@ class uiSignals(uiSignalHelpers):
             stop_timer.connect("activate", self.on_stop_timer)
             menu.append(stop_timer)
         elif self.last_entry_id:
-
+            pass
 
         if not self.away_from_desk:
             away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_STOP)

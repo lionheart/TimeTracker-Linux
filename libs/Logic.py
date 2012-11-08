@@ -78,14 +78,31 @@ class logicFunctions(logicHelpers):
         
     def init(self, *args, **kwargs):
         #initialize state variables
+        #statusIcon
         self.icon = None #timetracker icon instance
+
+        #timer state
         self.running = False #timer is running and tracking time
+
+        #timeout instances
         self.interval_timer_timeout_instance = None #gint of the timeout_add for interval
         self.elapsed_timer_timeout_instance = None #gint of the timeout for elapsed time
+        self.stop_timer_timeout_instance = None #gint of the timeout for stop timer when message shows and no response
+
+        #warning message dialog instance, to close after stop_interval
+        self.message_dialog_instance = None
+
+        #harvest login
         self.username = None #current logged in user email
         self.uri = None #current uri
+
+        #harvest instance, crud
         self.harvest = None #harvest instance
-        self.projects = [] #list of projects
+
+
+        self.projects = [] #list of projects, used in comboboxes
+        self.tasks = [] #list of tasks per project, under project index, for comboboxes
+
         self.entries_vbox = None #used to hold the entries and to empty easily on refresh
         self.today_date = None # holds the date from harvest get_today response
         self.start_time = time() #when self.running == True this is used to calculate the notification interval
@@ -101,7 +118,10 @@ class logicFunctions(logicHelpers):
 
         self.current = {
             '__all': {}, #holds all the current entries for the day
+            #merged in to self.current is the current active timer entry
         }
+
+        self.current_entry_id = None #when running this will be set to the current active entry id
         self.current_project_id = None #when running this will have a project id set
         self.current_task_id = None # when running this will have a task id set
         self.current_hours = 0 #when running this will increment with amount of current hours to post to harvest
@@ -164,7 +184,6 @@ class logicFunctions(logicHelpers):
 
     def process_elapsed_timer(self):
         self.set_status_icon()
-        self.refresh_comboboxes()
         if self.running:
             dt = parse(self.current['updated_at'].replace(tzinfo=pytz.utc).strftime("%Y-%m-%d %H:%M:%S%z"))
             self.time_delta = round(round(time() - self.start_time) / 3600, 3)
@@ -207,16 +226,42 @@ class logicFunctions(logicHelpers):
             self.timetracker_window.show()
             self.timetracker_window.present()
             self.interval_dialog("Are you still working on this task?")
+            self.stop_interval_timer()
 
         interval = int(round(3600000 * float(self.interval)))
         self.interval_timer_timeout_instance = gobject.timeout_add(interval, self.interval_timer)
 
+    def stop_interval_timer(self):
+        #interval timer for stopping tacking if no response from interval dialog in
+        if self.running:
+            if self.stop_timer_timeout_instance:
+                gobject.source_remove(self.stop_timer_timeout_instance)
+
+            interval = int(round(1000 * int(self.stop_interval)))
+
+            self.stop_timer_timeout_instance = gobject.timeout_add(interval, self.stop_timer_interval)
+
+    def stop_timer_interval(self):
+        if self.running: #if running it will turn off, lets empty the comboboxes
+            #stop the timer
+            self.toggle_current_timer(self.current_entry_id)
+            if self.message_dialog_instance:
+                self.message_dialog_instance.hide() #hide the dialog
+
+            self.current_project_id = None
+            self.current_task_id = None
+            self.last_entry_id = self.current_entry_id
+            self.refresh_comboboxes()
+
     def set_prefs(self):
         if self.interval:
-            self.interval_entry.set_text("%s" %(self.interval))
+            self.interval_entry.set_text("%s" % self.interval)
+
+        if self.stop_interval:
+            self.stop_timer_interval_entry.set_text("%s" % self.stop_interval)
 
         if self.timezone_offset_hours:
-            self.timezone_offset_entry.set_text("%s" % (self.timezone_offset_hours))
+            self.timezone_offset_entry.set_text("%s" % self.timezone_offset_hours)
 
         if self.uri:
             self.harvest_url_entry.set_text(self.uri)
@@ -227,16 +272,39 @@ class logicFunctions(logicHelpers):
         if self.password: #password may not be saved in keyring
             self.harvest_password_entry.set_text(self.password)
 
+        if self.show_countdown:
+            self.countdown_checkbutton.set_active(self.show_countdown)
+        else:
+            self.countdown_checkbutton.set_active(False)
+
+        if self.show_notification:
+            self.show_notification_checkbutton.set_active(self.show_notification)
+        else:
+            self.show_notification_checkbutton.set_active(False)
+
+        if self.save_passwords:
+            self.save_password_checkbutton.set_active(self.save_passwords)
+        else:
+            self.save_password_checkbutton.set_active(False)
+
+        if self.show_timetracker:
+            self.show_timetracker_checkbutton.set_active(self.show_timetracker)
+        else:
+            self.show_timetracker_checkbutton.set_active(False)
+
     def get_prefs(self):
         self.username = self.harvest_email_entry.get_text()
         self.uri = self.harvest_url_entry.get_text()
         self.password = self.harvest_password_entry.get_text()
+
         self.interval = self.interval_entry.get_text()
+        self.stop_interval = self.stop_timer_interval_entry.get_text()
         self.timezone_offset_hours = self.timezone_offset_entry.get_text()
-        self.show_countdown = self.bool_to_string(self.countdown_checkbutton.get_active())
-        self.show_notification = self.bool_to_string(self.show_notification_checkbutton.get_active())
-        self.save_passwords = self.bool_to_string(self.save_password_checkbutton.get_active())
-        self.show_timetracker = self.bool_to_string(self.show_timetracker_checkbutton.get_active())
+
+        self.show_countdown = self.string_to_bool(self.countdown_checkbutton.get_active())
+        self.show_notification = self.string_to_bool(self.show_notification_checkbutton.get_active())
+        self.save_passwords = self.string_to_bool(self.save_password_checkbutton.get_active())
+        self.show_timetracker = self.string_to_bool(self.show_timetracker_checkbutton.get_active())
 
     def set_status_icon(self):
         if self.attention:
@@ -334,6 +402,12 @@ class logicFunctions(logicHelpers):
         else:
             self.timezone_offset_hours = self.config.get('prefs', 'timezone_offset_hours')
 
+        if not self.config.has_option('prefs', 'stop_interval'):
+            is_new = True
+            self.config.set('prefs', 'stop_interval', '300') #don't stop the timer for 5 minutes after the interval warning message by default
+        else:
+            self.stop_interval = self.config.get('prefs', 'stop_interval')
+
         #get password
         self.password = self.get_password()
 
@@ -350,7 +424,8 @@ class logicFunctions(logicHelpers):
 
         self.config.set('auth', 'uri', self.uri)
         self.config.set('auth', 'username', self.username)
-        self.config.set('prefs', 'interval', "%s" %(self.interval))
+        self.config.set('prefs', 'interval', "%s" % self.interval)
+        self.config.set('prefs', 'stop_interval', "%s" % self.stop_interval)
         self.config.set('prefs', 'show_countdown', self.bool_to_string(self.show_countdown))
         self.config.set('prefs', 'show_notification', self.bool_to_string(self.show_notification))
         self.config.set('prefs', 'show_timetracker', self.bool_to_string(self.show_timetracker))
@@ -423,7 +498,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             '__projects': harvest_data['projects'],
             '__all': harvest_data['day_entries'],
         }
-        self.today_total = 0
+        #get day entries are for
+        self.today_date = harvest_data['for_day']
+        self.today_total = 0 #total hours amount for all entries combined
         self.running = False
         self.current_project_id = None
         self.current_task_id = None
@@ -433,6 +510,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             entry['created_at'] = datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
             entry['updated_at'] = datetime.strptime(entry['updated_at'], "%Y-%m-%dT%H:%M:%SZ")
             if entry.has_key('timer_started_at'):
+                self.current_entry_id = str(entry['id'])
                 self.current_project_id = str(entry['project_id'])
                 self.current_task_id = str(entry['task_id'])
                 self.current.update(entry)
