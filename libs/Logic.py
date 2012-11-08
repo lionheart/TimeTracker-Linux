@@ -599,7 +599,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
     def refresh_comboboxes(self):
         self.create_liststore(self.project_combobox, self.projects, self.current_selected_project_idx)
         #repopulate the tasks comboboxes, because they can be different for each project
-        print 'id', self.current_selected_project_id, self.projects
         if self.running and self.current_selected_project_id:
             self.create_liststore(self.task_combobox, self.tasks[self.current_selected_project_id], self.current_selected_task_idx)
         else:#no current project running, just select the first entry

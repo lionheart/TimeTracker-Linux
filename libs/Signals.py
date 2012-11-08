@@ -279,7 +279,7 @@ class uiSignals(uiSignalHelpers):
         top.connect("activate", self.on_top)
         prefs.connect("activate", self.on_show_preferences)
         about.connect("activate", self.on_show_about_dialog)
-        quit.connect("activate", gtk.main_quit)
+        quit.connect("activate", self.on_quit)
 
         menu.append(away)
         menu.append(updates)
@@ -291,3 +291,8 @@ class uiSignals(uiSignalHelpers):
         menu.show_all()
 
         menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.icon)
+    def on_quit(self, widget):
+        if self.running:
+            self.harvest.toggle_timer(self.current_entry_id)
+
+        gtk.main_quit
