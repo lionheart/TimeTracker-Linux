@@ -99,7 +99,7 @@ class uiCreator(object):
     def __init__(self, *args, **kwargs):
         super(uiCreator, self).__init__()
 
-    def create_liststore(self, combobox, items):
+    def create_liststore(self, combobox, items, has_empty = True, empty_label = "Select One"):
         '''
             Create a liststore filled with items, connect it to a combobox and activate the first index
         '''
@@ -114,8 +114,10 @@ class uiCreator(object):
         else:
             liststore.clear()
 
+        if has_empty:
+            liststore.append([str(empty_label), None])
         for p in items:
-            liststore.append([items[p], p])
+            liststore.append([items[p], p]) #value, key
 
         combobox.set_model(liststore)
         combobox.set_active(0)
