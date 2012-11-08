@@ -240,6 +240,14 @@ class uiSignals(uiSignalHelpers):
     def on_stop_timer(self, widget):
         self.toggle_current_timer(self.current['id'])
 
+
+    def on_quit(self, widget):
+        if self.running and self.harvest:
+            self.harvest.toggle_timer(self.current_entry_id)
+
+        gtk.main_quit()
+
+
     def left_click(self, widget):
         self.set_entries()
         self.timetracker_window.show()
@@ -291,8 +299,3 @@ class uiSignals(uiSignalHelpers):
         menu.show_all()
 
         menu.popup(None, None, gtk.status_icon_position_menu, button, time, self.icon)
-    def on_quit(self, widget):
-        if self.running:
-            self.harvest.toggle_timer(self.current_entry_id)
-
-        gtk.main_quit
