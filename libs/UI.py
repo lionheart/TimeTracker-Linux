@@ -121,7 +121,7 @@ class uiCreator(object):
         combobox.set_active(0)
 
     def get_textview_text(self, widget):
-        buffer = self.notes_textview.get_buffer()
+        buffer = widget.get_buffer()
         return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter())
 
     def set_comboboxes(self, widget, id):
