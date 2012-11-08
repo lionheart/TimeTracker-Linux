@@ -105,6 +105,7 @@ class logicFunctions(logicHelpers):
 
         self.entries_vbox = None #used to hold the entries and to empty easily on refresh
         self.today_date = None # holds the date from harvest get_today response
+        self.today_day_number = None #hold the day number of today, so we can subtract a few day later and stop all lingering timers
         self.start_time = time() #when self.running == True this is used to calculate the notification interval
         self.time_delta = 0 #difference between now and starttime
         self.today_total = 0 #total hours today
@@ -500,6 +501,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         }
         #get day entries are for
         self.today_date = harvest_data['for_day']
+        self.today_day_number = datetime.strptime(self.today_date, '%Y-%m-%d')
         self.today_total = 0 #total hours amount for all entries combined
         self.running = False
         self.current_project_id = None
