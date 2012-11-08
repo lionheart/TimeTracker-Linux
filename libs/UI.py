@@ -139,3 +139,10 @@ class uiCreator(object):
                 widget.set_active(i)
                 break
             i += 1
+
+    def get_combobox_selection(self, widget):
+        model = widget.get_model()
+        active = widget.get_active()
+        if active < 0:
+            return None
+        return model[active][1] #0 is name, 1 is id
