@@ -98,13 +98,22 @@ class logicFunctions(logicHelpers):
         self.always_on_top = False #keep timetracker iwndow always on top
         self.attention = False #state to set attention icon
         self.timezone_offset_hours = 0 #number of hours to add to the updated_at time that is set on time entries
-        self.from_set_comboboxes = False #this is sued to deretmine if on_change_comboboxes came from user or from system
+
         self.current = {
             '__all': {}, #holds all the current entries for the day
         }
         self.current_project_id = None #when running this will have a project id set
         self.current_task_id = None # when running this will have a task id set
+        self.current_hours = 0 #when running this will increment with amount of current hours to post to harvest
 
+        self.current_selected_project_id = None #used for current selection of combobox for project, value
+        self.current_selected_task_id = None #used for current selected combobox task item, value
+        self.current_selected_project_idx = 0 #used for current selection of combobox for project, index
+        self.current_selected_task_idx = 0 #used for current selected combobox task item, index
+
+        self.last_project_id = None #last project worked on
+        self.last_task_id = None # last task worked on
+        self.last_entry_id = None # last worked on time entry, so we can continue it after having stopped all timers
         self.config_filename = kwargs.get('config', 'harvest.cfg')
 
         self.load_config()
@@ -124,12 +133,12 @@ class logicFunctions(logicHelpers):
         self.about_dialog.set_logo(gtk.gdk.pixbuf_new_from_file(media_path + "logo.svg"))
 
     def handle_visible_state(self):
-        if self.running:
-            #self.hours_hbox.show_all()
+        '''if self.running:
             self.submit_button.hide()
         else:
-            self.hours_hbox.hide()
             self.submit_button.show()
+        '''
+        pass
 
     def toggle_current_timer(self, id):
         self.away_from_desk = False
@@ -144,17 +153,18 @@ class logicFunctions(logicHelpers):
             gobject.source_remove(self.elapsed_timer_timeout_instance)
 
         #do it here so we dont have to wait in the beginning
-        self.process_timer()
+        self.process_elapsed_timer()
 
         self.elapsed_timer_timeout_instance = gobject.timeout_add(1000, self.elapsed_timer)
 
     def elapsed_timer(self):
-        self.process_timer()
+        self.process_elapsed_timer()
 
         gobject.timeout_add(1000, self.elapsed_timer)
 
-    def process_timer(self):
+    def process_elapsed_timer(self):
         self.set_status_icon()
+        self.refresh_comboboxes()
         if self.running:
             dt = parse(self.current['updated_at'].replace(tzinfo=pytz.utc).strftime("%Y-%m-%d %H:%M:%S%z"))
             self.time_delta = round(round(time() - self.start_time) / 3600, 3)
@@ -429,14 +439,21 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project'])
                 self.running = True
 
+            self.last_project_id = entry['project_id'] #what was the last project, this should be the last one worked on
+            self.last_task_id = entry['task_id'] #and what was the last task, used for append to last entry
+            self.last_entry_id = entry['id'] #used for start last entry worked on
+
         self.projects = {}
         self.tasks = {}
+
         #all projects, used for liststore for combobox
         for project in self.current['__projects']:
             self.projects[str(project['id'])] = "%s - %s" % (project['client'], project['name'])
             self.tasks[str(project['id'])] = {}
             for task in project['tasks']:
                 self.tasks[str(project['id'])][str(task['id'])] = "%s" % task['name']
+
+        self.refresh_comboboxes()
 
     def _update_entries_box(self):
         if self.entries_vbox:
@@ -488,28 +505,28 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.entries_vbox.show_all()
 
     def refresh_comboboxes(self):
-        self.create_liststore(self.project_combobox, self.projects)
-        if self.current_project_id:
-            self.create_liststore(self.task_combobox, self.tasks[self.current_project_id])
-        elif len(self.projects.keys()) > 0:
-            self.create_liststore(self.task_combobox, self.tasks[self.projects.keys()[0]])
+        self.create_liststore(self.project_combobox, self.projects, self.current_selected_project_idx)
+        #repopulate the tasks comboboxes, because they can be different for each project
+        if self.current_selected_project_id:
+            self.create_liststore(self.task_combobox, self.tasks[self.current_selected_project_id], self.current_selected_task_idx)
+        else:#no current project running, just select the first entry
+            self.create_liststore(self.task_combobox, {}, self.current_selected_task_idx, True, "Select Project First") #select default None option
 
-        self.from_set_comboboxes = True #do this before doing set_comboboxes so system knows its from system and not from user
-        self.set_comboboxes(self.project_combobox, self.current_project_id)
-        self.from_set_comboboxes = True
-        self.set_comboboxes(self.task_combobox, self.current_task_id)
+        self.set_comboboxes(self.project_combobox, self.current_selected_project_id)
+        self.set_comboboxes(self.task_combobox, self.current_selected_task_id)
 
     def set_entries(self):
         if not self.harvest:
             self.warning_message(self.timetracker_window, "Not Connected to Harvest")
+            self.preferences_window.show()
+            self.preferences_window.present()
             self.attention = True
             return
-
+        #get data from harvest
         self._setup_current_data(self.harvest.get_today())
 
         self.attention = False #remove attention state, everything should be fine by now
         if self.current.has_key('id'):
-            self.refresh_comboboxes()
             self.current_hours = "%s" % self.current['hours']
             if  self.current['notes']:
                 textbuffer = gtk.TextBuffer()
@@ -576,6 +593,5 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             #catch all other exceptions
             self.running = False
             self.attention = True
-            print 'here'
             self.set_message_text("Error\r\n%s" % e)
             return False

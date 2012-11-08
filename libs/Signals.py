@@ -78,7 +78,6 @@ class uiSignals(uiSignalHelpers):
         self.about_dialog.show()
 
     def on_working(self, dialog, a): #interval_dialog callback
-        print 'interval dialog'
         if a == gtk.RESPONSE_NO and self.running: #id will be set if running
             self.toggle_current_timer(self.current['id'])
             if not self.timetracker_window.is_active():
@@ -134,6 +133,8 @@ class uiSignals(uiSignalHelpers):
             self.current_project_id = None
             self.current_task_id = None
             self.refresh_comboboxes()
+
+        #allow to start or stop a timer
         self.toggle_current_timer(id)
 
     def on_entries_expander_activate(self, widget):
@@ -141,15 +142,22 @@ class uiSignals(uiSignalHelpers):
             self.set_entries()
 
     def on_submit_button_clicked(self, widget):
+        print self.current_project_id, self.current_selected_project_id
+        print self.current_task_id, self.current_selected_task_id
         self.away_from_desk = False
-        if self.harvest:
-            self.harvest.add({
-                'notes': self.get_textview_text(self.notes_textview),
-                'hours': self.current_hours,
-                'project_id': self.get_combobox_selection(self.project_combobox),
-                'task_id': self.get_combobox_selection(self.task_combobox)
-            })
-        else:
+        if self.harvest: #we have to be connected
+            if self.current_project_id != self.current_selected_project_id \
+                or self.current_task_id != self.current_selected_task_id:
+                self.harvest.add({
+                    'notes': self.get_textview_text(self.notes_textview),
+                    'hours': self.current_hours,
+                    'project_id': self.get_combobox_selection(self.project_combobox),
+                    'task_id': self.get_combobox_selection(self.task_combobox)
+                })
+            else:
+                print 'no'
+                pass
+        else: #something is wrong we aren't connected
             self.warning_message(self.timetracker_window, "Not Connected to Harvest")
             self.attention = True
 
@@ -189,6 +197,8 @@ class uiSignals(uiSignalHelpers):
 
         self.set_entries()
 
+    def on_stop_timer(self, widget):
+        self.toggle_current_timer(self.current['id'])
 
     def left_click(self, widget):
         self.attention = False
@@ -199,6 +209,14 @@ class uiSignals(uiSignalHelpers):
     def right_click(self, widget, button, time):
         #create popup menu
         menu = gtk.Menu()
+
+        if self.running:
+            stop_timer = gtk.MenuItem("Stop Timer")
+            stop_timer.connect("activate", self.on_stop_timer)
+            menu.append(stop_timer)
+        elif self.last_entry_id:
+
+
         if not self.away_from_desk:
             away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_STOP)
             away.set_label("Away from desk")
