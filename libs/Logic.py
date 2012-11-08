@@ -197,14 +197,9 @@ class logicFunctions(logicHelpers):
             self.time_delta = round(round(time() - self.start_time) / 3600, 3)
             self.current['_hours'] = self.current['hours'] + self.time_delta #amount of time to add real time in app while timer running
 
-            try:
-                timezone_offset = int(self.timezone_offset_hours)
-            except Exception as e:
-                timezone_offset = 0
             sub = 0
             minutes_running = -1
             while minutes_running < 0:
-                #updated_at = dt.astimezone(tzoffset(None, 3600 * (timezone_offset - sub))) #timezone_offset will be deprecated unless it finds a need
                 updated_at = dt.astimezone(tzoffset(None, 3600 * sub))
                 #updated_at = datetime.fromtimestamp(updated_at.timetuple())
                 minutes_running = (time() - mktime(updated_at.timetuple())+(8*60*60)) / 60  #minutes timer has been running
@@ -279,9 +274,6 @@ class logicFunctions(logicHelpers):
         if self.stop_interval:
             self.stop_timer_interval_entry.set_text("%s" % self.stop_interval)
 
-        if self.timezone_offset_hours:
-            self.timezone_offset_entry.set_text("%s" % self.timezone_offset_hours)
-
         if self.uri:
             self.harvest_url_entry.set_text(self.uri)
 
@@ -318,7 +310,6 @@ class logicFunctions(logicHelpers):
 
         self.interval = self.interval_entry.get_text()
         self.stop_interval = self.stop_timer_interval_entry.get_text()
-        self.timezone_offset_hours = self.timezone_offset_entry.get_text()
 
         self.show_countdown = self.string_to_bool(self.countdown_checkbutton.get_active())
         self.show_notification = self.string_to_bool(self.show_notification_checkbutton.get_active())
@@ -415,12 +406,6 @@ class logicFunctions(logicHelpers):
         else:
             self.always_on_top = self.string_to_bool(self.config.get('prefs', 'always_on_top'))
 
-        if not self.config.has_option('prefs', 'timezone_offset_hours'):
-            is_new = True
-            self.config.set('prefs', 'timezone_offset_hours', '0')
-        else:
-            self.timezone_offset_hours = self.config.get('prefs', 'timezone_offset_hours')
-
         if not self.config.has_option('prefs', 'stop_interval'):
             is_new = True
             self.config.set('prefs', 'stop_interval', '300') #don't stop the timer for 5 minutes after the interval warning message by default
@@ -438,9 +423,6 @@ class logicFunctions(logicHelpers):
         if self.interval <=0 or self.interval == '':
             self.interval = 0.33
 
-        if self.timezone_offset_hours < 0 or self.timezone_offset_hours == '':
-            self.timezone_offset_hours = 0
-
         self.config.set('auth', 'uri', self.uri)
         self.config.set('auth', 'username', self.username)
         self.config.set('prefs', 'interval', "%s" % self.interval)
@@ -448,7 +430,6 @@ class logicFunctions(logicHelpers):
         self.config.set('prefs', 'show_countdown', self.bool_to_string(self.show_countdown))
         self.config.set('prefs', 'show_notification', self.bool_to_string(self.show_notification))
         self.config.set('prefs', 'show_timetracker', self.bool_to_string(self.show_timetracker))
-        self.config.set('prefs', 'timezone_offset_hours', "%s" %(self.timezone_offset_hours))
         self.config.set('prefs', 'save_passwords', self.bool_to_string(self.save_passwords))
 
         self.save_password()
