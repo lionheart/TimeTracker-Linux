@@ -99,7 +99,7 @@ class uiCreator(object):
     def __init__(self, *args, **kwargs):
         super(uiCreator, self).__init__()
 
-    def create_liststore(self, combobox, items, has_empty = True, empty_label = "Select One"):
+    def create_liststore(self, combobox, items, selected_index = 0, has_empty = True, empty_label = "Select One"):
         '''
             Create a liststore filled with items, connect it to a combobox and activate the first index
         '''
@@ -120,7 +120,7 @@ class uiCreator(object):
             liststore.append([items[p], p]) #value, key
 
         combobox.set_model(liststore)
-        combobox.set_active(0)
+        combobox.set_active(selected_index)
 
     def get_textview_text(self, widget):
         buffer = widget.get_buffer()
@@ -132,13 +132,13 @@ class uiCreator(object):
         '''
         model = widget.get_model()
         i = 0
-
-        for m in model:
-            iter = model.get_iter(i)
-            if "%s" % model.get_value(iter, 1) == "%s" % id:
-                widget.set_active(i)
-                break
-            i += 1
+        if model:
+            for m in model:
+                iter = model.get_iter(i)
+                if "%s" % model.get_value(iter, 1) == "%s" % id:
+                    widget.set_active(i)
+                    break
+                i += 1
 
     def get_combobox_selection(self, widget):
         model = widget.get_model()
