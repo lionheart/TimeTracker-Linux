@@ -527,16 +527,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 entry_id = str(entry['id'])
                 project_id = str(entry['project_id'])
                 task_id = str(entry['task_id'])
-                #print 'proj id', project_id, projects_list
                 self.current_entry_id = entry_id
                 self.current_project_id = project_id
                 self.current_selected_project_id = project_id
-                self.current_selected_project_idx = self.projects.keys().index(project_id) + 1
-                #print 'project idx', self.current_selected_project_idx
+                self.current_selected_project_idx = self.projects.keys().index(project_id) + 1 #compensate for empty 'select one'
                 self.current_task_id = task_id
                 self.current_selected_task_id = task_id
-                self.current_selected_task_idx = self.tasks[project_id].keys().index(task_id) + 1
-                #print 'task idx', self.current_selected_task_idx, tasks_list[project_id], task_id
+                self.current_selected_task_idx = self.tasks[project_id].keys().index(task_id) + 1 #compensate for empty 'select one'
                 self.current.update(entry)
                 self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project'])
                 self.running = True
