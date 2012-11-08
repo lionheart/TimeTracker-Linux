@@ -16,11 +16,18 @@ class uiSignalHelpers(object):
         w.hide()
         return True
 
-    def information_message(self, widget, message):
+    def information_message(self, widget, message, cb = None):
         self.attention = True
         messagedialog = gtk.MessageDialog(widget, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_INFO, gtk.BUTTONS_OK, message)
-        messagedialog.run()
-        messagedialog.destroy()
+        messagedialog.connect("delete-event", lambda w, e: w.hide() or True)
+        if cb:
+            messagedialog.connect("response", cb)
+
+        messagedialog.set_default_response(gtk.RESPONSE_OK)
+        messagedialog.show()
+        messagedialog.present()
+        return messagedialog
+
 
     def error_message(self, widget, message):
         self.attention = True
@@ -56,6 +63,15 @@ class uiSignalHelpers(object):
 
             self.interval_dialog_showing = True
             self.message_dialog_instance = self.question_message(self.timetracker_window, message, self.on_working)
+
+    def stop_interval_dialog(self, message):
+        if not self.stop_interval_dialog_showing:
+            if not self.timetracker_window.is_active():
+                self.timetracker_window.show()
+                self.timetracker_window.present()
+
+            self.stop_interval_dialog_showing = True
+            self.stop_interval_dialog_instance = self.information_message(self.timetracker_window, message, self.on_stopped)
 
     def set_custom_label(self, widget, text):
         #set custom label on stock button
@@ -94,6 +110,14 @@ class uiSignals(uiSignalHelpers):
 
         self.interval_dialog_showing = False
 
+    def on_stopped(self, dialog):
+        if not self.timetracker_window.is_active():
+            self.timetracker_window.show()
+            self.timetracker_window.present()
+
+        dialog.destroy()
+
+        self.stop_interval_dialog_showing = False
 
     def on_save_preferences_button_clicked(self, widget):
         self.get_prefs()
@@ -154,6 +178,7 @@ class uiSignals(uiSignalHelpers):
         print self.current_project_id, self.current_selected_project_id
         print self.current_task_id, self.current_selected_task_id
         self.away_from_desk = False
+        self.start_interval_timer()
         if self.harvest: #we have to be connected
             if self.current_project_id != self.current_selected_project_id \
                 or self.current_task_id != self.current_selected_task_id:

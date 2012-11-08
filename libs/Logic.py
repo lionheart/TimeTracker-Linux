@@ -147,6 +147,9 @@ class logicFunctions(logicHelpers):
 
         self.connect_to_harvest()
 
+        #stop any timers that were started in previous days
+        self._clear_lingering_timers(7) #stop all lingering timers for the last week
+
         self.center_windows(self. timetracker_window, self.preferences_window)
 
         self.start_interval_timer() #notification interval, and warning message
@@ -198,7 +201,6 @@ class logicFunctions(logicHelpers):
                 timezone_offset = int(self.timezone_offset_hours)
             except Exception as e:
                 timezone_offset = 0
-
             updated_at = dt.astimezone(tzoffset(None, 3600 * timezone_offset))
             #updated_at = datetime.fromtimestamp(updated_at.timetuple())
             minutes_running = (time() - mktime(updated_at.timetuple())+(8*60*60)) / 60  #minutes timer has been running
@@ -257,6 +259,13 @@ class logicFunctions(logicHelpers):
             self.current_task_id = None
             self.last_entry_id = self.current_entry_id
             self.refresh_comboboxes()
+            self.running = False
+            self.attention = True #show attention that something happened
+
+            self.clear_interval_timer()
+
+            #kill the stop_interval timeout instance
+            #self.stop_timer_timeout_instance = None
 
     def set_prefs(self):
         if self.interval:
@@ -611,9 +620,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         data = self.harvest.get_today()
 
         self._setup_current_data(data)
-
-        #stop any timers that were started in previous days
-        self._clear_lingering_timers(7) #stop all lingering timers for the last week
 
         self.attention = False #remove attention state, everything should be fine by now
         if self.current.has_key('id'):
