@@ -240,6 +240,7 @@ The GNU General Public License does not permit incorporating your program into p
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog">
         <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="aboutdialog-action_area1">
