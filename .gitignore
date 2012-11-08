@@ -1,4 +1,7 @@
-lib/
+*.pyc
+*.cfgbin/
 share/
-bin/
+lib/
 include/
+bin/
+build/

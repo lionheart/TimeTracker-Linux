@@ -31,6 +31,8 @@ class uiSignalHelpers(object):
     def warning_message(self, widget, message):
         self.attention = True
         messagedialog = gtk.MessageDialog(widget, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_WARNING, gtk.BUTTONS_OK_CANCEL, message)
+        messagedialog.show()
+        messagedialog.present()
         messagedialog.run()
         messagedialog.destroy()
 
@@ -47,7 +49,11 @@ class uiSignalHelpers(object):
 
     def interval_dialog(self, message):
         if not self.interval_dialog_showing:
-            self.inteval_dialog_showing = True
+            if not self.timetracker_window.is_active():
+                self.timetracker_window.show()
+                self.timetracker_window.present()
+
+            self.interval_dialog_showing = True
             self.question_message(self.timetracker_window, message, self.on_working)
 
     def set_custom_label(self, widget, text):
@@ -55,12 +61,14 @@ class uiSignalHelpers(object):
         Label = widget.get_children()[0]
         Label = Label.get_children()[0].get_children()[1]
         Label = Label.set_label(text)
+import inspect
 
 class uiSignals(uiSignalHelpers):
     def __init__(self, *args, **kwargs):
         super(uiSignals, self).__init__(*args, **kwargs)
         self.preferences_window.connect('delete-event', lambda w, e: w.hide() or True)
         self.timetracker_window.connect('delete-event', lambda w, e: w.hide() or True)
+        self.timetracker_window.connect('destroy', lambda w, e: w.hide() or True)
         self.about_dialog.connect("delete-event", lambda w, e: w.hide() or True)
         self.about_dialog.connect("response", lambda w, e: w.hide() or True)
         self.icon.connect('activate', self.left_click)
@@ -70,10 +78,17 @@ class uiSignals(uiSignalHelpers):
         self.about_dialog.show()
 
     def on_working(self, dialog, a): #interval_dialog callback
-        if a == gtk.RESPONSE_NO:
+        print 'interval dialog'
+        if a == gtk.RESPONSE_NO and self.running: #id will be set if running
             self.toggle_current_timer(self.current['id'])
+            if not self.timetracker_window.is_active():
+                self.timetracker_window.show()
+                self.timetracker_window.present()
         else:
-            pass
+            self.timetracker_window.hide()
+
+        self.clear_interval_timer()
+        self.start_interval_timer()
 
         self.interval_dialog_showing = False
         dialog.destroy()
@@ -86,13 +101,17 @@ class uiSignals(uiSignalHelpers):
             self.timetracker_window.present()
 
     def on_task_combobox_changed(self, widget):
-        pass #print widget
+        if not self.from_set_comboboxes:
+            self.current_task_id = self.get_combobox_selection(self.task_combobox)
+            self.refresh_comboboxes()
+        print widget
 
     def on_project_combobox_changed(self, widget):
-        pass #print widget
+        if not self.from_set_comboboxes:
+            self.current_project_id = self.get_combobox_selection(self.project_combobox)
+            self.refresh_comboboxes()
 
-    def on_client_combobox_changed(self, widget):
-        pass #print widget
+        print widget
 
     def on_show_preferences(self, widget):
         self.preferences_window.show()

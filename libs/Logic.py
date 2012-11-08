@@ -16,8 +16,8 @@ from gnomekeyring import IOError as KeyRingError
 from datetime import datetime, timedelta
 from Harvest import Harvest, HarvestError, HarvestStatus
 
-#from Notifier import Notifier
-#from StatusButton import StatusButton
+from Notifier import Notifier
+from StatusButton import StatusButton
 
 class InterfaceException(Exception):
     pass
@@ -60,11 +60,10 @@ class logicHelpers(object):
     def sensitive(self, control, bool = False):
         control.set_sensitive( bool )
 
-    def center_windows(self):
-        self.timetracker_window.set_position(gtk.WIN_POS_CENTER)
-        self.preferences_window.set_position(gtk.WIN_POS_CENTER)
-
-
+    def center_windows(self, *widgets):
+        if len(widgets) > 0:
+            for w in widgets:
+                w.set_position(gtk.WIN_POS_CENTER)
 
     def string_to_bool(self, string):
         return True if string == "True" or string == True else False
@@ -99,6 +98,7 @@ class logicFunctions(logicHelpers):
         self.always_on_top = False #keep timetracker iwndow always on top
         self.attention = False #state to set attention icon
         self.timezone_offset_hours = 0 #number of hours to add to the updated_at time that is set on time entries
+        self.from_set_comboboxes = False #this is sued to deretmine if on_change_comboboxes came from user or from system
         self.current = {
             '__all': {}, #holds all the current entries for the day
         }
@@ -113,13 +113,13 @@ class logicFunctions(logicHelpers):
 
         self.connect_to_harvest()
 
-        self.center_windows()
+        self.center_windows(self. timetracker_window, self.preferences_window)
 
         self.start_interval_timer()
         self.start_elapsed_timer()
 
-        #self._status_button = StatusButton()
-        #self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
+        self._status_button = StatusButton()
+        self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
 
         self.about_dialog.set_logo(gtk.gdk.pixbuf_new_from_file(media_path + "logo.svg"))
 
@@ -178,6 +178,7 @@ class logicFunctions(logicHelpers):
                                                                          updated_at) if self.running else "Idle"))
 
     def start_interval_timer(self):
+        #interval timer for when to popup the window
         if self.running:
             if self.interval_timer_timeout_instance:
                 gobject.source_remove(self.interval_timer_timeout_instance)
@@ -186,16 +187,19 @@ class logicFunctions(logicHelpers):
 
             self.interval_timer_timeout_instance = gobject.timeout_add(interval, self.interval_timer)
 
+    def clear_interval_timer(self):
+        #clear interval timer, stops the timer so we can restart it again later
+        self.interval_timer_timeout_instance = None
+
     def interval_timer(self):
-        if self.running and not self.away_from_desk:
+        if self.running and not self.away_from_desk and not self.interval_dialog_showing:
             self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current['text'])
             self.timetracker_window.show()
             self.timetracker_window.present()
-
             self.interval_dialog("Are you still working on this task?")
 
         interval = int(round(3600000 * float(self.interval)))
-        gobject.timeout_add(interval, self.interval_timer)
+        self.interval_timer_timeout_instance = gobject.timeout_add(interval, self.interval_timer)
 
     def set_prefs(self):
         if self.interval:
@@ -490,7 +494,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         elif len(self.projects.keys()) > 0:
             self.create_liststore(self.task_combobox, self.tasks[self.projects.keys()[0]])
 
+        self.from_set_comboboxes = True #do this before doing set_comboboxes so system knows its from system and not from user
         self.set_comboboxes(self.project_combobox, self.current_project_id)
+        self.from_set_comboboxes = True
         self.set_comboboxes(self.task_combobox, self.current_task_id)
 
     def set_entries(self):
