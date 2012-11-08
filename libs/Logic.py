@@ -212,7 +212,7 @@ class logicFunctions(logicHelpers):
             self.current_hours = "%s" % self.current['_hours'] #set updated current time while running for modify
 
             self.statusbar.push(0, "%s" % ("Working %s started_at %s" % (time_running,
-                                                                         parse("%s" % (updated_at + timedelta(hours = -8))).strftime("%H:%M")) if self.running else "Idle"))
+                                                                         parse("%s" % (updated_at + timedelta(hours = -8 + sub - 1))).strftime("%H:%M")) if self.running else "Idle"))
 
     def start_interval_timer(self):
         #interval timer for when to popup the window
