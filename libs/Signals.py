@@ -78,7 +78,9 @@ class uiSignalHelpers(object):
         Label = widget.get_children()[0]
         Label = Label.get_children()[0].get_children()[1]
         Label = Label.set_label(text)
-import inspect
+
+    def window_state(self, widget, state):
+        self.timetracker_window_state = state.new_window_state
 
 class uiSignals(uiSignalHelpers):
     def __init__(self, *args, **kwargs):
@@ -86,6 +88,7 @@ class uiSignals(uiSignalHelpers):
         self.preferences_window.connect('delete-event', lambda w, e: w.hide() or True)
         self.timetracker_window.connect('delete-event', lambda w, e: w.hide() or True)
         self.timetracker_window.connect('destroy', lambda w, e: w.hide() or True)
+        self.timetracker_window.connect("window-state-event", self.window_state)
         self.about_dialog.connect("delete-event", lambda w, e: w.hide() or True)
         self.about_dialog.connect("response", lambda w, e: w.hide() or True)
         self.icon.connect('activate', self.left_click)
@@ -157,7 +160,8 @@ class uiSignals(uiSignalHelpers):
         pass
 
     def on_top(self, widget):
-        self.timetracker_window.set_keep_above(self.always_on_top)
+        on_top = True if self.always_on_top else False
+        self.timetracker_window.set_keep_above(on_top)
 
     #not needed anymore for slimmed interface
     def on_timer_toggle_clicked(self, widget, id):
@@ -253,13 +257,13 @@ class uiSignals(uiSignalHelpers):
             pass
 
         if not self.away_from_desk:
-            away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_STOP)
+            away = gtk.ImageMenuItem(gtk.STOCK_NO)
             away.set_label("Away from desk")
         else:
-            away = gtk.ImageMenuItem(gtk.STOCK_MEDIA_PLAY)
+            away = gtk.ImageMenuItem(gtk.STOCK_YES)
             away.set_label("Back at desk")
 
-        if not self.away_from_desk:
+        if not self.always_on_top:
             top = gtk.ImageMenuItem(gtk.STOCK_YES)
         else:
             top = gtk.ImageMenuItem(gtk.STOCK_NO)
