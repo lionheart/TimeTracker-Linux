@@ -104,18 +104,20 @@ class logicFunctions(logicHelpers):
         self.tasks = [] #list of tasks per project, under project index, for comboboxes
 
         self.entries_vbox = None #used to hold the entries and to empty easily on refresh
+
         self.today_date = None # holds the date from harvest get_today response
         self.today_day_number = None #hold the day number of today, so we can subtract a few day later and stop all lingering timers
+
         self.start_time = time() #when self.running == True this is used to calculate the notification interval
         self.time_delta = 0 #difference between now and starttime
+
         self.today_total = 0 #total hours today
+
         self.away_from_desk = False #used to start stop interval timer and display away popup menu item
-        self.save_passwords = True #used to save password, toggled by checkbutton
-        self.show_timetracker = True #show timetracker window on interval, overridden by config or prefs dialog
-        self.interval_dialog_showing = False # whether or not the interval diloag is being displayed
         self.always_on_top = False #keep timetracker iwndow always on top
         self.attention = False #state to set attention icon
-        self.timezone_offset_hours = 0 #number of hours to add to the updated_at time that is set on time entries
+
+        self.interval_dialog_showing = False # whether or not the interval diloag is being displayed
 
         self.current = {
             '__all': {}, #holds all the current entries for the day
@@ -135,8 +137,10 @@ class logicFunctions(logicHelpers):
         self.last_project_id = None #last project worked on
         self.last_task_id = None # last task worked on
         self.last_entry_id = None # last worked on time entry, so we can continue it after having stopped all timers
+
         self.config_filename = kwargs.get('config', 'harvest.cfg')
 
+        #call functions to start up app from here
         self.load_config()
 
         self.set_status_icon()
@@ -145,8 +149,8 @@ class logicFunctions(logicHelpers):
 
         self.center_windows(self. timetracker_window, self.preferences_window)
 
-        self.start_interval_timer()
-        self.start_elapsed_timer()
+        self.start_interval_timer() #notification interval, and warning message
+        self.start_elapsed_timer() #ui interval that does things every second
 
         self._status_button = StatusButton()
         self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
@@ -501,7 +505,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         }
         #get day entries are for
         self.today_date = harvest_data['for_day']
-        self.today_day_number = datetime.strptime(self.today_date, '%Y-%m-%d')
+        self.today_day_number = datetime.strptime(self.today_date, '%Y-%m-%d').timetuple().tm_yday
         self.today_total = 0 #total hours amount for all entries combined
         self.running = False
         self.current_project_id = None
@@ -602,8 +606,14 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.preferences_window.present()
             self.attention = True
             return
+
         #get data from harvest
-        self._setup_current_data(self.harvest.get_today())
+        data = self.harvest.get_today()
+
+        self._setup_current_data(data)
+
+        #stop any timers that were started in previous days
+        self._clear_lingering_timers(7) #stop all lingering timers for the last week
 
         self.attention = False #remove attention state, everything should be fine by now
         if self.current.has_key('id'):
@@ -633,6 +643,15 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.entries_expander_label.set_text(
             "%s Entries %0.02f hours Total" % (len(self.current['__all']), self.today_total))
 
+    def _clear_lingering_timers(self, count_days = 7):
+        start = self.today_day_number - count_days
+
+        #dang it, i feel datelib coming because of 1st and last of year calc, do it simple for now
+        for day_number in range(start, self.today_day_number):
+            day_data = self.harvest.get_day(day_number, datetime.now().timetuple().tm_year)
+            for entry in day_data['day_entries']:
+                if entry.has_key('timer_started_at'):
+                    self.harvest.toggle_timer(entry['id'])
 
     def connect_to_harvest(self):
         #check harvest status
