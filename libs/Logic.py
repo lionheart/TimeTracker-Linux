@@ -201,9 +201,14 @@ class logicFunctions(logicHelpers):
                 timezone_offset = int(self.timezone_offset_hours)
             except Exception as e:
                 timezone_offset = 0
-            updated_at = dt.astimezone(tzoffset(None, 3600 * timezone_offset))
-            #updated_at = datetime.fromtimestamp(updated_at.timetuple())
-            minutes_running = (time() - mktime(updated_at.timetuple())+(8*60*60)) / 60  #minutes timer has been running
+            sub = 0
+            minutes_running = -1
+            while minutes_running < 0:
+                #updated_at = dt.astimezone(tzoffset(None, 3600 * (timezone_offset - sub))) #timezone_offset will be deprecated unless it finds a need
+                updated_at = dt.astimezone(tzoffset(None, 3600 * sub))
+                #updated_at = datetime.fromtimestamp(updated_at.timetuple())
+                minutes_running = (time() - mktime(updated_at.timetuple())+(8*60*60)) / 60  #minutes timer has been running
+                sub += 1
             seconds_running = (time() - mktime(updated_at.timetuple())+(8*60*60)) % 60
             time_running = "%02d:%02d" % (minutes_running, seconds_running)
             if self.current.has_key("_label"):
@@ -519,15 +524,44 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.running = False
         self.current_project_id = None
         self.current_task_id = None
+
+        self.projects = {}
+        self.tasks = {}
+
+        projects_list = [None] # compensate for empty 'select one'
+        tasks_list = {}
+
+        #all projects, used for liststore for combobox
+        for project in self.current['__projects']:
+            project_id = str(project['id'])
+            self.projects[project_id] = "%s - %s" % (project['client'], project['name'])
+            projects_list.append(project_id)
+            self.tasks[project_id] = {}
+            tasks_list[project_id] = [None] #compensate for empty "select a project"
+            for task in project['tasks']:
+                task_id = str(task['id'])
+                tasks_list[project_id].append(task_id)
+                self.tasks[project_id][task_id] = "%s" % task['name']
+
         #get total hours and set current
         for entry in self.current['__all']:
             self.today_total += entry['hours']
             entry['created_at'] = datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
             entry['updated_at'] = datetime.strptime(entry['updated_at'], "%Y-%m-%dT%H:%M:%SZ")
             if entry.has_key('timer_started_at'):
-                self.current_entry_id = str(entry['id'])
-                self.current_project_id = str(entry['project_id'])
-                self.current_task_id = str(entry['task_id'])
+                entry_id = str(entry['id'])
+                project_id = str(entry['project_id'])
+                task_id = str(entry['task_id'])
+                print 'proj id', project_id, projects_list
+                self.current_entry_id = entry_id
+                self.current_project_id = project_id
+                self.current_selected_project_id = project_id
+                self.current_selected_project_idx = projects_list.index(project_id)
+                print 'project idx', self.current_selected_project_idx
+                self.current_task_id = task_id
+                self.current_selected_task_id = task_id
+                self.current_selected_task_idx = tasks_list[project_id].index(task_id)
+                print 'task idx', self.current_selected_task_idx, tasks_list[project_id], task_id
                 self.current.update(entry)
                 self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project'])
                 self.running = True
@@ -536,15 +570,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.last_task_id = entry['task_id'] #and what was the last task, used for append to last entry
             self.last_entry_id = entry['id'] #used for start last entry worked on
 
-        self.projects = {}
-        self.tasks = {}
 
-        #all projects, used for liststore for combobox
-        for project in self.current['__projects']:
-            self.projects[str(project['id'])] = "%s - %s" % (project['client'], project['name'])
-            self.tasks[str(project['id'])] = {}
-            for task in project['tasks']:
-                self.tasks[str(project['id'])][str(task['id'])] = "%s" % task['name']
 
         self.refresh_comboboxes()
 
@@ -600,7 +626,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
     def refresh_comboboxes(self):
         self.create_liststore(self.project_combobox, self.projects, self.current_selected_project_idx)
         #repopulate the tasks comboboxes, because they can be different for each project
-        if self.current_selected_project_id:
+        print 'id', self.current_selected_project_id, self.projects
+        if self.running and self.current_selected_project_id:
             self.create_liststore(self.task_combobox, self.tasks[self.current_selected_project_id], self.current_selected_task_idx)
         else:#no current project running, just select the first entry
             self.create_liststore(self.task_combobox, {}, self.current_selected_task_idx, True, "Select Project First") #select default None option
@@ -642,7 +669,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
             #fill the vbox with time entries
         self._update_entries_box()
-
+        self.refresh_comboboxes()
         #show hide button and hours entry
         self.handle_visible_state()
 
