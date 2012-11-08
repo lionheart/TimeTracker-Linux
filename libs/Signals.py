@@ -133,12 +133,14 @@ class uiSignals(uiSignalHelpers):
             self.current_task_id = None
             self.refresh_comboboxes()
         self.toggle_current_timer(id)
+
     def get_combobox_selection(self, widget):
             model = widget.get_model()
             active = widget.get_active()
             if active < 0:
                 return None
             return model[active][1] #0 is name, 1 is id
+
     def on_entries_expander_activate(self, widget):
         if not widget.get_expanded():
             self.set_entries()
@@ -148,7 +150,7 @@ class uiSignals(uiSignalHelpers):
         if self.harvest:
             self.harvest.add({
                 'notes': self.get_textview_text(self.notes_textview),
-                'hours': self.hours_entry.get_text(),
+                'hours': self.current_hours,
                 'project_id': self.get_combobox_selection(self.project_combobox),
                 'task_id': self.get_combobox_selection(self.task_combobox)
             })
@@ -172,7 +174,7 @@ class uiSignals(uiSignalHelpers):
         self.away_from_desk = False
 
         #should not be required if entry if hidden altogether, since its getting updated all the time
-        hours = self.hours_entry.get_text()
+        hours = self.current_hours
         #if time passed and the user tries to modify time, to prevent accidental modification show warning
         if "%s"%(self.current['hours']) == "%s"%(hours) \
             and self.time_delta > 0.01: #if its been more than six minutes notify user, of potential loss

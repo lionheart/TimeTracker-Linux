@@ -173,7 +173,7 @@ class logicFunctions(logicHelpers):
             if self.current.has_key("_label"):
                 self.current['_label'].set_text("%0.02f on %s for %s" % (
                     self.current['_hours'], self.current['task'], self.current['project']))
-            self.hours_entry.set_text("%s"%(self.current['_hours'])) #set updated current time while running for modify
+            self.current_hours = "%s" % self.current['_hours'] #set updated current time while running for modify
             self.statusbar.push(0, "%s" % ("Working %s started_at %s" % (time_running,
                                                                          updated_at) if self.running else "Idle"))
 
@@ -510,7 +510,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.attention = False #remove attention state, everything should be fine by now
         if self.current.has_key('id'):
             self.refresh_comboboxes()
-            self.hours_entry.set_text("%s" % (self.current['hours']))
+            self.current_hours = "%s" % self.current['hours']
             if  self.current['notes']:
                 textbuffer = gtk.TextBuffer()
                 textbuffer.set_text(self.current['notes'])
@@ -520,7 +520,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
             self.running = True
         else:
-            self.hours_entry.set_text("")
+            self.current_hours = ""
             textbuffer = gtk.TextBuffer()
             textbuffer.set_text("")
             self.notes_textview.set_buffer(textbuffer)
