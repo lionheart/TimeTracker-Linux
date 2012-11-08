@@ -9,7 +9,7 @@
     <property name="window_position">center</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">TimeTracker for Linux</property>
-    <property name="version">1.0.1</property>
+    <property name="version">1.0.3</property>
     <property name="copyright" translatable="yes">Copyright ©2012 Aurora Software, LLC</property>
     <property name="website">http://aurora.io/timetracker?about</property>
     <property name="website_label" translatable="yes">TimeTracker for Linux</property>
