@@ -618,7 +618,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 self.current.update(entry) #merge everything into current
 
                 self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project']) #make the text
-                self.set_textview_text(self.notes_textview, self.last_notes) #just set the notes as soon as we see them
 
                 self.current_hours = "%0.02f" % round(self.current['hours'], 2) #used in posting to harvest and calculations
 
@@ -627,10 +626,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         if not self.running:
             self.current_hours = ""
-            self.set_textview_text(self.notes_textview, "")
             self.running = False #no entry is active
 
-
+        self.set_textview_text(self.notes_textview, "")
 
         self.refresh_comboboxes() #setup the comboboxes
 
