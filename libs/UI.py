@@ -126,10 +126,15 @@ class uiCreator(object):
         buffer = widget.get_buffer()
         return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter())
 
-    def set_comboboxes(self, widget, id):
+    def set_comboboxes(self, widget, id, handler = None):
         '''
         sets the current selected item in the combobox
+        widget - the widget that had the model/liststore
+        id - the value id to select
+        handler - the handler to block before setting
         '''
+        if handler:
+            widget.handler_block(handler)
         model = widget.get_model()
         i = 0
         if model:
@@ -139,6 +144,8 @@ class uiCreator(object):
                     widget.set_active(i)
                     break
                 i += 1
+        if handler:
+            widget.handler_unblock(handler)
 
     def get_combobox_selection(self, widget, type = 'id'):
         '''

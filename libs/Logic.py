@@ -127,6 +127,8 @@ class logicFunctions(logicHelpers):
         self.current_entry_id = None #when running this will be set to the current active entry id
         self.current_project_id = None #when running this will have a project id set
         self.current_task_id = None # when running this will have a task id set
+        self.current_project_idx = 0
+        self.current_task_idx = 0
         self.current_hours = 0 #when running this will increment with amount of current hours to post to harvest
 
         self.current_selected_project_id = None #used for current selection of combobox for project, value
@@ -137,6 +139,10 @@ class logicFunctions(logicHelpers):
         self.last_project_id = None #last project worked on
         self.last_task_id = None # last task worked on
         self.last_entry_id = None # last worked on time entry, so we can continue it after having stopped all timers
+
+        #combobox handlers to block
+        self.project_combobox_handler = None
+        self.task_combobox_handler = None
 
         self.config_filename = kwargs.get('config', 'harvest.cfg')
 
@@ -598,10 +604,11 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
     def refresh_comboboxes(self):
         self.create_liststore(self.project_combobox, self.projects, self.current_selected_project_idx)
+
         #repopulate the tasks comboboxes, because they can be different for each project
-        if self.running and self.current_selected_project_id:
+        if self.current_selected_project_id and self.current_selected_task_idx > -1:
             self.create_liststore(self.task_combobox, self.tasks[self.current_selected_project_id], self.current_selected_task_idx)
-        else:#no current project running, just select the first entry
+        elif self.current_selected_task_idx > -1:#no current project running, just select the first entry
             self.create_liststore(self.task_combobox, {}, self.current_selected_task_idx, True, "Select Project First") #select default None option
 
         self.set_comboboxes(self.project_combobox, self.current_selected_project_id)

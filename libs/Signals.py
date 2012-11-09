@@ -93,6 +93,8 @@ class uiSignals(uiSignalHelpers):
         self.about_dialog.connect("response", lambda w, e: w.hide() or True)
         self.icon.connect('activate', self.left_click)
         self.icon.connect("popup-menu", self.right_click)
+        self.project_combobox_handler = self.project_combobox.connect('changed', self.on_project_combobox_changed)
+        self.task_combobox_handler = self.task_combobox.connect('changed', self.on_task_combobox_changed)
 
     def on_show_about_dialog(self, widget):
         self.about_dialog.show()
@@ -132,21 +134,21 @@ class uiSignals(uiSignalHelpers):
     def on_task_combobox_changed(self, widget):
         new_idx = widget.get_active()
         if new_idx != -1:
-            if new_idx != self.current_selected_project_idx: #-1 is sent from pygtk loop or something
+            if new_idx != self.current_selected_task_idx: #-1 is sent from pygtk loop or something
                 self.current_selected_task_id = self.get_combobox_selection(widget)
                 self.current_selected_task_idx = new_idx
-                #self.refresh_comboboxes()
+                self.refresh_comboboxes()
 
     def on_project_combobox_changed(self, widget):
         self.current_selected_project_id = self.get_combobox_selection(widget)
         new_idx = widget.get_active()
+        print new_idx, self.current_selected_project_idx
         if new_idx != -1:
-            if new_idx != self.current_selected_project_idx: #-1 is sent from pygtk loop or something
-                #reset task when new project is selected
-                self.current_selected_project_idx = new_idx
-                self.current_selected_task_id = None
-                self.current_selected_task_idx = 0
-                self.refresh_comboboxes()
+            #reset task when new project is selected
+            self.current_selected_project_idx = new_idx
+            self.current_selected_task_id = None
+            self.current_selected_task_idx = 0
+            self.refresh_comboboxes()
 
     def on_show_preferences(self, widget):
         self.preferences_window.show()
@@ -184,8 +186,9 @@ class uiSignals(uiSignalHelpers):
         self.away_from_desk = False
         self.start_interval_timer()
         if self.harvest: #we have to be connected
-            if self.current_project_id != self.current_selected_project_id \
-                or self.current_task_id != self.current_selected_task_id:
+            if self.current_selected_project_id and self.current_selected_task_id \
+                and (self.current_project_id != self.current_selected_project_id \
+                or self.current_task_id != self.current_selected_task_id):
                 self.harvest.add({
                     'notes': self.get_textview_text(self.notes_textview),
                     'hours': self.current_hours,
