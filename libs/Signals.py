@@ -93,6 +93,8 @@ class uiSignals(uiSignalHelpers):
         self.about_dialog.connect("response", lambda w, e: w.hide() or True)
         self.icon.connect('activate', self.left_click)
         self.icon.connect("popup-menu", self.right_click)
+
+    def after_init(self):
         self.project_combobox_handler = self.project_combobox.connect('changed', self.on_project_combobox_changed)
         self.task_combobox_handler = self.task_combobox.connect('changed', self.on_task_combobox_changed)
 

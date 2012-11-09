@@ -147,6 +147,8 @@ class logicFunctions(logicHelpers):
         self.config_filename = kwargs.get('config', 'harvest.cfg')
 
         #call functions to start up app from here
+        self.after_init()
+
         self.load_config()
 
         self.set_status_icon()
@@ -271,7 +273,7 @@ class logicFunctions(logicHelpers):
 
             self.clear_interval_timer()
 
-            #kill the stop_interval timeout instance
+            #kill the stop_interval timeout instance, it should only run once
             #self.stop_timer_timeout_instance = None
 
     def set_prefs(self):
@@ -492,6 +494,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         if self.builder_build(widget_list_dict = {}, *args, **kwargs):
             #initialize application
             self.init()
+        self.task_combobox = None
 
     def check_harvest_up(self):
         if HarvestStatus().get() == "down":
