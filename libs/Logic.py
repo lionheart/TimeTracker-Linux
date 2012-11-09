@@ -74,8 +74,8 @@ class logicHelpers(object):
 
 class logicFunctions(logicHelpers):
     def __init__(self, *args, **kwargs):
-        super(self, logicFunctions).__init__(*args, **kwargs) 
-        
+        super(self, logicFunctions).__init__(*args, **kwargs)
+
     def init(self, *args, **kwargs):
         #initialize state variables
         #statusIcon
@@ -603,13 +603,29 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.entries_vbox.show_all()
 
     def refresh_comboboxes(self):
+        if self.project_combobox_handler:
+            self.project_combobox.handler_block(self.project_combobox_handler)
+
         self.create_liststore(self.project_combobox, self.projects, self.current_selected_project_idx)
+
+        if self.project_combobox_handler:
+            self.project_combobox.handler_unblock(self.project_combobox_handler)
 
         #repopulate the tasks comboboxes, because they can be different for each project
         if self.current_selected_project_id and self.current_selected_task_idx > -1:
+            if self.task_combobox_handler:
+                self.task_combobox.handler_block(self.task_combobox_handler)
             self.create_liststore(self.task_combobox, self.tasks[self.current_selected_project_id], self.current_selected_task_idx)
+            if self.task_combobox_handler:
+                self.task_combobox.handler_unblock(self.task_combobox_handler)
+
         elif self.current_selected_task_idx > -1:#no current project running, just select the first entry
+            if self.task_combobox_handler:
+                self.task_combobox.handler_block(self.task_combobox_handler)
             self.create_liststore(self.task_combobox, {}, self.current_selected_task_idx, True, "Select Project First") #select default None option
+            if self.task_combobox_handler:
+                self.task_combobox.handler_unblock(self.task_combobox_handler)
+
 
         self.set_comboboxes(self.project_combobox, self.current_selected_project_id)
         self.set_comboboxes(self.task_combobox, self.current_selected_task_id)
