@@ -588,12 +588,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         self.attention = None #remove attention state, everything should be fine by now
 
-        #fill the vbox with time entries
-        #self._update_entries_box()
-
-        #refresh comboboxes
-        self.refresh_comboboxes()
-
         if not self.running:
             self.statusbar.push(0, "Stopped")
 
@@ -750,6 +744,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
     def append_add_entry(self):
         if self.harvest: #we have to be connected
             if self.current_selected_project_id and self.current_selected_task_id:
+                self.set_entries() #febreeze the place, mom is coming
+
                 if self.running:
                     got_one = False
                     for entry in self.current['__all']:
@@ -758,13 +754,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             and self.current_hours: #current running time with timedelta added from timer
                             print '1'
 
-                            if self.current_entry_id != entry['id']:
+                            if entry.has_key('timer_started_at'): #stop that timer, make it stop
                                 self.harvest.toggle_timer(self.current_entry_id)
 
                             notes = entry['notes'] if entry.has_key('notes') else None
                             notes = self.get_notes(notes)
 
-                            self.harvest.update(entry['id'], {#append to existing timer
+                            print self.harvest.update(entry['id'], {#append to existing timer
                                  'notes': notes,
                                  'hours': self.current_hours,
                                  'project_id': self.current_selected_project_id,
@@ -789,13 +785,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                     got_one = False
                     for entry in self.current['__all']:
                         if (entry['project_id'] == self.current_selected_project_id\
-                            and entry['task_id'] == self.current_selected_task_id):
+                            and entry['task_id'] == self.current_selected_task_id): #found existing project/task entry for today, just append to it
                             self.harvest.toggle_timer(entry['id'])
                             print '3'
 
                             notes = entry['notes'] if entry.has_key('notes') else None
 
-                            self.harvest.update(entry['id'], {#append to existing timer
+                            print self.harvest.update(entry['id'], {#append to existing timer
                                  'notes': self.get_notes(notes),
                                  'hours': entry['hours'],
                                  'project_id': self.current_selected_project_id,
