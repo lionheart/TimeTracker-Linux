@@ -210,75 +210,7 @@ class uiSignals(uiSignalHelpers):
         self.away_from_desk = False
         self.start_interval_timer()
 
-        if self.harvest: #we have to be connected
-            if self.current_selected_project_id and self.current_selected_task_id:
-                notes = self.get_notes()
-
-                if self.running and self.last_entry_id:
-                    if (self.last_project_id == self.current_selected_project_id\
-                        and self.last_task_id == self.current_selected_task_id):
-                        print '1', self.last_entry_id, { #append to existing timer
-                                                         'notes': notes,
-                                                         'hours': self.current_hours,
-                                                         'project_id': self.current_selected_project_id,
-                                                         'task_id': self.current_selected_task_id
-                        }
-                        self.harvest.update(self.last_entry_id, { #append to existing timer
-                            'notes': notes,
-                            'hours': self.current_hours,
-                            'project_id': self.current_selected_project_id,
-                            'task_id': self.current_selected_task_id
-                        })
-                    else:
-                        #not the same project task as last one, add new entry
-                        print '2', {
-                            'notes': notes,
-                            'hours': "",
-                            'project_id': self.current_selected_project_id,
-                            'task_id': self.current_selected_task_id
-                        }
-                        self.harvest.add({
-                            'notes': notes,
-                            'hours': "",
-                            'project_id': self.current_selected_project_id,
-                            'task_id': self.current_selected_task_id
-                        })
-                else:
-                    if (self.last_project_id == self.current_selected_project_id\
-                        and self.last_task_id == self.current_selected_task_id):
-                        self.harvest.toggle_timer(self.last_entry_id)
-                        print '3', self.last_entry_id, {#append to existing timer
-                                                        'notes': notes,
-                                                        'hours': self.last_hours,
-                                                        'project_id': self.current_selected_project_id,
-                                                        'task_id': self.current_selected_task_id
-                        }
-                        self.harvest.update(self.last_entry_id, {#append to existing timer
-                             'notes': notes,
-                             'hours': self.last_hours,
-                             'project_id': self.current_selected_project_id,
-                             'task_id': self.current_selected_task_id
-                        })
-                    else:
-                        #not the same project task as last one, add new entry
-                        print '4', {
-                            'notes': notes,
-                            'hours': "",
-                            'project_id': self.current_selected_project_id,
-                            'task_id': self.current_selected_task_id
-                        }
-                        self.harvest.add({
-                            'notes': notes,
-                            'hours': "",
-                            'project_id': self.current_selected_project_id,
-                            'task_id': self.current_selected_task_id
-                        })
-
-            else:
-                self.statusbar.push(0, "No Project and Task Selected")
-                return False
-        else: #something is wrong we aren't connected
-            return self.not_connected()
+        self.append_add_entry()
 
         self.set_entries()
 
