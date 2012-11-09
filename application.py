@@ -40,6 +40,9 @@ class App(uiSignals, uiLogic):
     def __init__( self, *args, **kwargs ):
         super(App, self).__init__(*args, **kwargs)
 
+    def callback( self, *args, **kwargs ):
+        super(App, self).callback(*args, **kwargs)
+
     @staticmethod
     def main( *args, **kwargs ):
         gtk.gdk.threads_enter()
@@ -64,6 +67,7 @@ class App(uiSignals, uiLogic):
 def main():
     builder_files = App.get_builder_files(dir='%s/%s' % ( path, data_config.ui_path_dir ))
     App(builder_file=builder_files)
+    App.callback()
     App.main()
     return
 
