@@ -189,10 +189,6 @@ class uiSignals(uiSignalHelpers):
 
 
     def on_submit_button_clicked(self, widget):
-        print 'project', self.current_project_id, self.current_selected_project_id
-        print 'task', self.current_task_id, self.current_selected_task_id
-        print 'last', self.last_project_id, self.last_task_id, self.last_entry_id
-
         self.away_from_desk = False
         self.start_interval_timer()
 
