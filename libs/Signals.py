@@ -17,7 +17,7 @@ class uiSignalHelpers(object):
         return True
 
     def information_message(self, widget, message, cb = None):
-        self.attention = True
+        self.attention = "INFO: %s" % message
         messagedialog = gtk.MessageDialog(widget, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_INFO, gtk.BUTTONS_OK, message)
         messagedialog.connect("delete-event", lambda w, e: w.hide() or True)
         if cb:
@@ -30,13 +30,13 @@ class uiSignalHelpers(object):
 
 
     def error_message(self, widget, message):
-        self.attention = True
+        self.attention = "ERROR: %s" % message
         messagedialog = gtk.MessageDialog(widget, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_ERROR, gtk.BUTTONS_CANCEL, message)
         messagedialog.run()
         messagedialog.destroy()
 
     def warning_message(self, widget, message):
-        self.attention = True
+        self.attention = "WARNING: %s" % message
         messagedialog = gtk.MessageDialog(widget, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_WARNING, gtk.BUTTONS_OK_CANCEL, message)
         messagedialog.show()
         messagedialog.present()
@@ -44,7 +44,7 @@ class uiSignalHelpers(object):
         messagedialog.destroy()
 
     def question_message(self, widget, message, cb = None):
-        self.attention = True
+        self.attention = "QUESTION: %s" % message
         messagedialog = gtk.MessageDialog(widget, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, message)
         messagedialog.connect("delete-event", lambda w, e: w.hide() or True)
         if cb:
@@ -106,13 +106,14 @@ class uiSignals(uiSignalHelpers):
 
     def on_working(self, dialog, a): #interval_dialog callback
         if a == gtk.RESPONSE_NO and self.running: #id will be set if running
-            self.toggle_current_timer(self.current['id'])
-            if not self.timetracker_window.is_active():
+            self.toggle_current_timer(self.current['id'])#stop the timer
+            if not self.timetracker_window.is_active():#show timetracker window if not shown
                 self.timetracker_window.show()
                 self.timetracker_window.present()
         else:
-            self.timetracker_window.hide()
+            self.timetracker_window.hide() #hide timetracker and continue task
 
+        #restart intervals
         self.clear_interval_timer()
         self.start_interval_timer()
 
@@ -190,42 +191,84 @@ class uiSignals(uiSignalHelpers):
         print 'project', self.current_project_id, self.current_selected_project_id
         print 'task', self.current_task_id, self.current_selected_task_id
         print 'last', self.last_project_id, self.last_task_id, self.last_entry_id
+
         self.away_from_desk = False
         self.start_interval_timer()
-        if self.harvest: #we have to be connected
-            if self.current_selected_project_id and self.current_selected_task_id \
-                and (self.current_project_id != self.current_selected_project_id \
-                or self.current_task_id != self.current_selected_task_id):
-                if self.running and self.current_entry_id: #stop timer so when adding new it will start it too
-                    print 'diff running'
-                    self.harvest.toggle_timer(self.current_entry_id)
-                else:
-                    print 'diff stopped'
-                data = {
-                    'notes': self.get_textview_text(self.notes_textview),
-                    'hours': self.current_hours,
-                    'project_id': self.get_combobox_selection(self.project_combobox),
-                    'task_id': self.get_combobox_selection(self.task_combobox)
-                }
-                print data
-                #not the same project task
-                self.harvest.add(data)
 
-                self.set_textview_text(self.notes_textview, "") #clear notes after adding new entry
-            else:
-                '''self.harvest.update(entry_id, {
-                    'notes': self.get_textview_text(self.notes_textview),
-                    'hours': hours,
-                    'project_id': self.get_combobox_selection(self.project_combobox),
-                    'task_id': self.get_combobox_selection(self.task_combobox)
-                })'''
-                if self.running:
-                    print 'same running'
+        if self.harvest: #we have to be connected
+            if self.current_selected_project_id and self.current_selected_task_id:
+                notes = self.last_notes if self.last_notes else ""
+                current_time = datetime.time(datetime.now()).strftime("%H:%M")
+
+                if notes != "":
+                    notes = "%s\n%s%s" % (notes, current_time, self.get_textview_text(self.notes_textview))
                 else:
-                    print 'same stopped'
+                    notes = "%s%s" % (current_time, self.get_textview_text(self.notes_textview))
+
+                if self.running and self.last_entry_id:
+                    if (self.last_project_id == self.current_selected_project_id\
+                        and self.last_task_id == self.current_selected_task_id):
+                        print '1', self.last_entry_id, { #append to existing timer
+                                                         'notes': notes,
+                                                         'hours': self.current_hours,
+                                                         'project_id': self.current_selected_project_id,
+                                                         'task_id': self.current_selected_task_id
+                        }
+                        self.harvest.update(self.last_entry_id, { #append to existing timer
+                            'notes': notes,
+                            'hours': self.current_hours,
+                            'project_id': self.current_selected_project_id,
+                            'task_id': self.current_selected_task_id
+                        })
+                    else:
+                        #not the same project task as last one, add new entry
+                        print '2', {
+                            'notes': notes,
+                            'hours': "",
+                            'project_id': self.current_selected_project_id,
+                            'task_id': self.current_selected_task_id
+                        }
+                        self.harvest.add({
+                            'notes': notes,
+                            'hours': "",
+                            'project_id': self.current_selected_project_id,
+                            'task_id': self.current_selected_task_id
+                        })
+                else:
+                    if (self.last_project_id == self.current_selected_project_id\
+                        and self.last_task_id == self.current_selected_task_id):
+                        print '3', self.last_entry_id, {#append to existing timer
+                                                        'notes': notes,
+                                                        'hours': self.last_hours,
+                                                        'project_id': self.current_selected_project_id,
+                                                        'task_id': self.current_selected_task_id
+                        }
+                        self.harvest.update(self.last_entry_id, {#append to existing timer
+                             'notes': notes,
+                             'hours': self.last_hours,
+                             'project_id': self.current_selected_project_id,
+                             'task_id': self.current_selected_task_id
+                        })
+                    else:
+                        #not the same project task as last one, add new entry
+                        print '4', {
+                            'notes': notes,
+                            'hours': "",
+                            'project_id': self.current_selected_project_id,
+                            'task_id': self.current_selected_task_id
+                        }
+                        self.harvest.add({
+                            'notes': notes,
+                            'hours': "",
+                            'project_id': self.current_selected_project_id,
+                            'task_id': self.current_selected_task_id
+                        })
+
+            else:
+                self.statusbar.push(0, "No Project and Task Selected")
+                return False
         else: #something is wrong we aren't connected
-            self.warning_message(self.timetracker_window, "Not Connected to Harvest")
-            self.attention = True
+            return self.not_connected()
 
         self.set_entries()
 
@@ -236,7 +279,6 @@ class uiSignals(uiSignalHelpers):
             self.harvest.delete(entry_id)
         else:
             self.warning_message(self.timetracker_window, "Not Connected to Harvest")
-            self.attention = True
 
         self.set_entries()
 
@@ -262,7 +304,7 @@ class uiSignals(uiSignalHelpers):
             })
         else:
             self.warning_message(self.timetracker_window, "Not Connected to Harvest")
-            self.attention = True
+            return self.not_connected()
 
         self.set_entries()
 

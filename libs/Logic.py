@@ -115,10 +115,12 @@ class logicFunctions(logicHelpers):
         self.time_delta = 0 #difference between now and starttime
 
         self.today_total_hours = 0 #total hours today
+        self.today_total_elapsed_hours = 0 #today_total_hours + elapsed time while running
 
         self.away_from_desk = False #used to start stop interval timer and display away popup menu item
         self.always_on_top = False #keep timetracker iwndow always on top
-        self.attention = False #state to set attention icon
+
+        self.attention = None #state/message to set attention icon
 
         self.interval_dialog_showing = False # whether or not the interval diloag is being displayed
 
@@ -132,6 +134,7 @@ class logicFunctions(logicHelpers):
         self.current_task_id = None # when running this will have a task id set
         self.current_project_idx = 0
         self.current_task_idx = 0
+
         self.current_hours = 0 #when running this will increment with amount of current hours to post to harvest
 
         self.current_selected_project_id = None #used for current selection of combobox for project, value
@@ -142,6 +145,7 @@ class logicFunctions(logicHelpers):
         self.last_project_id = None #last project worked on
         self.last_task_id = None # last task worked on
         self.last_entry_id = None # last worked on time entry, so we can continue it after having stopped all timers
+        self.last_hours = 0 #last hours, for sending to update last timer
 
         #combobox handlers to block
         self.project_combobox_handler = None
@@ -196,10 +200,9 @@ class logicFunctions(logicHelpers):
     def _process_elapsed_timer(self):
         self.set_status_icon()
         if self.running:
-
             self.time_delta = round(round(time() - self.start_time) / 3600, 3)
             self.current['elapsed_hours'] = self.current['hours'] + self.time_delta #amount of time to add real time in app while timer running
-            self.today_total_hours += self.time_delta
+            self.today_total_elapsed_hours = float(self.today_total_hours) + float(self.current['elapsed_hours'])
 
             self._update_elapsed_status()
             self._set_counter_label()
@@ -232,7 +235,7 @@ class logicFunctions(logicHelpers):
 
     def _set_counter_label(self):
         self.counter_label.set_text(
-            "%s Entries %0.02f hours Total" % (self.entries_count, self.today_total_hours))
+            "%s Entries %0.02f hours Total" % (self.entries_count, self.today_total_elapsed_hours))
 
     def start_interval_timer(self):
         #interval timer for when to popup the window
@@ -240,13 +243,14 @@ class logicFunctions(logicHelpers):
             if self.interval_timer_timeout_instance:
                 gobject.source_remove(self.interval_timer_timeout_instance)
 
-            interval = int(round(3600000 * float(self.interval)))
-
-            self.interval_timer_timeout_instance = gobject.timeout_add(interval, self._interval_timer)
+            self.interval_timer_timeout_instance = gobject.timeout_add(self._interval, self._interval_timer)
 
     def clear_interval_timer(self):
         #clear interval timer, stops the timer so we can restart it again later
         self.interval_timer_timeout_instance = None
+
+    def clear_stop_interval_timer(self):
+        self.stop_timer_timeout_instance = None
 
     def _interval_timer(self):
         if self.running and not self.away_from_desk and not self.interval_dialog_showing:
@@ -256,8 +260,7 @@ class logicFunctions(logicHelpers):
             self.interval_dialog("Are you still working on this task?")
             self._stop_interval_timer()
 
-        interval = int(round(3600000 * float(self.interval)))
-        self.interval_timer_timeout_instance = gobject.timeout_add(interval, self._interval_timer)
+        self.interval_timer_timeout_instance = gobject.timeout_add(self._interval, self._interval_timer)
 
     def _stop_interval_timer(self):
         #interval timer for stopping tacking if no response from interval dialog in
@@ -265,9 +268,7 @@ class logicFunctions(logicHelpers):
             if self.stop_timer_timeout_instance:
                 gobject.source_remove(self.stop_timer_timeout_instance)
 
-            interval = int(round(1000 * int(self.stop_interval)))
-
-            self.stop_timer_timeout_instance = gobject.timeout_add(interval, self._stop_timer_interval)
+            self.stop_timer_timeout_instance = gobject.timeout_add(self._stop_interval, self._stop_timer_interval)
 
     def _stop_timer_interval(self):
         if self.running: #if running it will turn off, lets empty the comboboxes
@@ -280,6 +281,7 @@ class logicFunctions(logicHelpers):
             self.last_entry_id = self.current_entry_id
             self.last_project_id = self.current_project_id
             self.last_task_id = self.current_task_id
+            self.last_hours = self.current_hours
 
             #clear these just in case, no really needed though I think, since set_entries resets
             self.current_project_id = None
@@ -288,13 +290,12 @@ class logicFunctions(logicHelpers):
 
             self.refresh_comboboxes()
             self.running = False
-            self.attention = True #show attention that something happened
-            self.attention_message = "Timer Stopped" #TODO:handle this
 
-            self.clear_interval_timer()
+            self.attention = "Timer Stopped!"
 
-            #kill the stop_interval timeout instance, it should only run once
-            #self.stop_timer_timeout_instance = None
+            self.statusbar.push(0, "Stop Timer Timeout")
+
+            self.clear_stop_interval_timer()
 
     def set_prefs(self):
         if self.interval:
@@ -338,7 +339,10 @@ class logicFunctions(logicHelpers):
         self.password = self.harvest_password_entry.get_text()
 
         self.interval = self.interval_entry.get_text()
+        self._interval = int(round(3600000 * float(self.interval)))
+
         self.stop_interval = self.stop_timer_interval_entry.get_text()
+        self._stop_interval = int(round(1000 * int(self.stop_interval)))
 
         self.show_countdown = self.string_to_bool(self.countdown_checkbutton.get_active())
         self.show_notification = self.string_to_bool(self.show_notification_checkbutton.get_active())
@@ -351,7 +355,7 @@ class logicFunctions(logicHelpers):
                 self.icon = gtk.status_icon_new_from_file(media_path + "attention.svg")
             else:
                 self.icon.set_from_file(media_path + "attention.svg")
-            self.icon.set_tooltip("ATTENTION!!!")
+            self.icon.set_tooltip(self.attention)
             return
 
         if self.running:
@@ -404,6 +408,15 @@ class logicFunctions(logicHelpers):
             self.config.set('prefs', 'interval', '0.33')
         else:
             self.interval = self.config.get('prefs', 'interval')
+            self._interval = int(round(3600000 * float(self.interval)))
+
+        if not self.config.has_option('prefs', 'stop_interval'):
+            is_new = True
+            self.config.set('prefs', 'stop_interval',
+                '300') #don't stop the timer for 5 minutes after the interval warning message by default
+        else:
+            self.stop_interval = self.config.get('prefs', 'stop_interval')
+            self._stop_interval = int(round(1000 * int(self.stop_interval)))
 
         if not self.config.has_option('prefs', 'show_countdown'):
             is_new = True
@@ -434,12 +447,6 @@ class logicFunctions(logicHelpers):
             self.config.set('prefs', 'always_on_top', 'False')
         else:
             self.always_on_top = self.string_to_bool(self.config.get('prefs', 'always_on_top'))
-
-        if not self.config.has_option('prefs', 'stop_interval'):
-            is_new = True
-            self.config.set('prefs', 'stop_interval', '300') #don't stop the timer for 5 minutes after the interval warning message by default
-        else:
-            self.stop_interval = self.config.get('prefs', 'stop_interval')
 
         #get password
         self.password = self.get_password()
@@ -518,8 +525,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
     def check_harvest_up(self):
         if HarvestStatus().get() == "down":
             self.warning_message(self.timetracker_window, "Harvest Is Down")
-            self.attention = True
-            return False
+            self.attention = "Harvest is Down!"
+            return self.not_connected()
         return True
 
     def _setup_current_data(self, harvest_data):
@@ -533,7 +540,10 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         #get day entries are for
         self.today_date = harvest_data['for_day']
         self.today_day_number = datetime.strptime(self.today_date, '%Y-%m-%d').timetuple().tm_yday
+
         self.today_total_hours = 0 #total hours amount for all entries combined
+        self.today_total_elapsed_hours = 0
+
         self.running = False
         self.current_project_id = None
         self.current_task_id = None
@@ -561,7 +571,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.last_project_id = None
         self.last_task_id = None
         self.last_entry_id = None
-
+        self.last_hours = 0
 
         #get total hours and set current
         for entry in self.current['__all']:
@@ -579,6 +589,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 self.last_entry_id = entry['id']
                 self.last_project_id = entry['project_id']
                 self.last_task_id = entry['task_id']
+                self.last_hours = "%0.02f" % entry['hours']
+                self.last_notes = "%s" % entry['notes'] if entry['notes'] else ""
 
             if entry.has_key('timer_started_at'):
                 entry_id = str(entry['id'])
@@ -595,13 +607,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 self.current.update(entry) #merge everything into current
 
                 self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project']) #make the text
-                notes = self.current['notes'] if self.current['notes'] else ""
-                self.set_textview_text(self.notes_textview, notes) #just set the notes as soon as we see them
+                self.set_textview_text(self.notes_textview, self.last_notes) #just set the notes as soon as we see them
 
                 self.current_hours = "%s" % self.current['hours'] #used in posting to harvest and calculations
-                #self.last_project_id = entry['project_id'] #what was the last project, this should be the last one worked on
-                #self.last_task_id = entry['task_id'] #and what was the last task, used for append to last entry
-                #self.last_entry_id = entry['id'] #used for start last entry worked on
 
                 self.running = True
                 self.start_time = time()  #start time for determine timedelta every second while running, it can be out of sync when not running who cares
@@ -692,20 +700,27 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.set_comboboxes(self.project_combobox, self.current_selected_project_id)
         self.set_comboboxes(self.task_combobox, self.current_selected_task_id)
 
+    def not_connected(self):
+        self.warning_message(self.timetracker_window, "Not Connected to Harvest")
+        self.preferences_window.show()
+        self.preferences_window.present()
+
+        if not self.attention:
+            self.attention = "Not Connected to Harvest!"
+        else:#append any previous message
+            self.attention = "Not Connected to Harvest!\r\n%s" % self.attention
+        return
+
     def set_entries(self):
         if not self.harvest:
-            self.warning_message(self.timetracker_window, "Not Connected to Harvest")
-            self.preferences_window.show()
-            self.preferences_window.present()
-            self.attention = True
-            return
+            return self.not_connected()
 
         #get data from harvest
         data = self.harvest.get_today()
 
         self._setup_current_data(data)
 
-        self.attention = False #remove attention state, everything should be fine by now
+        self.attention = None #remove attention state, everything should be fine by now
 
         #fill the vbox with time entries
         self._update_entries_box()
@@ -716,7 +731,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
     def _clear_lingering_timers(self, count_days = 7):
         start = self.today_day_number - count_days
 
-        #dang it, i feel datelib coming because of 1st and last of year calc, do it simple for now
+        #get range of count_days before today and stop timers on all those days
         for day_number in range(start, self.today_day_number):
             day_data = self.harvest.get_day(day_number, datetime.now().timetuple().tm_year)
             for entry in day_data['day_entries']:
@@ -734,9 +749,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         if not self.uri or not self.username or not self.password:
             self.preferences_window.show()
             self.preferences_window.present()
-            self.attention = True
+
             self.running = False
-            return False
+            return self.not_connected()
 
         try:
             self.harvest = Harvest(self.uri, self.username, self.password)
@@ -754,13 +769,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         except HarvestError as e:
             self.running = False
-            self.attention = True
+            self.attention = "Unable to Connect to Harvest!"
             self.set_message_text("Unable to Connect to Harvest\r\n%s" % e)
             self.warning_message(self.timetracker_window, "Error Connecting!\r\n%s" % e )
-            return False
+            return self.not_connected()
         except Exception as e:
             #catch all other exceptions
             self.running = False
-            self.attention = True
+            self.attention = "ERROR: %s" % e
             self.set_message_text("Error\r\n%s" % e)
-            return False
+            return self.not_connected()
