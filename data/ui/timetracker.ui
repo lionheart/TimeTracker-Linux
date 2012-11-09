@@ -977,42 +977,7 @@ The GNU General Public License does not permit incorporating your program into p
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkExpander" id="entries_expander">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="expanded">True</property>
-                                <signal name="activate" handler="on_entries_expander_activate" swapped="no"/>
-                                <child>
-                                  <object class="GtkScrolledWindow" id="entries_scrolledwindow">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="shadow_type">in</property>
-                                    <child>
-                                      <object class="GtkViewport" id="entries_viewport">
-                                        <property name="height_request">200</property>
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <child>
-                                          <placeholder/>
-                                        </child>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </child>
-                                <child type="label">
-                                  <object class="GtkLabel" id="entries_expander_label">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip_text" translatable="yes">Open/Close to Refresh</property>
-                                    <property name="label" translatable="yes">Entries</property>
-                                  </object>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">0</property>
-                              </packing>
+                              <placeholder/>
                             </child>
                           </object>
                           <packing>
