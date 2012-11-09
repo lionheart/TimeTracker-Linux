@@ -272,14 +272,6 @@ class logicFunctions(logicHelpers):
             if self.message_dialog_instance:
                 self.message_dialog_instance.hide() #hide the dialog
 
-            #this should go away
-            #set_entries does this, set these just in case for when we need to have last before doing set_entries, maybe dont care about idx
-            self.last_entry_id = self.current_entry_id
-            self.last_project_id = self.current_project_id
-            self.last_task_id = self.current_task_id
-            self.last_hours = self.current_hours
-            self.last_notes = self.get_notes()
-
             self.refresh_comboboxes()
 
             self.running = False
@@ -790,7 +782,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             print '3'
 
                             notes = entry['notes'] if entry.has_key('notes') else None
-
+                            print self.get_notes(notes)
                             print self.harvest.update(entry['id'], {#append to existing timer
                                  'notes': self.get_notes(notes),
                                  'hours': entry['hours'],
