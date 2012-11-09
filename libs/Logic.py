@@ -78,6 +78,9 @@ class logicFunctions(logicHelpers):
 
     def init(self, *args, **kwargs):
         #initialize state variables
+        #run before_init to setup callbacks and other junk that may be needed later on
+        self.before_init()
+
         #statusIcon
         self.icon = None #timetracker icon instance
 
@@ -494,7 +497,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         if self.builder_build(widget_list_dict = {}, *args, **kwargs):
             #initialize application
             self.init()
-        self.task_combobox = None
 
     def check_harvest_up(self):
         if HarvestStatus().get() == "down":
