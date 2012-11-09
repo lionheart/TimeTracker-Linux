@@ -126,6 +126,11 @@ class uiCreator(object):
         buffer = widget.get_buffer()
         return buffer.get_text(buffer.get_start_iter(), buffer.get_end_iter())
 
+    def set_textview_text(self, widget, text):
+        textbuffer = gtk.TextBuffer()
+        textbuffer.set_text(text)
+        widget.set_buffer(textbuffer)
+
     def set_comboboxes(self, widget, id):
         '''
         sets the current selected item in the combobox
