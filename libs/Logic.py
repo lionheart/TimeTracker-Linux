@@ -528,6 +528,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             #initialize application
             self.init()
 
+    def callback(self, *args, **kwargs): #executed after init, hopefully this will let me inject interrupts
+        pass
+
     def check_harvest_up(self):
         if HarvestStatus().get() == "down":
             self.warning_message(self.timetracker_window, "Harvest Is Down")
@@ -787,3 +790,4 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.attention = "ERROR: %s" % e
             self.set_message_text("Error\r\n%s" % e)
             return self.not_connected()
+

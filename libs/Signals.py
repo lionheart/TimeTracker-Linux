@@ -94,6 +94,9 @@ class uiSignals(uiSignalHelpers):
         self.icon.connect('activate', self.left_click)
         self.icon.connect("popup-menu", self.right_click)
 
+    def callback(self, *args, **kwargs): #executed after init, hopefully this will let me inject interrupts
+        pass
+
     def before_init(self):
         pass
 
