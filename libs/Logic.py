@@ -171,14 +171,6 @@ class logicFunctions(logicHelpers):
 
         self.about_dialog.set_logo(gtk.gdk.pixbuf_new_from_file(media_path + "logo.svg"))
 
-    def handle_visible_state(self):
-        '''if self.running:
-            self.submit_button.hide()
-        else:
-            self.submit_button.show()
-        '''
-        pass
-
     def toggle_current_timer(self, id):
         self.away_from_desk = False
         self.harvest.toggle_timer(id)
@@ -530,6 +522,18 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 task_id = str(task['id'])
                 self.tasks[project_id][task_id] = "%s" % task['name']
 
+        _updated_at = None #date used to determine the newest entry to use as last entry, a user could on a diff comp use\
+        # harvest web app and things go out of sync so we should use the newest updated_at entry
+
+        # reset
+        self.current_entry_id = None
+        self.current_project_id = None
+        self.current_task_id = None
+
+        self.last_project_id = None
+        self.last_task_id = None
+        self.last_entry_id = None
+
         #get total hours and set current
         for entry in self.current['__all']:
             self.today_total += entry['hours']
@@ -539,6 +543,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 entry_id = str(entry['id'])
                 project_id = str(entry['project_id'])
                 task_id = str(entry['task_id'])
+
                 self.current_entry_id = entry_id
                 self.current_project_id = project_id
                 self.current_selected_project_id = project_id
@@ -546,17 +551,25 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 self.current_task_id = task_id
                 self.current_selected_task_id = task_id
                 self.current_selected_task_idx = self.tasks[project_id].keys().index(task_id) + 1 #compensate for empty 'select one'
-                self.current.update(entry)
-                self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project'])
+                self.current.update(entry) #merge everything into current
+
+                self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project']) #make the text
+                self.set_textview_text(self.notes_textview, self.current['notes']) #just et the notes as soon as we see them
+
+                self.current_hours = "%s" % self.current['hours'] #used in posting to harvest and calculations
+                self.last_project_id = entry['project_id'] #what was the last project, this should be the last one worked on
+                self.last_task_id = entry['task_id'] #and what was the last task, used for append to last entry
+                self.last_entry_id = entry['id'] #used for start last entry worked on
+
                 self.running = True
+                self.start_time = time()  #start time for determine timedelta every second while running, it can be out of sync when not running who cares
 
-            self.last_project_id = entry['project_id'] #what was the last project, this should be the last one worked on
-            self.last_task_id = entry['task_id'] #and what was the last task, used for append to last entry
-            self.last_entry_id = entry['id'] #used for start last entry worked on
+        if not self.running:
+            self.current_hours = ""
+            self.set_textview_text(self.notes_textview, "")
+            self.running = False #no entry is active
 
-
-
-        self.refresh_comboboxes()
+        self.refresh_comboboxes() #setup the comboboxes
 
     def _update_entries_box(self):
         if self.entries_vbox:
@@ -649,30 +662,14 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self._setup_current_data(data)
 
         self.attention = False #remove attention state, everything should be fine by now
-        if self.current.has_key('id'):
-            self.current_hours = "%s" % self.current['hours']
-            if  self.current['notes']:
-                textbuffer = gtk.TextBuffer()
-                textbuffer.set_text(self.current['notes'])
-                self.notes_textview.set_buffer(textbuffer)
 
-            self.start_time = time()
-
-            self.running = True
-        else:
-            self.current_hours = ""
-            textbuffer = gtk.TextBuffer()
-            textbuffer.set_text("")
-            self.notes_textview.set_buffer(textbuffer)
-
-            self.running = False
-
-            #fill the vbox with time entries
+        #fill the vbox with time entries
         self._update_entries_box()
-        self.refresh_comboboxes()
-        #show hide button and hours entry
-        self.handle_visible_state()
 
+        #refresh comboboxes
+        self.refresh_comboboxes()
+
+        #this will go away
         self.entries_expander_label.set_text(
             "%s Entries %0.02f hours Total" % (len(self.current['__all']), self.today_total))
 

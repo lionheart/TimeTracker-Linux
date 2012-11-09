@@ -147,7 +147,7 @@ class uiSignals(uiSignalHelpers):
     def on_project_combobox_changed(self, widget):
         self.current_selected_project_id = self.get_combobox_selection(widget)
         new_idx = widget.get_active()
-        print new_idx, self.current_selected_project_idx
+        print self.current_selected_project_id, self.current_selected_task_id
         if new_idx != -1:
             #reset task when new project is selected
             self.current_selected_project_idx = new_idx
@@ -187,23 +187,41 @@ class uiSignals(uiSignalHelpers):
             self.set_entries()
 
     def on_submit_button_clicked(self, widget):
-        print self.current_project_id, self.current_selected_project_id
-        print self.current_task_id, self.current_selected_task_id
+        print 'project', self.current_project_id, self.current_selected_project_id
+        print 'task', self.current_task_id, self.current_selected_task_id
+        print 'last', self.last_project_id, self.last_task_id
         self.away_from_desk = False
         self.start_interval_timer()
         if self.harvest: #we have to be connected
             if self.current_selected_project_id and self.current_selected_task_id \
                 and (self.current_project_id != self.current_selected_project_id \
                 or self.current_task_id != self.current_selected_task_id):
+                if self.running and self.current_entry_id: #stop timer so when adding new it will start it too
+                    print 'diff running'
+                    self.harvest.toggle_timer(self.current_entry_id)
+                else:
+                    print 'diff stopped'
+
+                #not the same project task
                 self.harvest.add({
                     'notes': self.get_textview_text(self.notes_textview),
                     'hours': self.current_hours,
                     'project_id': self.get_combobox_selection(self.project_combobox),
                     'task_id': self.get_combobox_selection(self.task_combobox)
                 })
+
+                self.set_textview_text(self.notes_textview, "") #clear notes after adding new entry
             else:
-                print 'no'
-                pass
+                '''self.harvest.update(entry_id, {
+                    'notes': self.get_textview_text(self.notes_textview),
+                    'hours': hours,
+                    'project_id': self.get_combobox_selection(self.project_combobox),
+                    'task_id': self.get_combobox_selection(self.task_combobox)
+                })'''
+                if self.running:
+                    print 'same running'
+                else:
+                    print 'same stopped'
         else: #something is wrong we aren't connected
             self.warning_message(self.timetracker_window, "Not Connected to Harvest")
             self.attention = True
@@ -225,14 +243,15 @@ class uiSignals(uiSignalHelpers):
     def on_edit_timer_entry(self, widget, entry_id):
         self.away_from_desk = False
 
-        #should not be required if entry if hidden altogether, since its getting updated all the time
         hours = self.current_hours
+
         #if time passed and the user tries to modify time, to prevent accidental modification show warning
         if "%s"%(self.current['hours']) == "%s"%(hours) \
             and self.time_delta > 0.01: #if its been more than six minutes notify user, of potential loss
             self.warning_message(self.timetracker_window, "Are you sure you want to modify this entry?\n\nSome time has passed already, and you will lose time.\n\nMaybe you should stop the timer first, start it again and then modify.")
 
             return
+
         if self.harvest:
             self.harvest.update( entry_id, {
                 'notes': self.get_textview_text(self.notes_textview),
