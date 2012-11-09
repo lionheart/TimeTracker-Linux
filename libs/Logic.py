@@ -133,6 +133,7 @@ class logicFunctions(logicHelpers):
         self.current_task_id = None # when running this will have a task id set
         self.current_project_idx = 0
         self.current_task_idx = 0
+        self.current_created_at = None #holds the current task created at date for showing in statusbar
 
         self.current_hours = 0 #when running this will increment with amount of current hours to post to harvest
 
@@ -201,7 +202,7 @@ class logicFunctions(logicHelpers):
         if self.running:
             self.time_delta = round(round(time() - self.start_time) / 3600, 3)
             self.current['elapsed_hours'] = self.current['hours'] + self.time_delta #amount of time to add real time in app while timer running
-            self.today_total_elapsed_hours = float(self.today_total_hours) + float(self.current['elapsed_hours'])
+            self.today_total_elapsed_hours = float(self.today_total_hours) + float(self.time_delta)
 
             self._update_elapsed_status()
             self._set_counter_label()
@@ -226,11 +227,9 @@ class logicFunctions(logicHelpers):
         seconds_running = (time() - mktime(updated_at.timetuple()) + (8 * 60 * 60)) % 60
         time_running = "%02d:%02d" % (minutes_running, seconds_running)
 
-        self.statusbar.push(0, "%s" % ("Working %s started_at %s" % (time_running,
-                                                                     parse("%s" % (
-                                                                         updated_at + timedelta(
-                                                                             hours=-8 + sub - 1))).strftime(
-                                                                         "%H:%M")) if self.running else "Idle"))
+        eff_time_it_sux = parse("%s" % (updated_at + timedelta( hours=-8 + sub - 1))).strftime("%H:%M") if self.running else "Idle"
+
+        self.statusbar.push(0, "%s" % ("Working %s started_at %s created_at %s" % (time_running, eff_time_it_sux, self.current_created_at )))
 
     def _set_counter_label(self):
         self.counter_label.set_text(
@@ -273,6 +272,7 @@ class logicFunctions(logicHelpers):
             if self.message_dialog_instance:
                 self.message_dialog_instance.hide() #hide the dialog
 
+            #this should go away
             #set_entries does this, set these just in case for when we need to have last before doing set_entries, maybe dont care about idx
             self.last_entry_id = self.current_entry_id
             self.last_project_id = self.current_project_id
@@ -290,8 +290,8 @@ class logicFunctions(logicHelpers):
 
             self.clear_stop_interval_timer()
 
-    def get_notes(self):
-        notes = self.last_notes if self.last_notes else ""
+    def get_notes(self, text = None):
+        notes = text if text else ""
         current_time = datetime.time(datetime.now()).strftime("%H:%M")
 
         if notes != "":
@@ -538,100 +538,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             return self.not_connected()
         return True
 
-    def _setup_current_data(self, harvest_data):
-        self.current = {
-            '__projects': harvest_data['projects'], #these will be unset at the end, we should
-            '__all': harvest_data['day_entries'],
-        }
-
-        self.entries_count = len(self.current['__all'])
-
-        #get day entries are for
-        self.today_date = harvest_data['for_day']
-        self.today_day_number = datetime.strptime(self.today_date, '%Y-%m-%d').timetuple().tm_yday
-
-        self.today_total_hours = 0 #total hours amount for all entries combined
-        self.today_total_elapsed_hours = 0
-
-        self.running = False
-        self.current_project_id = None
-        self.current_task_id = None
-
-        self.projects = {}
-        self.tasks = {}
-
-        #all projects, used for liststore for combobox
-        for project in self.current['__projects']:
-            project_id = str(project['id'])
-            self.projects[project_id] = "%s - %s" % (project['client'], project['name'])
-            self.tasks[project_id] = {}
-            for task in project['tasks']:
-                task_id = str(task['id'])
-                self.tasks[project_id][task_id] = "%s" % task['name']
-
-        _updated_at = None #date used to determine the newest entry to use as last entry, a user could on a diff comp use\
-        # harvest web app and things go out of sync so we should use the newest updated_at entry
-
-        # reset
-        self.current_entry_id = None
-        self.current_project_id = None
-        self.current_task_id = None
-
-        self.last_project_id = None
-        self.last_task_id = None
-        self.last_entry_id = None
-        self.last_hours = 0
-
-        #get total hours and set current
-        for entry in self.current['__all']:
-            #how many hours worked today, used in counter label
-            self.today_total_hours += entry['hours']
-
-            #make dates into a datetime object we can use
-            entry['created_at'] = datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
-            entry['updated_at'] = datetime.strptime(entry['updated_at'], "%Y-%m-%dT%H:%M:%SZ")
-
-            if not _updated_at:#first time
-                _updated_at = entry['updated_at']
-            if _updated_at <= entry['updated_at']:
-                _updated_at = entry['updated_at']
-
-                self.last_entry_id = entry['id']
-                self.last_project_id = entry['project_id']
-                self.last_task_id = entry['task_id']
-                self.last_hours = "%0.02f" % entry['hours']
-                self.last_notes = "%s" % entry['notes'] if entry['notes'] else ""
-
-            #this should go away as much as possible
-            if entry.has_key('timer_started_at'):
-                entry_id = str(entry['id'])
-                project_id = str(entry['project_id'])
-                task_id = str(entry['task_id'])
-
-                self.current_entry_id = entry_id
-                self.current_project_id = project_id
-                self.current_selected_project_id = project_id
-                self.current_selected_project_idx = self.projects.keys().index(project_id) + 1 #compensate for empty 'select one'
-                self.current_task_id = task_id
-                self.current_selected_task_id = task_id
-                self.current_selected_task_idx = self.tasks[project_id].keys().index(task_id) + 1 #compensate for empty 'select one'
-                self.current.update(entry) #merge everything into current
-
-                self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project']) #make the text
-
-                self.current_hours = "%0.02f" % round(self.current['hours'], 2) #used in posting to harvest and calculations
-
-                self.running = True
-                self.start_time = time()  #start time for determine timedelta every second while running, it can be out of sync when not running who cares
-
-        if not self.running:
-            self.current_hours = ""
-            self.running = False #no entry is active
-
-        self.set_textview_text(self.notes_textview, "")
-
-        self.refresh_comboboxes() #setup the comboboxes
-
     def refresh_comboboxes(self):
         if self.project_combobox_handler:
             self.project_combobox.handler_block(self.project_combobox_handler)
@@ -688,6 +594,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         #refresh comboboxes
         self.refresh_comboboxes()
 
+        if not self.running:
+            self.statusbar.push(0, "Stopped")
+
     def _clear_lingering_timers(self, count_days = 7):
         start = self.today_day_number - count_days
 
@@ -740,61 +649,167 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.set_message_text("Error\r\n%s" % e)
             return self.not_connected()
 
+
+    def _setup_current_data(self, harvest_data):
+        self.current = {
+            '__projects': harvest_data['projects'], #these will be unset at the end, we should
+            '__all': harvest_data['day_entries'],
+        }
+
+        self.entries_count = len(self.current['__all'])
+
+        #get day entries are for
+        self.today_date = harvest_data['for_day']
+        self.today_day_number = datetime.strptime(self.today_date, '%Y-%m-%d').timetuple().tm_yday #used to get previous days
+
+        self.today_total_hours = 0 #total hours amount for all entries combined
+        self.today_total_elapsed_hours = 0 #today_total_hours + timedelta
+
+        self.running = False
+        self.current_project_id = None
+        self.current_task_id = None
+
+        self.projects = {}
+        self.tasks = {}
+
+        #all projects, used for liststore for combobox
+        for project in self.current['__projects']:
+            project_id = str(project['id'])
+            self.projects[project_id] = "%s - %s" % (project['client'], project['name'])
+            self.tasks[project_id] = {}
+            for task in project['tasks']:
+                task_id = str(task['id'])
+                self.tasks[project_id][task_id] = "%s" % task['name']
+
+        _updated_at = None #date used to determine the newest entry to use as last entry, a user could on a diff comp use\
+        # harvest web app and things go out of sync so we should use the newest updated_at entry
+
+        # reset
+        self.current_entry_id = None
+        self.current_project_id = None
+        self.current_task_id = None
+
+        self.current_hours = ""
+
+        self.last_project_id = None
+        self.last_task_id = None
+        self.last_entry_id = None
+        self.last_hours = 0
+
+        #get total hours and set current
+        for entry in self.current['__all']:
+            #how many hours worked today, used in counter label
+            self.today_total_hours += entry['hours']
+
+            #make dates into a datetime object we can use
+            entry['created_at'] = datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+            entry['updated_at'] = datetime.strptime(entry['updated_at'], "%Y-%m-%dT%H:%M:%SZ")
+
+            #this should all go away, leave for now
+            if not _updated_at:#first time
+                _updated_at = entry['updated_at']
+            if _updated_at <= entry['updated_at']:
+                _updated_at = entry['updated_at']
+
+                self.last_entry_id = entry['id']
+                self.last_project_id = entry['project_id']
+                self.last_task_id = entry['task_id']
+                self.last_hours = "%0.02f" % entry['hours']
+                self.last_notes = "%s" % entry['notes'] if entry['notes'] else ""
+
+            #this should go away as much as possible
+            if entry.has_key('timer_started_at'):
+                entry_id = str(entry['id'])
+                project_id = str(entry['project_id'])
+                task_id = str(entry['task_id'])
+
+                self.current_entry_id = entry_id
+                self.current_project_id = project_id
+                self.current_selected_project_id = project_id
+                self.current_selected_project_idx = self.projects.keys().index(
+                    project_id) + 1 #compensate for empty 'select one'
+                self.current_task_id = task_id
+                self.current_selected_task_id = task_id
+                self.current_selected_task_idx = self.tasks[project_id].keys().index(
+                    task_id) + 1 #compensate for empty 'select one'
+                self.current.update(entry) #merge everything into current
+
+                self.current_created_at = entry['created_at'] #set created at date for use in statusbar, as of now
+
+                self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project']) #make the text
+
+                self.current_hours = "%0.02f" % round(self.current['hours'], 2) #used in posting to harvest and calculations
+
+                self.running = True
+                self.start_time = time()  #start time for determine timedelta every second while running, it can be out of sync when not running who cares
+
+        self.set_textview_text(self.notes_textview, "")
+
+        self.refresh_comboboxes() #setup the comboboxes
+
     def append_add_entry(self):
         if self.harvest: #we have to be connected
             if self.current_selected_project_id and self.current_selected_task_id:
-                notes = self.get_notes()
-
-                if self.running and self.last_entry_id:
+                if self.running:
+                    got_one = False
                     for entry in self.current['__all']:
-                        if (self.entry['project_id'] == self.current_selected_project_id\
-                            and self.entry['task_id'] == self.current_selected_task_id):
-                            print
-                            '1'
-                            #make dates into a datetime object we can use
-                            entry['created_at'] = datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
-                            entry['updated_at'] = datetime.strptime(entry['updated_at'], "%Y-%m-%dT%H:%M:%SZ")
+                        if (entry['project_id'] == self.current_selected_project_id\
+                            and entry['task_id'] == self.current_selected_task_id)\
+                            and self.current_hours: #current running time with timedelta added from timer
+                            print '1'
 
-                            self.time_delta = entry[''] + round(round(time() - self.start_time) / 3600, 3)
-                            self.harvest.update(self.entry['id'], {#append to existing timer
+                            if self.current_entry_id != entry['id']:
+                                self.harvest.toggle_timer(self.current_entry_id)
+
+                            notes = entry['notes'] if entry.has_key('notes') else None
+                            notes = self.get_notes(notes)
+
+                            self.harvest.update(entry['id'], {#append to existing timer
                                  'notes': notes,
                                  'hours': self.current_hours,
                                  'project_id': self.current_selected_project_id,
                                  'task_id': self.current_selected_task_id
                             })
-                        else:
-                            #not the same project task as last one, add new entry
-                            print
-                            '2'
-                            self.harvest.add({
-                                'notes': notes,
-                                'hours': "",
-                                'project_id': self.current_selected_project_id,
-                                'task_id': self.current_selected_task_id
-                            })
-                else:
-                    if (self.last_project_id == self.current_selected_project_id\
-                        and self.last_task_id == self.current_selected_task_id):
-                        self.harvest.toggle_timer(self.last_entry_id)
-                        print
-                        '3'
-                        self.harvest.update(self.last_entry_id, {#append to existing timer
-                                                                 'notes': notes,
-                                                                 'hours': self.last_hours,
-                                                                 'project_id': self.current_selected_project_id,
-                                                                 'task_id': self.current_selected_task_id
-                        })
-                    else:
+
+                            got_one = True
+                            break
+
+                    if not got_one:
                         #not the same project task as last one, add new entry
-                        print
-                        '4', {
-                            'notes': notes,
+                        print '2'
+
+                        self.harvest.add({
+                            'notes': self.get_notes(),
                             'hours': "",
                             'project_id': self.current_selected_project_id,
                             'task_id': self.current_selected_task_id
-                        }
+                        })
+
+                else:
+                    got_one = False
+                    for entry in self.current['__all']:
+                        if (entry['project_id'] == self.current_selected_project_id\
+                            and entry['task_id'] == self.current_selected_task_id):
+                            self.harvest.toggle_timer(entry['id'])
+                            print '3'
+
+                            notes = entry['notes'] if entry.has_key('notes') else None
+
+                            self.harvest.update(entry['id'], {#append to existing timer
+                                 'notes': self.get_notes(notes),
+                                 'hours': entry['hours'],
+                                 'project_id': self.current_selected_project_id,
+                                 'task_id': self.current_selected_task_id
+                            })
+
+                            got_one = True
+                            break
+
+                    if not got_one:
+                        #not the same project task as last one, add new entry
+                        print '4'
                         self.harvest.add({
-                            'notes': notes,
+                            'notes': self.get_notes(),
                             'hours': "",
                             'project_id': self.current_selected_project_id,
                             'task_id': self.current_selected_task_id

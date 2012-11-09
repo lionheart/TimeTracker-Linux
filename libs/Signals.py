@@ -163,7 +163,6 @@ class uiSignals(uiSignalHelpers):
     def on_project_combobox_changed(self, widget):
         self.current_selected_project_id = self.get_combobox_selection(widget)
         new_idx = widget.get_active()
-        print self.current_selected_project_id, self.current_selected_task_id
         if new_idx != -1:
             #reset task when new project is selected
             self.current_selected_project_idx = new_idx
