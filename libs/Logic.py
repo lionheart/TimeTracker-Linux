@@ -129,10 +129,7 @@ class logicFunctions(logicHelpers):
         }
 
         self.current_entry_id = None #when running this will be set to the current active entry id
-        self.current_project_id = None #when running this will have a project id set
-        self.current_task_id = None # when running this will have a task id set
-        self.current_project_idx = 0
-        self.current_task_idx = 0
+
         self.current_created_at = None #holds the current task created at date for showing in statusbar
 
         self.current_hours = 0 #when running this will increment with amount of current hours to post to harvest
@@ -206,10 +203,6 @@ class logicFunctions(logicHelpers):
 
             self._update_elapsed_status()
             self._set_counter_label()
-
-            if self.current.has_key("_label"):
-                self.current['_label'].set_text("%0.02f on %s for %s" % (
-                    self.current['elapsed_hours'], self.current['task'], self.current['project']))
 
             self.current_hours = "%0.02f" % round(self.current['elapsed_hours'], 2) #set updated current time while running for modify
 
@@ -652,8 +645,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.today_total_elapsed_hours = 0 #today_total_hours + timedelta
 
         self.running = False
-        self.current_project_id = None
-        self.current_task_id = None
 
         self.projects = {}
         self.tasks = {}
@@ -672,8 +663,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         # reset
         self.current_entry_id = None
-        self.current_project_id = None
-        self.current_task_id = None
 
         self.current_hours = ""
 
@@ -710,11 +699,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 task_id = str(entry['task_id'])
 
                 self.current_entry_id = entry_id
-                self.current_project_id = project_id
                 self.current_selected_project_id = project_id
                 self.current_selected_project_idx = self.projects.keys().index(
                     project_id) + 1 #compensate for empty 'select one'
-                self.current_task_id = task_id
                 self.current_selected_task_id = task_id
                 self.current_selected_task_idx = self.tasks[project_id].keys().index(
                     task_id) + 1 #compensate for empty 'select one'
@@ -746,13 +733,12 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             and self.current_hours: #current running time with timedelta added from timer
                             print '1'
 
-                            if entry.has_key('timer_started_at'): #stop that timer, make it stop
-                                self.harvest.toggle_timer(self.current_entry_id)
+
 
                             notes = entry['notes'] if entry.has_key('notes') else None
                             notes = self.get_notes(notes)
 
-                            print self.harvest.update(entry['id'], {#append to existing timer
+                            entry = self.harvest.update(entry['id'], {#append to existing timer
                                  'notes': notes,
                                  'hours': self.current_hours,
                                  'project_id': self.current_selected_project_id,
@@ -766,12 +752,15 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                         #not the same project task as last one, add new entry
                         print '2'
 
-                        self.harvest.add({
+                        entry = self.harvest.add({
                             'notes': self.get_notes(),
                             'hours': "",
                             'project_id': self.current_selected_project_id,
                             'task_id': self.current_selected_task_id
                         })
+
+                    if not entry.has_key('timer_started_at'): #start the timer if adding it hasn't strated it
+                        self.harvest.toggle_timer(entry['id'])
 
                 else:
                     got_one = False
@@ -783,7 +772,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
                             notes = entry['notes'] if entry.has_key('notes') else None
                             print self.get_notes(notes)
-                            print self.harvest.update(entry['id'], {#append to existing timer
+                            entry = self.harvest.update(entry['id'], {#append to existing timer
                                  'notes': self.get_notes(notes),
                                  'hours': entry['hours'],
                                  'project_id': self.current_selected_project_id,
@@ -796,12 +785,15 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                     if not got_one:
                         #not the same project task as last one, add new entry
                         print '4'
-                        self.harvest.add({
+                        entry = self.harvest.add({
                             'notes': self.get_notes(),
                             'hours': "",
                             'project_id': self.current_selected_project_id,
                             'task_id': self.current_selected_task_id
                         })
+
+                    if not entry.has_key('timer_started_at'): #start the timer if adding it hasn't strated it
+                        self.harvest.toggle_timer(entry['id'])
 
             else:
                 self.statusbar.push(0, "No Project and Task Selected")
