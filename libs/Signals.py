@@ -62,7 +62,7 @@ class uiSignalHelpers(object):
                 self.timetracker_window.present()
 
             self.interval_dialog_showing = True
-            self.message_dialog_instance = self.question_message(self.timetracker_window, message, self.on_working)
+            self.message_dialog_instance = self.question_message(self.timetracker_window, message, self.on_interval_dialog)
 
     def stop_interval_dialog(self, message):
         if not self.stop_interval_dialog_showing:
@@ -104,7 +104,7 @@ class uiSignals(uiSignalHelpers):
     def on_show_about_dialog(self, widget):
         self.about_dialog.show()
 
-    def on_working(self, dialog, a): #interval_dialog callback
+    def on_interval_dialog(self, dialog, a): #interval_dialog callback
         if a == gtk.RESPONSE_NO and self.running: #id will be set if running
             self.toggle_current_timer(self.current['id'])#stop the timer
             if not self.timetracker_window.is_active():#show timetracker window if not shown
@@ -113,11 +113,14 @@ class uiSignals(uiSignalHelpers):
         else:
             self.timetracker_window.hide() #hide timetracker and continue task
 
-        #restart intervals
+        #restart interval
         self.clear_interval_timer()
         self.start_interval_timer()
+        self.clear_stop_interval_timer()
 
         dialog.destroy()
+
+        self.attention = None
 
         self.interval_dialog_showing = False
 
@@ -128,14 +131,23 @@ class uiSignals(uiSignalHelpers):
 
         dialog.destroy()
 
+        self.attention = None
+
         self.stop_interval_dialog_showing = False
 
     def on_save_preferences_button_clicked(self, widget):
+        if self.running: #if running it will turn off, lets empty the comboboxes
+            #stop the timer
+            #self.toggle_current_timer(self.current_entry_id) #maybe add pref option to kill timer on pref change?
+            if self.message_dialog_instance:
+                self.message_dialog_instance.hide() #hide the dialog
+
         self.get_prefs()
         if self.connect_to_harvest():
             self.preferences_window.hide()
             self.timetracker_window.show()
             self.timetracker_window.present()
+
 
     def on_task_combobox_changed(self, widget):
         new_idx = widget.get_active()
@@ -197,13 +209,7 @@ class uiSignals(uiSignalHelpers):
 
         if self.harvest: #we have to be connected
             if self.current_selected_project_id and self.current_selected_task_id:
-                notes = self.last_notes if self.last_notes else ""
-                current_time = datetime.time(datetime.now()).strftime("%H:%M")
-
-                if notes != "":
-                    notes = "%s\n%s%s" % (notes, current_time, self.get_textview_text(self.notes_textview))
-                else:
-                    notes = "%s%s" % (current_time, self.get_textview_text(self.notes_textview))
+                notes = self.get_notes()
 
                 if self.running and self.last_entry_id:
                     if (self.last_project_id == self.current_selected_project_id\
@@ -237,6 +243,7 @@ class uiSignals(uiSignalHelpers):
                 else:
                     if (self.last_project_id == self.current_selected_project_id\
                         and self.last_task_id == self.current_selected_task_id):
+                        self.harvest.toggle_timer(self.last_entry_id)
                         print '3', self.last_entry_id, {#append to existing timer
                                                         'notes': notes,
                                                         'hours': self.last_hours,
@@ -309,7 +316,7 @@ class uiSignals(uiSignalHelpers):
         self.set_entries()
 
     def on_stop_timer(self, widget):
-        self.toggle_current_timer(self.current['id'])
+        self.toggle_current_timer(self.current_entry_id)
 
 
     def on_quit(self, widget):

@@ -71,7 +71,6 @@ class logicHelpers(object):
     def bool_to_string(self, bool):
         return "True" if bool == True or bool == "True" else "False"
 
-
 class logicFunctions(logicHelpers):
     def __init__(self, *args, **kwargs):
         super(self, logicFunctions).__init__(*args, **kwargs)
@@ -211,7 +210,7 @@ class logicFunctions(logicHelpers):
                 self.current['_label'].set_text("%0.02f on %s for %s" % (
                     self.current['elapsed_hours'], self.current['task'], self.current['project']))
 
-            self.current_hours = "%s" % self.current['elapsed_hours'] #set updated current time while running for modify
+            self.current_hours = "%0.02f" % round(self.current['elapsed_hours'], 2) #set updated current time while running for modify
 
 
     def _update_elapsed_status(self):
@@ -243,26 +242,23 @@ class logicFunctions(logicHelpers):
             if self.interval_timer_timeout_instance:
                 gobject.source_remove(self.interval_timer_timeout_instance)
 
-            self.interval_timer_timeout_instance = gobject.timeout_add(self._interval, self._interval_timer)
+            self.interval_timer_timeout_instance = gobject.timeout_add(self._interval, self._interval_timer) #start interval to show warning
 
     def clear_interval_timer(self):
         #clear interval timer, stops the timer so we can restart it again later
         self.interval_timer_timeout_instance = None
-
-    def clear_stop_interval_timer(self):
-        self.stop_timer_timeout_instance = None
 
     def _interval_timer(self):
         if self.running and not self.away_from_desk and not self.interval_dialog_showing:
             self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current['text'])
             self.timetracker_window.show()
             self.timetracker_window.present()
-            self.interval_dialog("Are you still working on this task?")
-            self._stop_interval_timer()
+            self.interval_dialog_instance = self.interval_dialog("Are you still working on this task?")
+            self.start_stop_interval_timer() #start interval to stop the timer
 
-        self.interval_timer_timeout_instance = gobject.timeout_add(self._interval, self._interval_timer)
+        self.interval_timer_timeout_instance = gobject.timeout_add(self._interval, self._interval_timer) #restart interval, for cases where not running(etc) to keep moving
 
-    def _stop_interval_timer(self):
+    def start_stop_interval_timer(self):
         #interval timer for stopping tacking if no response from interval dialog in
         if self.running:
             if self.stop_timer_timeout_instance:
@@ -282,13 +278,10 @@ class logicFunctions(logicHelpers):
             self.last_project_id = self.current_project_id
             self.last_task_id = self.current_task_id
             self.last_hours = self.current_hours
-
-            #clear these just in case, no really needed though I think, since set_entries resets
-            self.current_project_id = None
-            self.current_task_id = None
-            self.current_entry_id = None
+            self.last_notes = self.get_notes()
 
             self.refresh_comboboxes()
+
             self.running = False
 
             self.attention = "Timer Stopped!"
@@ -296,6 +289,19 @@ class logicFunctions(logicHelpers):
             self.statusbar.push(0, "Stop Timer Timeout")
 
             self.clear_stop_interval_timer()
+
+    def get_notes(self):
+        notes = self.last_notes if self.last_notes else ""
+        current_time = datetime.time(datetime.now()).strftime("%H:%M")
+
+        if notes != "":
+            notes = "%s\n%s: %s" % (notes, current_time, self.get_textview_text(self.notes_textview))
+        else:
+            notes = "%s: %s" % (current_time, self.get_textview_text(self.notes_textview))
+        return notes
+
+    def clear_stop_interval_timer(self):
+        self.stop_timer_timeout_instance = None
 
     def set_prefs(self):
         if self.interval:
@@ -586,12 +592,14 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 _updated_at = entry['updated_at']
             if _updated_at <= entry['updated_at']:
                 _updated_at = entry['updated_at']
+
                 self.last_entry_id = entry['id']
                 self.last_project_id = entry['project_id']
                 self.last_task_id = entry['task_id']
                 self.last_hours = "%0.02f" % entry['hours']
                 self.last_notes = "%s" % entry['notes'] if entry['notes'] else ""
 
+            #this should go away as much as possible
             if entry.has_key('timer_started_at'):
                 entry_id = str(entry['id'])
                 project_id = str(entry['project_id'])
@@ -609,7 +617,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project']) #make the text
                 self.set_textview_text(self.notes_textview, self.last_notes) #just set the notes as soon as we see them
 
-                self.current_hours = "%s" % self.current['hours'] #used in posting to harvest and calculations
+                self.current_hours = "%0.02f" % round(self.current['hours'], 2) #used in posting to harvest and calculations
 
                 self.running = True
                 self.start_time = time()  #start time for determine timedelta every second while running, it can be out of sync when not running who cares
