@@ -94,6 +94,9 @@ class uiSignals(uiSignalHelpers):
         self.icon.connect('activate', self.left_click)
         self.icon.connect("popup-menu", self.right_click)
 
+    def before_init(self):
+        pass
+
     def after_init(self):
         self.project_combobox_handler = self.project_combobox.connect('changed', self.on_project_combobox_changed)
         self.task_combobox_handler = self.task_combobox.connect('changed', self.on_task_combobox_changed)
@@ -158,7 +161,8 @@ class uiSignals(uiSignalHelpers):
 
     def on_away_from_desk(self, widget):
         #toggle away state
-        self.away_from_desk = True if not self.away_from_desk else False
+        if self.running:
+            self.away_from_desk = True if not self.away_from_desk else False
 
     def on_check_for_updates(self, widget):
         pass
