@@ -632,55 +632,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         self.refresh_comboboxes() #setup the comboboxes
 
-    def _update_entries_box(self):
-        if self.entries_vbox:
-            self.entries_viewport.remove(self.entries_vbox)
-        self.entries_vbox = gtk.VBox(False, 0)
-        self.entries_viewport.add(self.entries_vbox)
-
-        for entry in self.current['__all']:
-            hbox = gtk.HBox(False, 0)
-
-            if not entry.has_key('timer_started_at'):
-                button = gtk.Button(stock="gtk-ok")
-                if self.running and entry['id'] == self.current['id']:
-                    self.set_custom_label(button, "Continue")
-                else:
-                    self.set_custom_label(button, "Start")
-                edit_button = None
-            else:
-                button = gtk.Button(stock="gtk-stop")
-                button.set_tooltip_text("Stopping the timer will show a more accurate time. Stop, then continue, to update")
-                edit_button = gtk.Button(stock="gtk-edit")
-                self.set_custom_label(edit_button, "Modify")
-                edit_button.connect("clicked", self.on_edit_timer_entry, entry['id'])
-
-            button.connect('clicked', self.on_timer_toggle_clicked, entry['id']) #timer entry id
-            hbox.pack_start(button)
-
-            #show edit button for current task so user can modify the entry, done here to pack after start button
-            if edit_button:
-                hbox.pack_start(edit_button)
-
-            if self.running and entry['id'] == self.current['id']:
-                self.current['_label'] = gtk.Label() #hold label reference so we can modify the time in the label every second
-                self.current['_label'].set_text(
-                    "%0.02f on %s for %s" % (entry['hours'], entry['task'], entry['project']))
-                hbox.pack_start(self.current['_label'])
-            else:
-                label = gtk.Label() #label of a not running entry, dont need reference
-                label.set_text("%0.02f on %s for %s" % (entry['hours'], entry['task'], entry['project']))
-                hbox.pack_start(label)
-
-            button = gtk.Button(stock="gtk-remove")
-            button.connect('clicked', self.on_timer_entry_removed, entry['id'])
-            hbox.pack_start(button)
-
-            self.entries_vbox.pack_start(hbox) #pack entry into vbox
-
-        #show all components that were added to the vbox
-        self.entries_vbox.show_all()
-
     def refresh_comboboxes(self):
         if self.project_combobox_handler:
             self.project_combobox.handler_block(self.project_combobox_handler)
@@ -732,7 +683,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.attention = None #remove attention state, everything should be fine by now
 
         #fill the vbox with time entries
-        self._update_entries_box()
+        #self._update_entries_box()
 
         #refresh comboboxes
         self.refresh_comboboxes()
@@ -796,30 +747,25 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
                 if self.running and self.last_entry_id:
                     for entry in self.current['__all']:
-                        if (self.last_project_id == self.current_selected_project_id\
-                            and self.last_task_id == self.current_selected_task_id):
+                        if (self.entry['project_id'] == self.current_selected_project_id\
+                            and self.entry['task_id'] == self.current_selected_task_id):
                             print
-                            '1', self.last_entry_id, {#append to existing timer
-                                                      'notes': notes,
-                                                      'hours': self.current_hours,
-                                                      'project_id': self.current_selected_project_id,
-                                                      'task_id': self.current_selected_task_id
-                            }
-                            self.harvest.update(self.last_entry_id, {#append to existing timer
-                                                                     'notes': notes,
-                                                                     'hours': self.current_hours,
-                                                                     'project_id': self.current_selected_project_id,
-                                                                     'task_id': self.current_selected_task_id
+                            '1'
+                            #make dates into a datetime object we can use
+                            entry['created_at'] = datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+                            entry['updated_at'] = datetime.strptime(entry['updated_at'], "%Y-%m-%dT%H:%M:%SZ")
+
+                            self.time_delta = entry[''] + round(round(time() - self.start_time) / 3600, 3)
+                            self.harvest.update(self.entry['id'], {#append to existing timer
+                                 'notes': notes,
+                                 'hours': self.current_hours,
+                                 'project_id': self.current_selected_project_id,
+                                 'task_id': self.current_selected_task_id
                             })
                         else:
                             #not the same project task as last one, add new entry
                             print
-                            '2', {
-                                'notes': notes,
-                                'hours': "",
-                                'project_id': self.current_selected_project_id,
-                                'task_id': self.current_selected_task_id
-                            }
+                            '2'
                             self.harvest.add({
                                 'notes': notes,
                                 'hours': "",
@@ -831,12 +777,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                         and self.last_task_id == self.current_selected_task_id):
                         self.harvest.toggle_timer(self.last_entry_id)
                         print
-                        '3', self.last_entry_id, {#append to existing timer
-                                                  'notes': notes,
-                                                  'hours': self.last_hours,
-                                                  'project_id': self.current_selected_project_id,
-                                                  'task_id': self.current_selected_task_id
-                        }
+                        '3'
                         self.harvest.update(self.last_entry_id, {#append to existing timer
                                                                  'notes': notes,
                                                                  'hours': self.last_hours,

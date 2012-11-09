@@ -187,20 +187,6 @@ class uiSignals(uiSignalHelpers):
         on_top = True if self.always_on_top else False
         self.timetracker_window.set_keep_above(on_top)
 
-    #not needed anymore for slimmed interface
-    def on_timer_toggle_clicked(self, widget, id):
-        if self.running: #if running it will turn off, lets empty the comboboxes
-            self.current_project_id = None
-            self.current_task_id = None
-            self.refresh_comboboxes()
-
-        #allow to start or stop a timer
-        self.toggle_current_timer(id)
-
-    #not needed anymore for slimmed interface
-    def on_entries_expander_activate(self, widget):
-        if not widget.get_expanded():
-            self.set_entries()
 
     def on_submit_button_clicked(self, widget):
         print 'project', self.current_project_id, self.current_selected_project_id
@@ -214,41 +200,7 @@ class uiSignals(uiSignalHelpers):
 
         self.set_entries()
 
-    #not needed anymore for slimmed interface
-    def on_timer_entry_removed(self, widget, entry_id):
-        self.away_from_desk = False
-        if self.harvest:
-            self.harvest.delete(entry_id)
-        else:
-            self.warning_message(self.timetracker_window, "Not Connected to Harvest")
 
-        self.set_entries()
-
-    #not needed anymore for slimmed interface
-    def on_edit_timer_entry(self, widget, entry_id):
-        self.away_from_desk = False
-
-        hours = self.current_hours
-
-        #if time passed and the user tries to modify time, to prevent accidental modification show warning
-        if "%s"%(self.current['hours']) == "%s"%(hours) \
-            and self.time_delta > 0.01: #if its been more than six minutes notify user, of potential loss
-            self.warning_message(self.timetracker_window, "Are you sure you want to modify this entry?\n\nSome time has passed already, and you will lose time.\n\nMaybe you should stop the timer first, start it again and then modify.")
-
-            return
-
-        if self.harvest:
-            self.harvest.update( entry_id, {
-                'notes': self.get_textview_text(self.notes_textview),
-                'hours': hours,
-                'project_id': self.get_combobox_selection(self.project_combobox),
-                'task_id': self.get_combobox_selection(self.task_combobox)
-            })
-        else:
-            self.warning_message(self.timetracker_window, "Not Connected to Harvest")
-            return self.not_connected()
-
-        self.set_entries()
 
     def on_stop_timer(self, widget):
         self.toggle_current_timer(self.current_entry_id)
@@ -274,8 +226,6 @@ class uiSignals(uiSignalHelpers):
             stop_timer = gtk.MenuItem("Stop Timer")
             stop_timer.connect("activate", self.on_stop_timer)
             menu.append(stop_timer)
-        elif self.last_entry_id:
-            pass
 
         if not self.away_from_desk:
             away = gtk.ImageMenuItem(gtk.STOCK_NO)
