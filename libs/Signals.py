@@ -189,7 +189,7 @@ class uiSignals(uiSignalHelpers):
     def on_submit_button_clicked(self, widget):
         print 'project', self.current_project_id, self.current_selected_project_id
         print 'task', self.current_task_id, self.current_selected_task_id
-        print 'last', self.last_project_id, self.last_task_id
+        print 'last', self.last_project_id, self.last_task_id, self.last_entry_id
         self.away_from_desk = False
         self.start_interval_timer()
         if self.harvest: #we have to be connected
@@ -201,14 +201,15 @@ class uiSignals(uiSignalHelpers):
                     self.harvest.toggle_timer(self.current_entry_id)
                 else:
                     print 'diff stopped'
-
-                #not the same project task
-                self.harvest.add({
+                data = {
                     'notes': self.get_textview_text(self.notes_textview),
                     'hours': self.current_hours,
                     'project_id': self.get_combobox_selection(self.project_combobox),
                     'task_id': self.get_combobox_selection(self.task_combobox)
-                })
+                }
+                print data
+                #not the same project task
+                self.harvest.add(data)
 
                 self.set_textview_text(self.notes_textview, "") #clear notes after adding new entry
             else:

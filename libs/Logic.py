@@ -114,7 +114,7 @@ class logicFunctions(logicHelpers):
         self.start_time = time() #when self.running == True this is used to calculate the notification interval
         self.time_delta = 0 #difference between now and starttime
 
-        self.today_total = 0 #total hours today
+        self.today_total_hours = 0 #total hours today
 
         self.away_from_desk = False #used to start stop interval timer and display away popup menu item
         self.always_on_top = False #keep timetracker iwndow always on top
@@ -184,38 +184,55 @@ class logicFunctions(logicHelpers):
             gobject.source_remove(self.elapsed_timer_timeout_instance)
 
         #do it here so we dont have to wait in the beginning
-        self.process_elapsed_timer()
+        self._process_elapsed_timer()
 
-        self.elapsed_timer_timeout_instance = gobject.timeout_add(1000, self.elapsed_timer)
+        self.elapsed_timer_timeout_instance = gobject.timeout_add(1000, self._elapsed_timer)
 
-    def elapsed_timer(self):
-        self.process_elapsed_timer()
+    def _elapsed_timer(self):
+        self._process_elapsed_timer()
 
-        gobject.timeout_add(1000, self.elapsed_timer)
+        gobject.timeout_add(1000, self._elapsed_timer)
 
-    def process_elapsed_timer(self):
+    def _process_elapsed_timer(self):
         self.set_status_icon()
         if self.running:
-            dt = parse(self.current['updated_at'].replace(tzinfo=pytz.utc).strftime("%Y-%m-%d %H:%M:%S%z"))
-            self.time_delta = round(round(time() - self.start_time) / 3600, 3)
-            self.current['_hours'] = self.current['hours'] + self.time_delta #amount of time to add real time in app while timer running
 
-            sub = 0
-            minutes_running = -1
-            while minutes_running < 0:
-                updated_at = dt.astimezone(tzoffset(None, 3600 * sub))
-                #updated_at = datetime.fromtimestamp(updated_at.timetuple())
-                minutes_running = (time() - mktime(updated_at.timetuple())+(8*60*60)) / 60  #minutes timer has been running
-                sub += 1
-            seconds_running = (time() - mktime(updated_at.timetuple())+(8*60*60)) % 60
-            time_running = "%02d:%02d" % (minutes_running, seconds_running)
+            self.time_delta = round(round(time() - self.start_time) / 3600, 3)
+            self.current['elapsed_hours'] = self.current['hours'] + self.time_delta #amount of time to add real time in app while timer running
+            self.today_total_hours += self.time_delta
+
+            self._update_elapsed_status()
+            self._set_counter_label()
+
             if self.current.has_key("_label"):
                 self.current['_label'].set_text("%0.02f on %s for %s" % (
-                    self.current['_hours'], self.current['task'], self.current['project']))
-            self.current_hours = "%s" % self.current['_hours'] #set updated current time while running for modify
+                    self.current['elapsed_hours'], self.current['task'], self.current['project']))
 
-            self.statusbar.push(0, "%s" % ("Working %s started_at %s" % (time_running,
-                                                                         parse("%s" % (updated_at + timedelta(hours = -8 + sub - 1))).strftime("%H:%M")) if self.running else "Idle"))
+            self.current_hours = "%s" % self.current['elapsed_hours'] #set updated current time while running for modify
+
+
+    def _update_elapsed_status(self):
+        sub = 0
+        minutes_running = -1
+        dt = parse(self.current['updated_at'].replace(tzinfo=pytz.utc).strftime("%Y-%m-%d %H:%M:%S%z"))
+        while minutes_running < 0:
+            updated_at = dt.astimezone(tzoffset(None, 3600 * sub))
+            #updated_at = datetime.fromtimestamp(updated_at.timetuple())
+            minutes_running = (time() - mktime(updated_at.timetuple()) + (
+                8 * 60 * 60)) / 60  #minutes timer has been running
+            sub += 1
+        seconds_running = (time() - mktime(updated_at.timetuple()) + (8 * 60 * 60)) % 60
+        time_running = "%02d:%02d" % (minutes_running, seconds_running)
+
+        self.statusbar.push(0, "%s" % ("Working %s started_at %s" % (time_running,
+                                                                     parse("%s" % (
+                                                                         updated_at + timedelta(
+                                                                             hours=-8 + sub - 1))).strftime(
+                                                                         "%H:%M")) if self.running else "Idle"))
+
+    def _set_counter_label(self):
+        self.counter_label.set_text(
+            "%s Entries %0.02f hours Total" % (self.entries_count, self.today_total_hours))
 
     def start_interval_timer(self):
         #interval timer for when to popup the window
@@ -225,24 +242,24 @@ class logicFunctions(logicHelpers):
 
             interval = int(round(3600000 * float(self.interval)))
 
-            self.interval_timer_timeout_instance = gobject.timeout_add(interval, self.interval_timer)
+            self.interval_timer_timeout_instance = gobject.timeout_add(interval, self._interval_timer)
 
     def clear_interval_timer(self):
         #clear interval timer, stops the timer so we can restart it again later
         self.interval_timer_timeout_instance = None
 
-    def interval_timer(self):
+    def _interval_timer(self):
         if self.running and not self.away_from_desk and not self.interval_dialog_showing:
             self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current['text'])
             self.timetracker_window.show()
             self.timetracker_window.present()
             self.interval_dialog("Are you still working on this task?")
-            self.stop_interval_timer()
+            self._stop_interval_timer()
 
         interval = int(round(3600000 * float(self.interval)))
-        self.interval_timer_timeout_instance = gobject.timeout_add(interval, self.interval_timer)
+        self.interval_timer_timeout_instance = gobject.timeout_add(interval, self._interval_timer)
 
-    def stop_interval_timer(self):
+    def _stop_interval_timer(self):
         #interval timer for stopping tacking if no response from interval dialog in
         if self.running:
             if self.stop_timer_timeout_instance:
@@ -250,21 +267,29 @@ class logicFunctions(logicHelpers):
 
             interval = int(round(1000 * int(self.stop_interval)))
 
-            self.stop_timer_timeout_instance = gobject.timeout_add(interval, self.stop_timer_interval)
+            self.stop_timer_timeout_instance = gobject.timeout_add(interval, self._stop_timer_interval)
 
-    def stop_timer_interval(self):
+    def _stop_timer_interval(self):
         if self.running: #if running it will turn off, lets empty the comboboxes
             #stop the timer
             self.toggle_current_timer(self.current_entry_id)
             if self.message_dialog_instance:
                 self.message_dialog_instance.hide() #hide the dialog
 
+            #set_entries does this, set these just in case for when we need to have last before doing set_entries, maybe dont care about idx
+            self.last_entry_id = self.current_entry_id
+            self.last_project_id = self.current_project_id
+            self.last_task_id = self.current_task_id
+
+            #clear these just in case, no really needed though I think, since set_entries resets
             self.current_project_id = None
             self.current_task_id = None
-            self.last_entry_id = self.current_entry_id
+            self.current_entry_id = None
+
             self.refresh_comboboxes()
             self.running = False
             self.attention = True #show attention that something happened
+            self.attention_message = "Timer Stopped" #TODO:handle this
 
             self.clear_interval_timer()
 
@@ -480,7 +505,7 @@ class logicFunctions(logicHelpers):
                 self._notifier.begin(summary, message, reminder_message_func)
             else:
                 self._notifier.end()
-            
+
 class uiLogic(uiBuilder, uiCreator, logicFunctions):
     def __init__(self,*args, **kwargs):
         super(uiLogic, self).__init__(*args, **kwargs)
@@ -499,13 +524,16 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
     def _setup_current_data(self, harvest_data):
         self.current = {
-            '__projects': harvest_data['projects'],
+            '__projects': harvest_data['projects'], #these will be unset at the end, we should
             '__all': harvest_data['day_entries'],
         }
+
+        self.entries_count = len(self.current['__all'])
+
         #get day entries are for
         self.today_date = harvest_data['for_day']
         self.today_day_number = datetime.strptime(self.today_date, '%Y-%m-%d').timetuple().tm_yday
-        self.today_total = 0 #total hours amount for all entries combined
+        self.today_total_hours = 0 #total hours amount for all entries combined
         self.running = False
         self.current_project_id = None
         self.current_task_id = None
@@ -534,11 +562,24 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.last_task_id = None
         self.last_entry_id = None
 
+
         #get total hours and set current
         for entry in self.current['__all']:
-            self.today_total += entry['hours']
+            #how many hours worked today, used in counter label
+            self.today_total_hours += entry['hours']
+
+            #make dates into a datetime object we can use
             entry['created_at'] = datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
             entry['updated_at'] = datetime.strptime(entry['updated_at'], "%Y-%m-%dT%H:%M:%SZ")
+
+            if not _updated_at:#first time
+                _updated_at = entry['updated_at']
+            if _updated_at <= entry['updated_at']:
+                _updated_at = entry['updated_at']
+                self.last_entry_id = entry['id']
+                self.last_project_id = entry['project_id']
+                self.last_task_id = entry['task_id']
+
             if entry.has_key('timer_started_at'):
                 entry_id = str(entry['id'])
                 project_id = str(entry['project_id'])
@@ -554,12 +595,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 self.current.update(entry) #merge everything into current
 
                 self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project']) #make the text
-                self.set_textview_text(self.notes_textview, self.current['notes']) #just et the notes as soon as we see them
+                notes = self.current['notes'] if self.current['notes'] else ""
+                self.set_textview_text(self.notes_textview, notes) #just set the notes as soon as we see them
 
                 self.current_hours = "%s" % self.current['hours'] #used in posting to harvest and calculations
-                self.last_project_id = entry['project_id'] #what was the last project, this should be the last one worked on
-                self.last_task_id = entry['task_id'] #and what was the last task, used for append to last entry
-                self.last_entry_id = entry['id'] #used for start last entry worked on
+                #self.last_project_id = entry['project_id'] #what was the last project, this should be the last one worked on
+                #self.last_task_id = entry['task_id'] #and what was the last task, used for append to last entry
+                #self.last_entry_id = entry['id'] #used for start last entry worked on
 
                 self.running = True
                 self.start_time = time()  #start time for determine timedelta every second while running, it can be out of sync when not running who cares
@@ -568,6 +610,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.current_hours = ""
             self.set_textview_text(self.notes_textview, "")
             self.running = False #no entry is active
+
+
 
         self.refresh_comboboxes() #setup the comboboxes
 
@@ -668,10 +712,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         #refresh comboboxes
         self.refresh_comboboxes()
-
-        #this will go away
-        self.entries_expander_label.set_text(
-            "%s Entries %0.02f hours Total" % (len(self.current['__all']), self.today_total))
 
     def _clear_lingering_timers(self, count_days = 7):
         start = self.today_day_number - count_days
