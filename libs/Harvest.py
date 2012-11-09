@@ -10,14 +10,11 @@ u'up'
 >>> harvest.get_today()
 
 '''
-import urllib2
-from urllib import urlencode
-from base64 import b64encode
-
-import json
-from StringIO import StringIO #to parse json
 
 from xml.dom.minidom import Document #to create xml out of dict
+
+import requests
+from requests.auth import HTTPBasicAuth
 
 class HarvestError(Exception):
     pass
@@ -25,10 +22,10 @@ class HarvestError(Exception):
 class Harvest(object):
     def __init__(self, uri, email, password):
         self.uri = uri
+        self.email = email
+        self.password = password
         self.headers = {
-            'Authorization': 'Basic ' + b64encode('%s:%s' % (email, password)),
             'Accept': 'application/json',
-            'Content-Type': 'application/json',
             'User-Agent': 'TimeTracker for Linux',
         }
 
@@ -55,60 +52,26 @@ class Harvest(object):
 
     def update(self, entry_id, data):
         return self._request('POST', '%s/daily/update/%s' % (self.uri, entry_id), data)
-
-    def _request(self, type="GET", url="", data=None ):
-        """
-        type = request type, eg. GET, POST, DELETE
-        url = full url to make request to, eg. https://MYCOMPANY.harvestapp.com/daily
-        data = data for the request, leave empty for get requests
-
-        """
+    def _request(self, type = "GET", url = "", data = None):
         if type != "DELETE":
             if data:
-                self.headers["Accept"] = 'application/xml'
-                data = self._build_xml(data)
-                request = urllib2.Request(url=url, data=data, headers=self.headers)
-                self.headers["Accept"] = 'application/json'
+                r = requests.post(url, data=data, headers=self.headers, auth=HTTPBasicAuth(self.email, self.password))
             else:
                 if not url.endswith(".json"): #dont put headers it a status request
-                    request = urllib2.Request(url=url, headers=self.headers)
+                    r = requests.get(url=url, headers=self.headers, auth=HTTPBasicAuth(self.email, self.password))
                 else:
-                    request = urllib2.Request(url=url)
+                    r = requests.get(url)
 
             try:
-                r = urllib2.urlopen(request)
-                if not data:
-                    j = r.read()
-                    j = StringIO(j)
-                    return json.load(j)
+                return r.json
             except Exception as e:
                 raise HarvestError(e)
+
         else:
             try:
-                opener = urllib2.build_opener(urllib2.HTTPHandler)
-                request = urllib2.Request(url=url, headers=self.headers)
-                request.get_method = lambda: "DELETE"
-                return opener.open(request).read()
+                r = requests.delete(url, headers=self.headers, auth=HTTPBasicAuth(self.email, self.password))
             except Exception as e:
                 raise HarvestError(e)
-
-    def _build_xml(self, data_dict):
-        def _builder(root, data):
-            if type(data) == dict:
-                for d in data.keys():
-                    tag = doc.createElement(d)
-                    root.appendChild(tag)
-                    _builder(tag, data[d])
-            else:
-                root.appendChild(doc.createTextNode(str(data)))
-
-        doc = Document()
-        root = doc.createElement("request")
-        doc.appendChild(root)
-        _builder(root, data_dict)
-        xml = doc.toprettyxml()
-        return xml
-
 
 class HarvestStatus(Harvest):
     def __init__(self):
