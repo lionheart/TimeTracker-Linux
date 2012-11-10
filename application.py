@@ -22,14 +22,14 @@ import sys
 import gettext
 from gettext import gettext as _
 
-gettext.textdomain(__file__[:-3])
+gettext.textdomain(__file__[:-3]) #set app file location without .py as the textdomain for translations
 
 gtk.gdk.threads_init()
 
 path = os.path.dirname(os.path.abspath(__file__))
 
 from libs.Helpers import get_libs_path
-from data import Config as data_config
+from data import PathConfig as data_config
 
 get_libs_path(data_config.libs_path_dir, path)
 
@@ -50,7 +50,7 @@ class App(uiSignals, uiLogic):
         try:
             gtk.main()
         except (KeyboardInterrupt, SystemExit):
-            kwargs.get("application").quit_gracefully()
+            kwargs.get("application").quit_gracefully() #defined inside of logic
 
         gtk.gdk.threads_leave()
         return

@@ -34,10 +34,21 @@ except ImportError:
     raise 'User Interface Import Error'
     sys.exit(1)
 
-libs_path = os.path.dirname(os.path.abspath(__file__)) + '/'
-sys.path.append(libs_path+"../data")
-import Config
-media_path = libs_path +'../' + Config.media_path_dir
+# doing "%s%s" % ("yeah", "baby") is faster than "eff"+"it"
+libs_path = "%s/" % os.path.dirname(os.path.abspath(__file__))
+
+sys.path.append("%s" % libs_path) #need to load config file with app paths
+from data import PathConfig
+
+media_path = "%s../%s" % (libs_path, PathConfig.media_path_dir)
+config_path = "%s../%s" % (libs_path, PathConfig.config_path_dir)
+
+path = os.path.dirname(os.path.abspath(__file__))
+
+from libs.Helpers import get_libs_path
+from data import PathConfig as data_config
+
+get_libs_path(data_config.libs_path_dir, path)
 
 class logicHelpers(object):
     def __init__(self, *args, **kwargs):
@@ -155,8 +166,7 @@ class logicFunctions(logicHelpers):
         #combobox handlers to block
         self.project_combobox_handler = None
         self.task_combobox_handler = None
-
-        self.config_filename = kwargs.get('config', 'harvest.cfg')
+        self.config_filename = kwargs.get('config', '%sharvest.cfg' % config_path) #load config from the data/config/ by default
 
     def toggle_current_timer(self, id):
         self.away_from_desk = False
