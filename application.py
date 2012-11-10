@@ -47,7 +47,10 @@ class App(uiSignals, uiLogic):
     def main( *args, **kwargs ):
         gtk.gdk.threads_enter()
 
-        gtk.main()
+        try:
+            gtk.main()
+        except (KeyboardInterrupt, SystemExit):
+            kwargs.get("application").quit_gracefully()
 
         gtk.gdk.threads_leave()
         return
@@ -68,7 +71,7 @@ def main():
     builder_files = App.get_builder_files(dir='%s/%s' % ( path, data_config.ui_path_dir ))
     app = App(builder_file=builder_files)
     App.callback(app, function = lambda f, *args, **kwargs: f(*args, **kwargs))
-    App.main()
+    App.main(application=app)
     return
 
 if __name__ == "__main__":

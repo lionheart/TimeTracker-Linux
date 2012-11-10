@@ -7,7 +7,12 @@ from threading import Thread
 class uiSignalHelpers(object):
     def __init__(self, *args, **kwargs):
         super(uiSignalHelpers, self).__init__(*args, **kwargs)
-        
+        #print 'signal helpers __init__'
+
+    def callback(self, *args, **kwargs):
+        super(uiSignalHelpers, self).callback(*args, **kwargs)
+        #print 'signal helpers callback'
+
     def gtk_widget_show(self, w, e = None):
         w.show()
         return True
@@ -85,22 +90,28 @@ class uiSignalHelpers(object):
 class uiSignals(uiSignalHelpers):
     def __init__(self, *args, **kwargs):
         super(uiSignals, self).__init__(*args, **kwargs)
+        #these are components defined inside the ui file
+        #print 'signals __init__'
         self.preferences_window.connect('delete-event', lambda w, e: w.hide() or True)
         self.timetracker_window.connect('delete-event', lambda w, e: w.hide() or True)
         self.timetracker_window.connect('destroy', lambda w, e: w.hide() or True)
         self.timetracker_window.connect("window-state-event", self.window_state)
         self.about_dialog.connect("delete-event", lambda w, e: w.hide() or True)
         self.about_dialog.connect("response", lambda w, e: w.hide() or True)
+
+
+    def callback(self, *args, **kwargs): #stub
+        super(uiSignals, self).callback(*args, **kwargs) #executed after init, hopefully this will let me inject interrupts
+        #print 'signals callback'
         self.icon.connect('activate', self.left_click)
         self.icon.connect("popup-menu", self.right_click)
 
-    def callback(self, *args, **kwargs): #executed after init, hopefully this will let me inject interrupts
+    def before_init(self): #stub for later
+        #print 'signals before init'
         pass
 
-    def before_init(self):
-        pass
-
-    def after_init(self):
+    def after_init(self): #init any other callback we can't setup in the actual init phase
+        #print 'signals after init'
         self.project_combobox_handler = self.project_combobox.connect('changed', self.on_project_combobox_changed)
         self.task_combobox_handler = self.task_combobox.connect('changed', self.on_task_combobox_changed)
 
