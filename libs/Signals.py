@@ -218,15 +218,24 @@ class uiSignals(uiSignalHelpers):
 
         gtk.main_quit()
 
-
-    def left_click(self, widget):
+    def _do_refresh(self):
         self.set_entries()
         self.timetracker_window.show()
         self.timetracker_window.present()
 
+    def on_refresh(self):
+        self._do_refresh()
+
+    def left_click(self, widget):
+        self._do_refresh()
+
     def right_click(self, widget, button, time):
         #create popup menu
         menu = gtk.Menu()
+
+        refresh = gtk.ImageMenuItem(gtk.STOCK_REFRESH)
+        refresh.connect("activate", self.on_refresh)
+        menu.append(refresh)
 
         if self.running:
             stop_timer = gtk.MenuItem("Stop Timer")

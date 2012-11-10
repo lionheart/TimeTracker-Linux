@@ -271,14 +271,20 @@ class logicFunctions(logicHelpers):
 
             self.clear_stop_interval_timer()
 
-    def get_notes(self, text = None):
-        notes = text if text else ""
-        current_time = datetime.time(datetime.now()).strftime("%H:%M")
+    def get_notes(self, old_notes = None):
+        notes = old_notes if old_notes else "" #sanitize None
 
-        if notes != "":
-            notes = "%s\n%s: %s" % (notes, current_time, self.get_textview_text(self.notes_textview))
-        else:
-            notes = "%s: %s" % (current_time, self.get_textview_text(self.notes_textview))
+        note = self.get_textview_text(self.notes_textview)
+        if note:
+            current_time = datetime.time(datetime.now()).strftime("%H:%M")
+            note = "%s: %s" % (current_time, note)
+
+        if notes != "":#any previous notes? prepend previous to new note
+            if note:
+                notes = "%s\n%s" % (notes, note)
+            #otherwise continue, keep the old notes
+        else:#must be new or empty
+            notes = note
         return notes
 
     def clear_stop_interval_timer(self):
@@ -782,8 +788,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             and self.current_hours: #current running time with timedelta added from timer
                             print '1'
 
-
-
                             notes = entry['notes'] if entry.has_key('notes') else None
                             notes = self.get_notes(notes)
 
@@ -803,7 +807,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
                         entry = self.harvest.add({
                             'notes': self.get_notes(),
-                            'hours': "",
+                            'hours': self.interval,
                             'project_id': self.current_selected_project_id,
                             'task_id': self.current_selected_task_id
                         })
@@ -823,7 +827,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             print self.get_notes(notes)
                             entry = self.harvest.update(entry['id'], {#append to existing timer
                                  'notes': self.get_notes(notes),
-                                 'hours': entry['hours'],
+                                 'hours': round(float(entry['hours']) + float(self.interval), 2),
                                  'project_id': self.current_selected_project_id,
                                  'task_id': self.current_selected_task_id
                             })
@@ -836,12 +840,12 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                         print '4'
                         entry = self.harvest.add({
                             'notes': self.get_notes(),
-                            'hours': "",
+                            'hours': self.interval,
                             'project_id': self.current_selected_project_id,
                             'task_id': self.current_selected_task_id
                         })
 
-                    if not entry.has_key('timer_started_at'): #start the timer if adding it hasn't strated it
+                    if entry.has_key('timer_started_at'): #stop the timer if it was started by harvest, do timing locally
                         self.harvest.toggle_timer(entry['id'])
 
             else:
