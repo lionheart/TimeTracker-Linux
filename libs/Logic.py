@@ -42,6 +42,11 @@ media_path = libs_path +'../' + Config.media_path_dir
 class logicHelpers(object):
     def __init__(self, *args, **kwargs):
         super(logicHelpers, self).__init__(*args, **kwargs)
+        #print 'logic helpers __init__'
+
+    def callback(self, *args, **kwargs): #stub
+        super(self, logicHelpers).callback(*args, **kwargs)
+        #print 'logic helpers callback'
 
     def clear_entry(self, entry):
         entry.set_text('')
@@ -74,12 +79,15 @@ class logicHelpers(object):
 class logicFunctions(logicHelpers):
     def __init__(self, *args, **kwargs):
         super(self, logicFunctions).__init__(*args, **kwargs)
+        #print 'logic functions __init__'
+
+    def callback(self, *args, **kwargs): #stub
+        super(self, logicFunctions).callback(*args, **kwargs)
+        #print 'logic functions callback'
 
     def init(self, *args, **kwargs):
+        #print 'init'
         #initialize state variables
-        #run before_init to setup callbacks and other junk that may be needed later on
-        self.before_init()
-
         #statusIcon
         self.icon = None #timetracker icon instance
 
@@ -149,28 +157,6 @@ class logicFunctions(logicHelpers):
         self.task_combobox_handler = None
 
         self.config_filename = kwargs.get('config', 'harvest.cfg')
-
-        #call functions to start up app from here
-        self.after_init()
-
-        self.load_config()
-
-        self.set_status_icon()
-
-        self.connect_to_harvest()
-
-        #stop any timers that were started in previous days
-        self._clear_lingering_timers(7) #stop all lingering timers for the last week
-
-        self.center_windows(self. timetracker_window, self.preferences_window)
-
-        self.start_interval_timer() #notification interval, and warning message
-        self.start_elapsed_timer() #ui interval that does things every second
-
-        self._status_button = StatusButton()
-        self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
-
-        self.about_dialog.set_logo(gtk.gdk.pixbuf_new_from_file(media_path + "logo.svg"))
 
     def toggle_current_timer(self, id):
         self.away_from_desk = False
@@ -507,16 +493,69 @@ class logicFunctions(logicHelpers):
 class uiLogic(uiBuilder, uiCreator, logicFunctions):
     def __init__(self,*args, **kwargs):
         super(uiLogic, self).__init__(*args, **kwargs)
-        
+        #print 'logic __init__'
         #get all the widgets from the glade ui file
-        if self.builder_build(widget_list_dict = {}, *args, **kwargs):
+        if self.builder_build(widget_list_dict={}, *args, **kwargs):
             #initialize application
+            #run before_init to setup callbacks and other junk that may be needed later on
+            self.before_init()
+
+            #run the meat of the setup, the application is actually ran from the callback via _run_application()
             self.init()
 
-    def callback(self, *args, **kwargs): #executed after init, hopefully this will let me inject interrupts
-        pass
+            #setup any other callbacks and whatnot, this is after all other callback have been connected inside init
+            self.after_init()
+
+    def callback(self, *args, **kwargs): #executed after init, lets us inject interrupts
+        '''
+        execution order:
+        logic __init__
+            signals before init
+            init
+            signals after init
+        signal helpers __init__
+        signals __init__
+        logic callback
+            logic _run_application
+                checking harvest up
+        signal helpers callback
+        signals callback
+        '''
+        #print 'logic callback'
+        def _handle_callback(*args):
+            return self._run_application()
+
+        return kwargs.get("function")( lambda *args, **kwargs: _handle_callback(*args, **kwargs) )
+
+    def quit_gracefully(self): #after all those callbacks and stuff, this function works like a charm, successfully injected interrupts
+        print 'quitting'
+
+    def _run_application(self):
+        #print 'logic _run_application'
+        #call functions to start up app from here
+        self.load_config()
+
+        self.set_status_icon()
+
+        self.connect_to_harvest()
+
+        #stop any timers that were started in previous days
+        self._clear_lingering_timers(7) #stop all lingering timers for the last week
+
+        self.center_windows(self.timetracker_window, self.preferences_window)
+
+        self.start_interval_timer() #notification interval, and warning message
+        self.start_elapsed_timer() #ui interval that does things every second
+
+        self._status_button = StatusButton()
+        self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
+
+        self.about_dialog.set_logo(gtk.gdk.pixbuf_new_from_file(media_path + "logo.svg"))
+
+        return self
 
     def check_harvest_up(self):
+        #print 'checking harvest up'
         if HarvestStatus().get() == "down":
             self.warning_message(self.timetracker_window, "Harvest Is Down")
             self.attention = "Harvest is Down!"
