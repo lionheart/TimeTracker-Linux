@@ -67,7 +67,7 @@ class App(uiSignals, uiLogic):
 def main():
     builder_files = App.get_builder_files(dir='%s/%s' % ( path, data_config.ui_path_dir ))
     app = App(builder_file=builder_files)
-    App.callback(app, lambda f, *args, **kwargs: f(args, kwargs))
+    App.callback(app, function = lambda f, *args, **kwargs: f(args, kwargs))
     App.main()
     return
 
