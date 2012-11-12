@@ -163,6 +163,8 @@ class logicFunctions(logicHelpers):
         self.last_entry_id = None # last worked on time entry, so we can continue it after having stopped all timers
         self.last_hours = 0 #last hours, for sending to update last timer
 
+        self.stop_the_timer = False
+
         #combobox handlers to block
         self.project_combobox_handler = None
         self.task_combobox_handler = None
@@ -234,7 +236,8 @@ class logicFunctions(logicHelpers):
 
     def clear_interval_timer(self):
         #clear interval timer, stops the timer so we can restart it again later
-        self.interval_timer_timeout_instance = None
+        if self.interval_timer_timeout_instance:
+            gobject.source_remove(self.interval_timer_timeout_instance)
 
     def _interval_timer(self):
         if self.running and not self.away_from_desk and not self.interval_dialog_showing:
@@ -257,7 +260,6 @@ class logicFunctions(logicHelpers):
     def _stop_timer_interval(self):
         if self.running: #if running it will turn off, lets empty the comboboxes
             #stop the timer
-            self.toggle_current_timer(self.current_entry_id)
             if self.message_dialog_instance:
                 self.message_dialog_instance.hide() #hide the dialog
 
@@ -288,7 +290,9 @@ class logicFunctions(logicHelpers):
         return notes
 
     def clear_stop_interval_timer(self):
-        self.stop_timer_timeout_instance = None
+        if self.stop_timer_timeout_instance:
+            gobject.source_remove(self.stop_timer_timeout_instance)
+
 
     def set_prefs(self):
         if self.interval:
@@ -405,8 +409,7 @@ class logicFunctions(logicHelpers):
 
         if not self.config.has_option('prefs', 'stop_interval'):
             is_new = True
-            self.config.set('prefs', 'stop_interval',
-                '300') #don't stop the timer for 5 minutes after the interval warning message by default
+            self.config.set('prefs', 'stop_interval', '300') #don't stop the timer for 5 minutes after the interval warning message by default
         else:
             self.stop_interval = self.config.get('prefs', 'stop_interval')
             self._stop_interval = int(round(1000 * int(self.stop_interval)))
@@ -686,7 +689,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
     def _setup_current_data(self, harvest_data):
         self.current = {
-            '__projects': harvest_data['projects'], #these will be unset at the end, we should
+            '__projects': harvest_data['projects'],
             '__all': harvest_data['day_entries'],
         }
 
@@ -732,12 +735,14 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.today_total_hours += entry['hours']
 
             #make dates into a datetime object we can use
-            entry['created_at'] = datetime.strptime(entry['created_at'], "%Y-%m-%dT%H:%M:%SZ")
-            entry['updated_at'] = datetime.strptime(entry['updated_at'], "%Y-%m-%dT%H:%M:%SZ")
+            entry['updated_at'] = parse(entry['updated_at'])
+            entry['created_at'] = parse(entry['created_at'])
 
             #this should all go away, leave for now
             if not _updated_at:#first time
                 _updated_at = entry['updated_at']
+
+            #use most recent updated at entry
             if _updated_at <= entry['updated_at']:
                 _updated_at = entry['updated_at']
 
@@ -747,29 +752,28 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 self.last_hours = "%0.02f" % entry['hours']
                 self.last_notes = "%s" % entry['notes'] if entry['notes'] else ""
 
-            #this should go away as much as possible
-            if entry.has_key('timer_started_at'):
-                entry_id = str(entry['id'])
-                project_id = str(entry['project_id'])
-                task_id = str(entry['task_id'])
+                if datetime.fromtimestamp(mktime(entry['updated_at'].timetuple()) + self._interval) > datetime.utcnow():
+                    self.running = True
+                    self.current['hours'] = entry['hours']
+                    self.current['notes'] = entry['notes']
+                    self.current['updated_at'] = entry['updated_at']
+                    entry_id = str(entry['id'])
+                    project_id = str(entry['project_id'])
+                    task_id = str(entry['task_id'])
 
-                self.current_entry_id = entry_id
-                self.current_selected_project_id = project_id
-                self.current_selected_project_idx = self.projects.keys().index(
-                    project_id) + 1 #compensate for empty 'select one'
-                self.current_selected_task_id = task_id
-                self.current_selected_task_idx = self.tasks[project_id].keys().index(
-                    task_id) + 1 #compensate for empty 'select one'
-                self.current.update(entry) #merge everything into current
+                    self.current_entry_id = entry_id
+                    self.current_selected_project_id = project_id
+                    self.current_selected_project_idx = self.projects.keys().index(
+                        project_id) + 1 #compensate for empty 'select one'
+                    self.current_selected_task_id = task_id
+                    self.current_selected_task_idx = self.tasks[project_id].keys().index(
+                        task_id) + 1 #compensate for empty 'select one'
 
-                self.current_created_at = entry['created_at'] #set created at date for use in statusbar, as of now
+                    self.current_created_at = entry['created_at'] #set created at date for use in statusbar, as of now
 
-                self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project']) #make the text
+                    self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project']) #make the text
 
-                self.current_hours = "%0.02f" % round(self.current['hours'], 2) #used in posting to harvest and calculations
-
-                self.running = True
-                self.start_time = time()  #start time for determine timedelta every second while running, it can be out of sync when not running who cares
+                    self.current_hours = "%0.02f" % round(self.current['hours'], 2) #used in posting to harvest and calculations
 
         self.set_textview_text(self.notes_textview, "")
 
@@ -812,7 +816,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             'task_id': self.current_selected_task_id
                         })
 
-                    if not entry.has_key('timer_started_at'): #start the timer if adding it hasn't strated it
+                    if entry.has_key('timer_started_at'): #stop the timer if adding it has started it
                         self.harvest.toggle_timer(entry['id'])
 
                 else:
