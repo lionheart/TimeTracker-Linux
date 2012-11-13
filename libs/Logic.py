@@ -99,7 +99,7 @@ class logicFunctions(logicHelpers):
         #harvest instance, crud
         self.harvest = None #harvest instance
 
-
+        self.timezone_offset_hours = None
         self.projects = [] #list of projects, used in comboboxes
         self.tasks = [] #list of tasks per project, under project index, for comboboxes
 
