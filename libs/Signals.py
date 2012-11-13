@@ -126,21 +126,14 @@ class uiSignals(uiSignalHelpers):
                 self.timetracker_window.present()
         else:
             self.timetracker_window.hide() #hide timetracker and continue task
-            notes = self.get_notes(self.current_notes)
-            hours = "%0.02f" % round(float(self.current_hours) + float(self._interval), 2)
-            entry = self.harvest.update(self.current_entry_id, {#append to existing timer
+            notes = self.get_notes(self.last_notes)
+            hours = "%0.02f" % round(float(self.last_hours) + float(self.interval), 2)
+            entry = self.harvest.update(self.last_entry_id, {#append to existing timer
                   'notes': notes,
                   'hours': hours,
-                  'project_id': self.current_project_id,
-                  'task_id': self.current_task_id
+                  'project_id': self.last_project_id,
+                  'task_id': self.last_task_id
             })
-            print entry
-
-
-        #restart interval
-        self.clear_interval_timer()
-        self.start_interval_timer()
-        self.clear_stop_interval_timer()
 
         dialog.destroy()
 
@@ -204,14 +197,13 @@ class uiSignals(uiSignalHelpers):
         pass
 
     def on_top(self, widget):
-        on_top = True if self.always_on_top else False
-        self.timetracker_window.set_keep_above(on_top)
+        self.always_on_top = False if self.always_on_top else True
+        self.timetracker_window.set_keep_above(self.always_on_top)
 
 
     def on_submit_button_clicked(self, widget):
         self.away_from_desk = False
-        self.start_interval_timer()
-
+        self.attention = None
         self.append_add_entry()
 
         self.set_entries()
@@ -233,7 +225,7 @@ class uiSignals(uiSignalHelpers):
         self.timetracker_window.show()
         self.timetracker_window.present()
 
-    def on_refresh(self):
+    def on_refresh(self, widget):
         self._do_refresh()
 
     def left_click(self, widget):
@@ -260,9 +252,9 @@ class uiSignals(uiSignalHelpers):
             away.set_label("Back at desk")
 
         if not self.always_on_top:
-            top = gtk.ImageMenuItem(gtk.STOCK_YES)
-        else:
             top = gtk.ImageMenuItem(gtk.STOCK_NO)
+        else:
+            top = gtk.ImageMenuItem(gtk.STOCK_YES)
         top.set_label("Always on top")
 
         updates = gtk.MenuItem("Check for updates")

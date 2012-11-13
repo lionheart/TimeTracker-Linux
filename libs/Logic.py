@@ -123,12 +123,6 @@ class logicFunctions(logicHelpers):
         self.projects = [] #list of projects, used in comboboxes
         self.tasks = [] #list of tasks per project, under project index, for comboboxes
 
-        self.entries_vbox = None #used to hold the entries and to empty easily on refresh
-
-        self.today_date = None # holds the date from harvest get_today response
-
-        self.time_delta = 0 #difference between now and starttime
-
         self.today_total_hours = 0 #total hours today
 
         self.away_from_desk = False #used to start stop interval timer and display away popup menu item
@@ -178,41 +172,40 @@ class logicFunctions(logicHelpers):
 
     def _process_elapsed_timer(self):
         self.set_status_icon()
-        if self.running:
-            self._update_elapsed_status()
-            self._set_counter_label()
+        self._update_status()
+        self._set_counter_label()
 
-    def _update_elapsed_status(self):
-        self.running = self.is_running(self.current_updated_at)
-        print self.running
-        status = "Working on %s for %s" %(self.current_task, self.current_project) if self.running else "Stopped"
+        if self.current_updated_at and mktime(datetime.utcnow().timetuple()) > self.current_updated_at + self._interval:
+            if self.running and not self.away_from_desk and not self.interval_dialog_showing:
+                self.running = False
+                self.last_hours = self.current_hours
+                self.last_entry_id = self.current_entry_id
+                self.last_project_id = self.current_project_id
+                self.last_task_id = self.current_task_id
+                self.last_text = self.current_text
+                self.last_notes = self.current_notes
+                self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current_text)
+                self.timetracker_window.show()
+                self.timetracker_window.present()
+                self.set_entries() #not necessary, jic
+                self.interval_dialog_instance = self.interval_dialog("Are you still working on this task?")
+            elif self.running and self.away_from_desk and not self.interval_dialog_showing:
+                self.harvest.update(self.current_entry_id, {#append to existing timer
+                      'notes': self.get_notes(''),
+                      'hours': round(float(self.current_hours) + float(self.interval), 2),
+                      'project_id': self.current_project_id,
+                      'task_id': self.current_task_id
+                })
+                self._do_refresh()
+
+
+    def _update_status(self):
+        status = "%s for %s" %(self.current_task, self.current_project) if self.running else "Stopped"
         self.statusbar.push(0, "%s" % status)
 
     def _set_counter_label(self):
         self.counter_label.set_text(
             "%s Entries %0.02f hours Total" % (self.entries_count, self.today_total_hours))
-
-    def start_interval_timer(self):
-        #interval timer for when to popup the window
-        if self.running:
-            if self.interval_timer_timeout_instance:
-                gobject.source_remove(self.interval_timer_timeout_instance)
-
-            self.interval_timer_timeout_instance = gobject.timeout_add(self._interval, self._interval_timer) #start interval to show warning
-
-    def clear_interval_timer(self):
-        #clear interval timer, stops the timer so we can restart it again later
-        if self.interval_timer_timeout_instance:
-            gobject.source_remove(self.interval_timer_timeout_instance)
-
-    def _interval_timer(self):
-        if self.running and not self.away_from_desk and not self.interval_dialog_showing:
-            self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current_text)
-            self.timetracker_window.show()
-            self.timetracker_window.present()
-            self.interval_dialog_instance = self.interval_dialog("Are you still working on this task?")
-
-        self.interval_timer_timeout_instance = gobject.timeout_add(self._interval, self._interval_timer) #restart interval, for cases where not running(etc) to keep moving
 
     def get_notes(self, old_notes = None):
         notes = old_notes if old_notes else "" #sanitize None
@@ -482,8 +475,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         self.center_windows(self.timetracker_window, self.preferences_window)
 
-        self.start_interval_timer() #notification interval, and warning message
-        self.start_elapsed_timer() #ui interval that does things every second
+        self.start_elapsed_timer()
 
         self._status_button = StatusButton()
         self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
@@ -604,10 +596,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
     def _setup_current_data(self, harvest_data):
         self.entries_count = len(harvest_data['day_entries'])
 
-        #get day entries are for
-        self.today_date = harvest_data['for_day']
-        self.today_day_number = datetime.strptime(self.today_date, '%Y-%m-%d').timetuple().tm_yday #used to get previous days
-
         self.today_total_hours = 0 #total hours amount for all entries combined
         self.today_total_elapsed_hours = 0 #today_total_hours + timedelta
 
@@ -649,14 +637,11 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             if not _updated_at:#first time
                 _updated_at = entry['updated_at']
 
-
             #use most recent updated at entry
             if _updated_at <= entry['updated_at']:
                 _updated_at = entry['updated_at']
                 _updated_at_time = mktime(entry['updated_at'].timetuple())
                 if self.is_running(_updated_at_time):
-                    print mktime(entry['updated_at'].timetuple())
-                    print mktime(datetime.utcnow().timetuple())
                     self.running = True
 
                     self.current_hours = "%0.02f" % round(entry['hours'], 2)
@@ -687,8 +672,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         self.refresh_comboboxes() #setup the comboboxes
     def is_running(self, timestamp):
-        print self._interval, int(timestamp + self._interval), int(mktime(datetime.utcnow().timetuple()))
-
         if timestamp:
             if int(timestamp + self._interval) > int(mktime(datetime.utcnow().timetuple())):
                 return True
@@ -738,18 +721,17 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             'task_id': self.current_selected_task_id
                         })
 
-                    if 'timer_started_at' in entry and id in entry: #stop the timer if adding it has started it
+                    if 'timer_started_at' in entry and 'id' in entry: #stop the timer if adding it has started it
                         self.harvest.toggle_timer(entry['id'])
                 else:
                     got_one = False
                     for entry in data['day_entries']:
                         if (entry['project_id'] == self.current_selected_project_id\
                             and entry['task_id'] == self.current_selected_task_id): #found existing project/task entry for today, just append to it
-                            self.harvest.toggle_timer(entry['id'])
+                            #self.harvest.toggle_timer(entry['id'])
                             print '3'
 
                             notes = entry['notes'] if entry.has_key('notes') else None
-                            print self.get_notes(notes)
                             entry = self.harvest.update(entry['id'], {#append to existing timer
                                  'notes': self.get_notes(notes),
                                  'hours': round(float(entry['hours']) + float(self.interval), 2),
