@@ -191,7 +191,7 @@ class logicFunctions(logicHelpers):
                 self.interval_dialog_instance = self.interval_dialog("Are you still working on this task?")
             elif self.running and self.away_from_desk and not self.interval_dialog_showing:
                 self.harvest.update(self.current_entry_id, {#append to existing timer
-                      'notes': self.get_notes(''),
+                      'notes': self.get_notes(self.current_notes),
                       'hours': round(float(self.current_hours) + float(self.interval), 2),
                       'project_id': self.current_project_id,
                       'task_id': self.current_task_id
