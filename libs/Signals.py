@@ -119,8 +119,7 @@ class uiSignals(uiSignalHelpers):
         self.about_dialog.show()
 
     def on_interval_dialog(self, dialog, a): #interval_dialog callback
-        if a == gtk.RESPONSE_NO and self.running: #id will be set if running
-            self.set_entries()
+        if a == gtk.RESPONSE_NO:
             if not self.timetracker_window.is_active():#show timetracker window if not shown
                 self.timetracker_window.show()
                 self.timetracker_window.present()
