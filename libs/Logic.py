@@ -108,7 +108,6 @@ class logicFunctions(logicHelpers):
         #timeout instances
         self.interval_timer_timeout_instance = None #gint of the timeout_add for interval
         self.elapsed_timer_timeout_instance = None #gint of the timeout for elapsed time
-        self.stop_timer_timeout_instance = None #gint of the timeout for stop timer when message shows and no response
 
         #warning message dialog instance, to close after stop_interval
         self.message_dialog_instance = None
@@ -212,33 +211,8 @@ class logicFunctions(logicHelpers):
             self.timetracker_window.show()
             self.timetracker_window.present()
             self.interval_dialog_instance = self.interval_dialog("Are you still working on this task?")
-            self.start_stop_interval_timer() #start interval to stop the timer
 
         self.interval_timer_timeout_instance = gobject.timeout_add(self._interval, self._interval_timer) #restart interval, for cases where not running(etc) to keep moving
-
-    def start_stop_interval_timer(self):
-        #interval timer for stopping tacking if no response from interval dialog in
-        if self.running:
-            if self.stop_timer_timeout_instance:
-                gobject.source_remove(self.stop_timer_timeout_instance)
-
-            self.stop_timer_timeout_instance = gobject.timeout_add(self._stop_interval, self._stop_timer_interval)
-
-    def _stop_timer_interval(self):
-        if self.running: #if running it will turn off, lets empty the comboboxes
-            #stop the timer
-            if self.message_dialog_instance:
-                self.message_dialog_instance.hide() #hide the dialog
-
-            self.refresh_comboboxes()
-
-            self.running = False
-
-            self.attention = "Timer Stopped!"
-
-            self.statusbar.push(0, "Stop Timer Timeout")
-
-            self.clear_stop_interval_timer()
 
     def get_notes(self, old_notes = None):
         notes = old_notes if old_notes else "" #sanitize None
@@ -256,17 +230,9 @@ class logicFunctions(logicHelpers):
             notes = note
         return notes
 
-    def clear_stop_interval_timer(self):
-        if self.stop_timer_timeout_instance:
-            gobject.source_remove(self.stop_timer_timeout_instance)
-
-
     def set_prefs(self):
         if self.interval:
             self.interval_entry.set_text("%s" % self.interval)
-
-        if self.stop_interval:
-            self.stop_timer_interval_entry.set_text("%s" % self.stop_interval)
 
         if self.uri:
             self.harvest_url_entry.set_text(self.uri)
@@ -304,9 +270,6 @@ class logicFunctions(logicHelpers):
 
         self.interval = self.interval_entry.get_text()
         self._interval = int(round(3600 * float(self.interval)))
-
-        self.stop_interval = self.stop_timer_interval_entry.get_text()
-        self._stop_interval = int(round(1000 * int(self.stop_interval)))
 
         self.show_countdown = self.string_to_bool(self.countdown_checkbutton.get_active())
         self.show_notification = self.string_to_bool(self.show_notification_checkbutton.get_active())
@@ -374,13 +337,6 @@ class logicFunctions(logicHelpers):
             self.interval = self.config.get('prefs', 'interval')
             self._interval = int(round(3600 * float(self.interval)))
 
-        if not self.config.has_option('prefs', 'stop_interval'):
-            is_new = True
-            self.config.set('prefs', 'stop_interval', '300') #don't stop the timer for 5 minutes after the interval warning message by default
-        else:
-            self.stop_interval = self.config.get('prefs', 'stop_interval')
-            self._stop_interval = int(round(1000 * int(self.stop_interval)))
-
         if not self.config.has_option('prefs', 'show_countdown'):
             is_new = True
             self.config.set('prefs', 'show_countdown', 'False')
@@ -425,7 +381,6 @@ class logicFunctions(logicHelpers):
         self.config.set('auth', 'uri', self.uri)
         self.config.set('auth', 'username', self.username)
         self.config.set('prefs', 'interval', "%s" % self.interval)
-        self.config.set('prefs', 'stop_interval', "%s" % self.stop_interval)
         self.config.set('prefs', 'show_countdown', self.bool_to_string(self.show_countdown))
         self.config.set('prefs', 'show_notification', self.bool_to_string(self.show_notification))
         self.config.set('prefs', 'show_timetracker', self.bool_to_string(self.show_timetracker))
