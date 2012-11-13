@@ -127,13 +127,10 @@ class logicFunctions(logicHelpers):
         self.entries_vbox = None #used to hold the entries and to empty easily on refresh
 
         self.today_date = None # holds the date from harvest get_today response
-        self.today_day_number = None #hold the day number of today, so we can subtract a few day later and stop all lingering timers
 
-        self.start_time = time() #when self.running == True this is used to calculate the notification interval
         self.time_delta = 0 #difference between now and starttime
 
         self.today_total_hours = 0 #total hours today
-        self.today_total_elapsed_hours = 0 #today_total_hours + elapsed time while running
 
         self.away_from_desk = False #used to start stop interval timer and display away popup menu item
         self.always_on_top = False #keep timetracker iwndow always on top
@@ -141,11 +138,6 @@ class logicFunctions(logicHelpers):
         self.attention = None #state/message to set attention icon
 
         self.interval_dialog_showing = False # whether or not the interval diloag is being displayed
-
-        self.current = {
-            '__all': {}, #holds all the current entries for the day
-            #merged in to self.current is the current active timer entry
-        }
 
         self.current_entry_id = None #when running this will be set to the current active entry id
 
@@ -157,13 +149,6 @@ class logicFunctions(logicHelpers):
         self.current_selected_task_id = None #used for current selected combobox task item, value
         self.current_selected_project_idx = 0 #used for current selection of combobox for project, index
         self.current_selected_task_idx = 0 #used for current selected combobox task item, index
-
-        self.last_project_id = None #last project worked on
-        self.last_task_id = None # last task worked on
-        self.last_entry_id = None # last worked on time entry, so we can continue it after having stopped all timers
-        self.last_hours = 0 #last hours, for sending to update last timer
-
-        self.stop_the_timer = False
 
         #combobox handlers to block
         self.project_combobox_handler = None
@@ -195,36 +180,18 @@ class logicFunctions(logicHelpers):
     def _process_elapsed_timer(self):
         self.set_status_icon()
         if self.running:
-            self.time_delta = round(round(time() - self.start_time) / 3600, 3)
-            self.current['elapsed_hours'] = self.current['hours'] + self.time_delta #amount of time to add real time in app while timer running
-            self.today_total_elapsed_hours = float(self.today_total_hours) + float(self.time_delta)
-
             self._update_elapsed_status()
             self._set_counter_label()
 
-            self.current_hours = "%0.02f" % round(self.current['elapsed_hours'], 2) #set updated current time while running for modify
-
-
     def _update_elapsed_status(self):
-        sub = 0
-        minutes_running = -1
-        dt = parse(self.current['updated_at'].replace(tzinfo=pytz.utc).strftime("%Y-%m-%d %H:%M:%S%z"))
-        while minutes_running < 0:
-            updated_at = dt.astimezone(tzoffset(None, 3600 * sub))
-            #updated_at = datetime.fromtimestamp(updated_at.timetuple())
-            minutes_running = (time() - mktime(updated_at.timetuple()) + (
-                8 * 60 * 60)) / 60  #minutes timer has been running
-            sub += 1
-        seconds_running = (time() - mktime(updated_at.timetuple()) + (8 * 60 * 60)) % 60
-        time_running = "%02d:%02d" % (minutes_running, seconds_running)
-
-        eff_time_it_sux = parse("%s" % (updated_at + timedelta( hours=-8 + sub - 1))).strftime("%H:%M") if self.running else "Idle"
-
-        self.statusbar.push(0, "%s" % ("Working %s started_at %s created_at %s" % (time_running, eff_time_it_sux, self.current_created_at )))
+        self.running = self.is_running(self.current_updated_at)
+        print self.running
+        status = "Working on %s for %s" %(self.current_task, self.current_project) if self.running else "Stopped"
+        self.statusbar.push(0, "%s" % status)
 
     def _set_counter_label(self):
         self.counter_label.set_text(
-            "%s Entries %0.02f hours Total" % (self.entries_count, self.today_total_elapsed_hours))
+            "%s Entries %0.02f hours Total" % (self.entries_count, self.today_total_hours))
 
     def start_interval_timer(self):
         #interval timer for when to popup the window
@@ -241,7 +208,7 @@ class logicFunctions(logicHelpers):
 
     def _interval_timer(self):
         if self.running and not self.away_from_desk and not self.interval_dialog_showing:
-            self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current['text'])
+            self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current_text)
             self.timetracker_window.show()
             self.timetracker_window.present()
             self.interval_dialog_instance = self.interval_dialog("Are you still working on this task?")
@@ -336,7 +303,7 @@ class logicFunctions(logicHelpers):
         self.password = self.harvest_password_entry.get_text()
 
         self.interval = self.interval_entry.get_text()
-        self._interval = int(round(3600000 * float(self.interval)))
+        self._interval = int(round(3600 * float(self.interval)))
 
         self.stop_interval = self.stop_timer_interval_entry.get_text()
         self._stop_interval = int(round(1000 * int(self.stop_interval)))
@@ -361,19 +328,19 @@ class logicFunctions(logicHelpers):
                     self.icon = gtk.status_icon_new_from_file(media_path + "away.svg")
                 else:
                     self.icon.set_from_file(media_path + "away.svg")
-                self.icon.set_tooltip("AWAY: Working on %s" %(self.current['text']))
+                self.icon.set_tooltip("AWAY: Working on %s" % self.current_text)
             else:
                 if not self.icon:
                     self.icon = gtk.status_icon_new_from_file(media_path + "working.svg")
                 else:
                     self.icon.set_from_file(media_path + "working.svg")
-                self.icon.set_tooltip("Working on %s" % (self.current['text']))
+                self.icon.set_tooltip("Working on %s" % self.current_text)
         else:
             if not self.icon:
                 self.icon = gtk.status_icon_new_from_file(media_path + "idle.svg")
             else:
                 self.icon.set_from_file(media_path + "idle.svg")
-            self.icon.set_tooltip("Idle")
+            self.icon.set_tooltip("Stopped")
 
         self.icon.set_visible(True)
 
@@ -405,7 +372,7 @@ class logicFunctions(logicHelpers):
             self.config.set('prefs', 'interval', '0.33')
         else:
             self.interval = self.config.get('prefs', 'interval')
-            self._interval = int(round(3600000 * float(self.interval)))
+            self._interval = int(round(3600 * float(self.interval)))
 
         if not self.config.has_option('prefs', 'stop_interval'):
             is_new = True
@@ -558,9 +525,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         self.connect_to_harvest()
 
-        #stop any timers that were started in previous days
-        self._clear_lingering_timers(7) #stop all lingering timers for the last week
-
         self.center_windows(self.timetracker_window, self.preferences_window)
 
         self.start_interval_timer() #notification interval, and warning message
@@ -610,7 +574,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.set_comboboxes(self.task_combobox, self.current_selected_task_id)
 
     def not_connected(self):
-        self.warning_message(self.timetracker_window, "Not Connected to Harvest")
         self.preferences_window.show()
         self.preferences_window.present()
 
@@ -618,6 +581,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.attention = "Not Connected to Harvest!"
         else:#append any previous message
             self.attention = "Not Connected to Harvest!\r\n%s" % self.attention
+
+        self.warning_message(self.timetracker_window, self.attention)
+
         return
 
     def set_entries(self):
@@ -634,17 +600,10 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         if not self.running:
             self.statusbar.push(0, "Stopped")
 
-    def _clear_lingering_timers(self, count_days = 7):
-        start = self.today_day_number - count_days
-
-        #get range of count_days before today and stop timers on all those days
-        for day_number in range(start, self.today_day_number):
-            day_data = self.harvest.get_day(day_number, datetime.now().timetuple().tm_year)
-            for entry in day_data['day_entries']:
-                if entry.has_key('timer_started_at'):
-                    self.harvest.toggle_timer(entry['id'])
-
     def connect_to_harvest(self):
+        '''
+        connect to harvest and get data, set the current state and save the config
+        '''
         #check harvest status
         if not self.check_harvest_up():
             return
@@ -688,12 +647,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
 
     def _setup_current_data(self, harvest_data):
-        self.current = {
-            '__projects': harvest_data['projects'],
-            '__all': harvest_data['day_entries'],
-        }
-
-        self.entries_count = len(self.current['__all'])
+        self.entries_count = len(harvest_data['day_entries'])
 
         #get day entries are for
         self.today_date = harvest_data['for_day']
@@ -708,7 +662,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.tasks = {}
 
         #all projects, used for liststore for combobox
-        for project in self.current['__projects']:
+        for project in harvest_data['projects']:
             project_id = str(project['id'])
             self.projects[project_id] = "%s - %s" % (project['client'], project['name'])
             self.tasks[project_id] = {}
@@ -721,16 +675,14 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         # reset
         self.current_entry_id = None
-
         self.current_hours = ""
-
-        self.last_project_id = None
-        self.last_task_id = None
-        self.last_entry_id = None
-        self.last_hours = 0
+        self.current_project_id = None
+        self.current_task_id = None
+        self.current_created_at = None
+        self.current_updated_at = None
 
         #get total hours and set current
-        for entry in self.current['__all']:
+        for entry in harvest_data['day_entries']:
             #how many hours worked today, used in counter label
             self.today_total_hours += entry['hours']
 
@@ -742,51 +694,66 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             if not _updated_at:#first time
                 _updated_at = entry['updated_at']
 
+
             #use most recent updated at entry
             if _updated_at <= entry['updated_at']:
                 _updated_at = entry['updated_at']
-
-                self.last_entry_id = entry['id']
-                self.last_project_id = entry['project_id']
-                self.last_task_id = entry['task_id']
-                self.last_hours = "%0.02f" % entry['hours']
-                self.last_notes = "%s" % entry['notes'] if entry['notes'] else ""
-
-                if datetime.fromtimestamp(mktime(entry['updated_at'].timetuple()) + self._interval) > datetime.utcnow():
+                _updated_at_time = mktime(entry['updated_at'].timetuple())
+                if self.is_running(_updated_at_time):
+                    print mktime(entry['updated_at'].timetuple())
+                    print mktime(datetime.utcnow().timetuple())
                     self.running = True
-                    self.current['hours'] = entry['hours']
-                    self.current['notes'] = entry['notes']
-                    self.current['updated_at'] = entry['updated_at']
+
+                    self.current_hours = "%0.02f" % round(entry['hours'], 2)
+                    self.current_notes = entry['notes']
+                    self.current_updated_at = _updated_at_time
+
                     entry_id = str(entry['id'])
                     project_id = str(entry['project_id'])
                     task_id = str(entry['task_id'])
 
                     self.current_entry_id = entry_id
+
+                    self.current_project = self.projects[project_id]
                     self.current_selected_project_id = project_id
                     self.current_selected_project_idx = self.projects.keys().index(
                         project_id) + 1 #compensate for empty 'select one'
+
                     self.current_selected_task_id = task_id
                     self.current_selected_task_idx = self.tasks[project_id].keys().index(
                         task_id) + 1 #compensate for empty 'select one'
+                    self.current_task = self.tasks[project_id][task_id]
 
                     self.current_created_at = entry['created_at'] #set created at date for use in statusbar, as of now
 
-                    self.current['text'] = "%s %s %s" % (entry['hours'], entry['task'], entry['project']) #make the text
-
-                    self.current_hours = "%0.02f" % round(self.current['hours'], 2) #used in posting to harvest and calculations
+                    self.current_text = "%s %s %s" % (entry['hours'], entry['task'], entry['project']) #make the text
 
         self.set_textview_text(self.notes_textview, "")
 
         self.refresh_comboboxes() #setup the comboboxes
+    def is_running(self, timestamp):
+        print self._interval, int(timestamp + self._interval), int(mktime(datetime.utcnow().timetuple()))
+
+        if timestamp:
+            if int(timestamp + self._interval) > int(mktime(datetime.utcnow().timetuple())):
+                return True
+        return False
+
+    def refactor_time(self):
+        pass
 
     def append_add_entry(self):
         if self.harvest: #we have to be connected
             if self.current_selected_project_id and self.current_selected_task_id:
-                self.set_entries() #febreeze the place, mom is coming
+                data = self.harvest.get_today()
+                if not 'day_entries' in data:# this should never happen, but just in case lets check
+                    self.attention = "Unable to Get data from Harvest"
+                    self.set_message_text("Unable to Get data from Harvest")
+                    return
 
                 if self.running:
                     got_one = False
-                    for entry in self.current['__all']:
+                    for entry in data['day_entries']:
                         if (entry['project_id'] == self.current_selected_project_id\
                             and entry['task_id'] == self.current_selected_task_id)\
                             and self.current_hours: #current running time with timedelta added from timer
@@ -816,12 +783,11 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             'task_id': self.current_selected_task_id
                         })
 
-                    if entry.has_key('timer_started_at'): #stop the timer if adding it has started it
+                    if 'timer_started_at' in entry and id in entry: #stop the timer if adding it has started it
                         self.harvest.toggle_timer(entry['id'])
-
                 else:
                     got_one = False
-                    for entry in self.current['__all']:
+                    for entry in data['day_entries']:
                         if (entry['project_id'] == self.current_selected_project_id\
                             and entry['task_id'] == self.current_selected_task_id): #found existing project/task entry for today, just append to it
                             self.harvest.toggle_timer(entry['id'])
@@ -849,7 +815,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             'task_id': self.current_selected_task_id
                         })
 
-                    if entry.has_key('timer_started_at'): #stop the timer if it was started by harvest, do timing locally
+                    if 'timer_started_at' in entry and 'id' in entry: #stop the timer if it was started by harvest, do timing locally
                         self.harvest.toggle_timer(entry['id'])
 
             else:

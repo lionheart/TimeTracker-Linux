@@ -120,12 +120,13 @@ class uiSignals(uiSignalHelpers):
 
     def on_interval_dialog(self, dialog, a): #interval_dialog callback
         if a == gtk.RESPONSE_NO and self.running: #id will be set if running
+            self.set_entries()
             if not self.timetracker_window.is_active():#show timetracker window if not shown
                 self.timetracker_window.show()
                 self.timetracker_window.present()
         else:
             self.timetracker_window.hide() #hide timetracker and continue task
-            notes = self.get_notes(self.last_notes)
+            notes = self.get_notes(self.current_notes)
             hours = "%0.02f" % round(float(self.current_hours) + float(self._interval), 2)
             entry = self.harvest.update(self.current_entry_id, {#append to existing timer
                   'notes': notes,
