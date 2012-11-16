@@ -201,12 +201,14 @@ class logicFunctions(logicHelpers):
 
 
     def _update_status(self):
-        status = "%s for %s" %(self.current_task, self.current_project) if self.running else "Stopped"
-        self.statusbar.push(0, "%s" % status)
+        if self.harvest:
+            status = "%s for %s" %(self.current_task, self.current_project) if self.running else "Stopped"
+            self.statusbar.push(0, "%s" % status)
 
     def _set_counter_label(self):
-        self.counter_label.set_text(
-            "%s Entries %0.02f hours Total" % (self.entries_count, self.today_total_hours))
+        if self.harvest:
+            self.counter_label.set_text(
+                "%s Entries %0.02f hours Total" % (self.entries_count, self.today_total_hours))
 
     def get_notes(self, old_notes = None):
         notes = old_notes if old_notes else "" #sanitize None
