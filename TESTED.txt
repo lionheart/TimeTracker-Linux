@@ -1,0 +1,2 @@
+#Tested on these machines
+Ubuntu Precise 12.04 LTS, Python 2.7.3 with MATE Desktop, works on unity but no statusicon :/
