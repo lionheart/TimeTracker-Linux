@@ -120,7 +120,7 @@ class logicFunctions(logicHelpers):
         self.harvest = None #harvest instance
 
         self.interval = 0.33 #default 20 minute interval
-        
+
         self.projects = [] #list of projects, used in comboboxes
         self.tasks = [] #list of tasks per project, under project index, for comboboxes
 
@@ -175,29 +175,29 @@ class logicFunctions(logicHelpers):
         self.set_status_icon()
         self._update_status()
         self._set_counter_label()
-
-        if self.current_updated_at and mktime(datetime.utcnow().timetuple()) > self.current_updated_at + self._interval:
-            if self.running and not self.away_from_desk and not self.interval_dialog_showing:
-                self.running = False
-                self.last_hours = self.current_hours
-                self.last_entry_id = self.current_entry_id
-                self.last_project_id = self.current_project_id
-                self.last_task_id = self.current_task_id
-                self.last_text = self.current_text
-                self.last_notes = self.current_notes
-                self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current_text)
-                self.timetracker_window.show()
-                self.timetracker_window.present()
-                self.set_entries() #not necessary, jic
-                self.interval_dialog_instance = self.interval_dialog("Are you still working on this task?")
-            elif self.running and self.away_from_desk and not self.interval_dialog_showing:
-                self.harvest.update(self.current_entry_id, {#append to existing timer
-                      'notes': self.get_notes(self.current_notes),
-                      'hours': round(float(self.current_hours) + float(self.interval), 2),
-                      'project_id': self.current_project_id,
-                      'task_id': self.current_task_id
-                })
-                self._do_refresh()
+        if self.harvest:
+            if self.current_updated_at and mktime(datetime.utcnow().timetuple()) > self.current_updated_at + self._interval:
+                if self.running and not self.away_from_desk and not self.interval_dialog_showing:
+                    self.running = False
+                    self.last_hours = self.current_hours
+                    self.last_entry_id = self.current_entry_id
+                    self.last_project_id = self.current_project_id
+                    self.last_task_id = self.current_task_id
+                    self.last_text = self.current_text
+                    self.last_notes = self.current_notes
+                    self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current_text)
+                    self.timetracker_window.show()
+                    self.timetracker_window.present()
+                    self.set_entries() #not necessary, jic
+                    self.interval_dialog_instance = self.interval_dialog("Are you still working on this task?")
+                elif self.running and self.away_from_desk and not self.interval_dialog_showing:
+                    self.harvest.update(self.current_entry_id, {#append to existing timer
+                          'notes': self.get_notes(self.current_notes),
+                          'hours': round(float(self.current_hours) + float(self.interval), 2),
+                          'project_id': self.current_project_id,
+                          'task_id': self.current_task_id
+                    })
+                    self._do_refresh()
 
 
     def _update_status(self):
@@ -530,7 +530,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         else:#append any previous message
             self.attention = "Not Connected to Harvest!\r\n%s" % self.attention
 
-        self.warning_message(self.timetracker_window, self.attention)
+        #self.warning_message(self.timetracker_window, self.attention)
 
         return
 
