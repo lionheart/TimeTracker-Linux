@@ -123,6 +123,7 @@ class logicFunctions(logicHelpers):
         self.show_countdown = False
         self.save_passwords = True
         self.show_timetracker = True
+        self.show_notification = True
 
         self.projects = [] #list of projects, used in comboboxes
         self.tasks = [] #list of tasks per project, under project index, for comboboxes
