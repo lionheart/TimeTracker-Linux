@@ -119,7 +119,8 @@ class logicFunctions(logicHelpers):
         #harvest instance, crud
         self.harvest = None #harvest instance
 
-
+        self.interval = 0.33 #default 20 minute interval
+        
         self.projects = [] #list of projects, used in comboboxes
         self.tasks = [] #list of tasks per project, under project index, for comboboxes
 
