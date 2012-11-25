@@ -751,6 +751,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
     def append_add_entry(self):
         if self.harvest: #we have to be connected
             if self.current_selected_project_id and self.current_selected_task_id:
+                if self.get_textview_text(self.notes_textview).strip("\n") == "":
+                    return #Fail early, notes cannot be empty to send anything
+
                 data = self.harvest.get_today()
                 if not 'day_entries' in data:# this should never happen, but just in case lets check
                     self.attention = "Unable to Get data from Harvest"
