@@ -224,7 +224,7 @@ class logicFunctions(logicHelpers):
         else:
             self.counter_label.set_text("")
 
-    def get_notes(self, old_notes = None, append_note = ""):
+    def get_notes(self, old_notes = None, get_text = False, append_note = ""):
         '''
         get_notes
         old_notes - notes to prepend to notes found in textview
@@ -234,7 +234,11 @@ class logicFunctions(logicHelpers):
 
         current_time = datetime.time(datetime.now()).strftime("%H:%M:%S") #for prepending to note
 
-        note = self.get_textview_text(self.notes_textview)
+        if get_text:
+            note = self.get_textview_text(self.notes_textview)
+        else:
+            note = ""
+
         if note and note.strip("\n") != "":#prepend time to note if new note not empty
             note = "%s: %s" % (current_time, note)
 
@@ -733,7 +737,10 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.running = False
             self.last_project_id = self.current_project_id
             self.last_task_id = self.current_task_id
-            self.last_notes = self.get_notes(self.current_notes, "%s#TimerStopped"%task_type)
+            if task_type != "":
+                self.last_notes = self.get_notes(self.current_notes, "%s#TimerStopped"%task_type)
+            else:
+
             self.last_hours = "%0.02f" % round(float(self.current_hours) - float(interval), 2)
             self.last_text = self.current_text
             self.last_entry_id = self.current_entry_id
