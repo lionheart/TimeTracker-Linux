@@ -224,7 +224,7 @@ class logicFunctions(logicHelpers):
         else:
             self.counter_label.set_text("")
 
-    def get_notes(self, old_notes = None, get_text = False, append_note = ""):
+    def get_notes(self, old_notes = None, get_text = True, append_note = ""):
         '''
         get_notes
         old_notes - notes to prepend to notes found in textview
@@ -738,7 +738,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.last_project_id = self.current_project_id
             self.last_task_id = self.current_task_id
             if task_type != "":
-                self.last_notes = self.get_notes(self.current_notes, "%s#TimerStopped"%task_type)
+                self.last_notes = self.get_notes(self.current_notes, False, "%s#TimerStopped"%task_type)
             else:
 
             self.last_hours = "%0.02f" % round(float(self.current_hours) - float(interval), 2)
