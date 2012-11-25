@@ -100,7 +100,7 @@ class uiSignals(uiSignalHelpers):
         self.timetracker_window.connect("window-state-event", self.window_state)
         self.about_dialog.connect("delete-event", lambda w, e: w.hide() or True)
         self.about_dialog.connect("response", lambda w, e: w.hide() or True)
-
+        self.notes_textview.connect('key_press_event', self.on_textview_ctrl_enter)
 
     def callback(self, *args, **kwargs): #stub
         super(uiSignals, self).callback(*args, **kwargs) #executed after init, hopefully this will let me inject interrupts
@@ -141,7 +141,6 @@ class uiSignals(uiSignalHelpers):
 
             self.refresh_and_show()
 
-
             self.timetracker_window.hide() #hide timetracker and continue task
 
         dialog.destroy()
@@ -150,6 +149,13 @@ class uiSignals(uiSignalHelpers):
 
         self.interval_dialog_showing = False
 
+    def on_textview_ctrl_enter(self, widget, event):
+        '''
+        submit clicked event on ctrl+enter in notes textview
+        '''
+        if event.state == gtk.gdk.CONTROL_MASK and \
+           gtk.gdk.keyval_name(event.keyval) == "Return":
+            self.submit_button.emit('clicked')
     def on_stopped(self, dialog):
         if not self.timetracker_window.is_active():
             self.timetracker_window.show()
