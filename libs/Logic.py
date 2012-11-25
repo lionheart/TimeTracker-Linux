@@ -693,6 +693,12 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 return True
         return False
 
+    def get_elapsed_time_diff(self, timestamp):
+        if timestamp:
+            if float(timestamp + self._interval) > float(mktime(datetime.utcnow().timetuple())):
+                return float(timestamp + self._interval) - float(mktime(datetime.utcnow().timetuple()))
+        return False
+
     def refactor_time(self):
         pass
 
