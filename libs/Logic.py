@@ -725,7 +725,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 return float(timestamp + self._interval) - float(mktime(datetime.utcnow().timetuple()))
         return False
 
-    def stop_and_refactor_time(self):
+    def stop_and_refactor_time(self, task_type = ""):
         if self.is_running(self.current_updated_at):
             secs = self._get_elapsed_time_diff(self.current_updated_at) #seconds left to run this timer
             interval = round(float(self.interval) * (secs / self._interval),2) # interval to subract from already alloted time
@@ -733,7 +733,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.running = False
             self.last_project_id = self.current_project_id
             self.last_task_id = self.current_task_id
-            self.last_notes = self.get_notes(self.current_notes, "#TimerStopped")
+            self.last_notes = self.get_notes(self.current_notes, "%s#TimerStopped"%task_type)
             self.last_hours = "%0.02f" % round(float(self.current_hours) - float(interval), 2)
             self.last_text = self.current_text
             self.last_entry_id = self.current_entry_id
@@ -783,7 +783,11 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                     if not got_one:
                         #not the same project task as last one, add new entry
                         print 'running and doesnt exist'
-                        self.stop_and_refactor_time() #refactor any previous time alloted to a task
+                        project_id = self.get_combobox_selection(self.project_combobox)
+                        project = self.projects[project_id]
+                        task_id = self.get_combobox_selection(self.task_combobox)
+                        task = self.tasks[project_id][task_id]
+                        self.stop_and_refactor_time("#SwitchTo %s - %s "%(project, task)) #refactor any previous time alloted to a task
                         entry = self.harvest.add({
                             'notes': self.get_notes(),
                             'hours': self.interval,
