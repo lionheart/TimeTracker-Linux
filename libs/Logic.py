@@ -231,7 +231,7 @@ class logicFunctions(logicHelpers):
         '''
         notes = old_notes if old_notes else "" #sanitize None
 
-        current_time = datetime.time(datetime.now()).strftime("%H:%M") #for prepending to note
+        current_time = datetime.time(datetime.now()).strftime("%H:%M:%S") #for prepending to note
 
         note = self.get_textview_text(self.notes_textview)
         if note and note.strip("\n") != "":#prepend time to note if new note not empty
