@@ -223,7 +223,7 @@ class logicFunctions(logicHelpers):
         notes = old_notes if old_notes else "" #sanitize None
 
         note = self.get_textview_text(self.notes_textview)
-        if note:
+        if note and note.strip("\n"):
             current_time = datetime.time(datetime.now()).strftime("%H:%M")
             note = "%s: %s" % (current_time, note)
 
@@ -233,7 +233,7 @@ class logicFunctions(logicHelpers):
             #otherwise continue, keep the old notes
         else:#must be new or empty
             notes = note
-        return notes
+        return notes.strip("\n")
 
     def set_prefs(self):
         if self.interval:
