@@ -737,9 +737,11 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.running = False
             self.last_project_id = self.current_project_id
             self.last_task_id = self.current_task_id
+
             if task_type != "":
-                self.last_notes = self.get_notes(self.current_notes, False, "%s#TimerStopped"%task_type)
+                self.last_notes = self.get_notes(self.current_notes, False, "%s#TimerStopped"%task_type) # task switched
             else:
+                self.last_notes = self.get_notes(self.current_notes, True, "#TimerStopped") #timer stopped
 
             self.last_hours = "%0.02f" % round(float(self.current_hours) - float(interval), 2)
             self.last_text = self.current_text
