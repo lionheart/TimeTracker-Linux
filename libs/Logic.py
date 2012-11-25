@@ -206,7 +206,11 @@ class logicFunctions(logicHelpers):
 
     def _update_status(self):
         if self.harvest:
-            status = "%s for %s" %(self.current_task, self.current_project) if self.running else "Stopped"
+            if self.away_from_desk:
+                status = "AWAY: "
+            else:
+                status = ""
+            status += "%s for %s" %(self.current_task, self.current_project) if self.running else "Stopped"
         else:
             status = "Not Connected"
 
