@@ -1022,6 +1022,8 @@ tip: press ctrl+enter to submit selected entry and notes</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
+                                <property name="tooltip_text" translatable="yes">submit current selected project, task and notes
+if task already running, append notes with current time prepended to submitted note</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="use_stock">True</property>
                                 <signal name="clicked" handler="on_submit_button_clicked" swapped="no"/>
