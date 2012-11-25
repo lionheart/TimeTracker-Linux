@@ -719,8 +719,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         if self.is_running(self.current_updated_at):
             secs = self._get_elapsed_time_diff(self.current_updated_at) #seconds left to run this timer
             interval = round(float(self.interval) * (secs / self._interval),2) # interval to subract from already alloted time
-            print secs, interval
-            #keep the timer running
+
             self.running = False
             self.last_project_id = self.current_project_id
             self.last_task_id = self.current_task_id
@@ -729,13 +728,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.last_text = self.current_text
             self.last_entry_id = self.current_entry_id
             print self.last_hours
-            '''entry = self.harvest.update(self.last_entry_id, {#append to existing timer
+            entry = self.harvest.update(self.last_entry_id, {#append to existing timer
                 'notes': self.last_notes,
                 'hours': self.last_hours,
                 'project_id': self.last_project_id,
                 'task_id': self.last_task_id
             })
-            print entry'''
+            print entry
         self.refresh_and_show()
 
     def append_add_entry(self):
