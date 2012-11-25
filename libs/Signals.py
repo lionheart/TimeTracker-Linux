@@ -270,35 +270,31 @@ class uiSignals(uiSignalHelpers):
             stop_timer.connect("activate", self.on_stop_timer)
             menu.append(stop_timer)
 
-        if not self.away_from_desk:
-            away = gtk.ImageMenuItem(gtk.STOCK_NO)
-            away.set_label("Away from desk")
-        else:
-            away = gtk.ImageMenuItem(gtk.STOCK_YES)
-            away.set_label("Back at desk")
+            if not self.away_from_desk:
+                away = gtk.ImageMenuItem(gtk.STOCK_NO)
+                away.set_label("Away from desk")
+            else:
+                away = gtk.ImageMenuItem(gtk.STOCK_YES)
+                away.set_label("Back at desk")
 
-        if not self.always_on_top:
-            top = gtk.ImageMenuItem(gtk.STOCK_NO)
-        else:
-            top = gtk.ImageMenuItem(gtk.STOCK_YES)
-        top.set_label("Always on top")
+            away.connect("activate", self.on_away_from_desk)
+            menu.append(away)
 
-        updates = gtk.MenuItem("Check for updates")
+        top = gtk.MenuItem("Always on top")
+
         prefs = gtk.MenuItem("Preferences")
         about = gtk.MenuItem("About")
         quit = gtk.MenuItem("Quit")
 
-        away.connect("activate", self.on_away_from_desk)
-        updates.connect("activate", self.on_check_for_updates)
+
         top.connect("activate", self.on_top)
         prefs.connect("activate", self.on_show_preferences)
         about.connect("activate", self.on_show_about_dialog)
         quit.connect("activate", self.on_quit)
 
-        menu.append(away)
-        menu.append(updates)
-        menu.append(top)
         menu.append(prefs)
+        menu.append(top)
+
         menu.append(about)
         menu.append(quit)
 
