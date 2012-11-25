@@ -246,7 +246,7 @@ class logicFunctions(logicHelpers):
             notes = note
 
         if append_note != "":
-            notes = "%s\n%s: %s" % (notes, current_time, append_note)
+            notes = "%s\n%s,%s: %s" % (notes, current_time, self.interval, append_note)
 
         return notes.strip("\n")
 
