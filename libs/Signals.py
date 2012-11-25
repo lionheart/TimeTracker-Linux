@@ -125,15 +125,23 @@ class uiSignals(uiSignalHelpers):
             self.refresh_and_show()
         else:
             #keep the timer running
-            notes = self.get_notes(self.last_notes)
-            hours = "%0.02f" % round(float(self.last_hours) + float(self.interval), 2)
-            entry = self.harvest.update(self.last_entry_id, {#append to existing timer
-                  'notes': notes,
-                  'hours': hours,
-                  'project_id': self.last_project_id,
-                  'task_id': self.last_task_id
+            self.running = True
+            self.current_selected_project_id = self.last_project_id
+            self.current_selected_task_id = self.last_task_id
+            self.current_notes = self.get_notes(self.last_notes)
+            self.current_hours = "%0.02f" % round(float(self.last_hours) + float(self.interval), 2)
+            self.current_text = self.last_text
+            self.current_entry_id = self.last_entry_id
+            entry = self.harvest.update(self.current_entry_id, {#append to existing timer
+                  'notes': self.current_notes,
+                  'hours': self.current_hours,
+                  'project_id': self.current_project_id,
+                  'task_id': self.current_task_id
             })
+
             self.refresh_and_show()
+
+
             self.timetracker_window.hide() #hide timetracker and continue task
 
         dialog.destroy()
