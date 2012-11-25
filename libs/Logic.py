@@ -200,6 +200,7 @@ class logicFunctions(logicHelpers):
                           'project_id': self.current_project_id,
                           'task_id': self.current_task_id
                     })
+                    self.set_entries()
 
                 self.refresh_and_show()
 
@@ -744,6 +745,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 'task_id': self.last_task_id
             })
             #print entry
+            self.set_entries()
         self.refresh_and_show()
 
     def append_add_entry(self):
@@ -824,5 +826,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             else:
                 self.statusbar.push(0, "No Project and Task Selected")
                 return False
+            self.set_entries()
         else: #something is wrong we aren't connected
             return self.not_connected()
