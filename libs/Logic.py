@@ -245,8 +245,7 @@ class logicFunctions(logicHelpers):
         if self.username:
             self.harvest_email_entry.set_text(self.username)
 
-        if self.password: #password may not be saved in keyring
-            self.harvest_password_entry.set_text(self.password)
+        self.harvest_password_entry.set_text("")
 
         if self.show_countdown:
             self.countdown_checkbutton.set_active(self.show_countdown)
@@ -399,11 +398,11 @@ class logicFunctions(logicHelpers):
         self.config.write(open(self.config_filename, 'w'))
 
     def get_password(self):
-	    if sys.platform != "win32":
-			if self.username:
-				try:
-					return keyring.get_password('TimeTracker', self.username)
-				except KeyRingError, e:
+        if sys.platform != "win32":
+            if self.username:
+                try:
+                    return keyring.get_password('TimeTracker', self.username)
+                except KeyRingError:
 					try: #try again, just in case
 						return keyring.get_password('TimeTracker', self.username)
 					except KeyRingError as e:
