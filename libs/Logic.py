@@ -673,11 +673,18 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             if _updated_at <= entry['updated_at']:
                 _updated_at = entry['updated_at']
                 _updated_at_time = mktime(entry['updated_at'].timetuple())
-                if self.is_running(_updated_at_time):
+
+                stopped = False
+                last_line = entry["notes"].split("\n")[-1]
+                if last_line.split(" ")[-1] == "#TimerStopped":
+                    stopped = True
+
+                if self.is_running(_updated_at_time, stopped):
                     self.running = True
 
                     self.current_hours = "%0.02f" % round(entry['hours'], 2)
                     self.current_notes = entry['notes']
+
                     self.current_updated_at = _updated_at_time
 
                     entry_id = str(entry['id'])
@@ -703,10 +710,12 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.set_textview_text(self.notes_textview, "")
 
         self.refresh_comboboxes() #setup the comboboxes
-    def is_running(self, timestamp):
+    def is_running(self, timestamp, stopped = False):
         if timestamp:
             if int(timestamp + self._interval) > int(mktime(datetime.utcnow().timetuple())):
-                return True
+                if not stopped:
+                    return True
+
         return False
 
     def _get_elapsed_time_diff(self, timestamp):
@@ -723,7 +732,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.running = False
             self.last_project_id = self.current_project_id
             self.last_task_id = self.current_task_id
-            self.last_notes = self.get_notes(self.current_notes)
+            self.last_notes = self.get_notes(self.current_notes, "#TimerStopped")
             self.last_hours = "%0.02f" % round(float(self.current_hours) - float(interval), 2)
             self.last_text = self.current_text
             self.last_entry_id = self.current_entry_id
