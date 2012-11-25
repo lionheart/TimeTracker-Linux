@@ -219,16 +219,16 @@ class uiSignals(uiSignalHelpers):
 
         gtk.main_quit()
 
-    def _do_refresh(self):
+    def refresh_and_show(self):
         self.set_entries()
         self.timetracker_window.show()
         self.timetracker_window.present()
 
     def on_refresh(self, widget):
-        self._do_refresh()
+        self.refresh_and_show()
 
     def left_click(self, widget):
-        self._do_refresh()
+        self.refresh_and_show()
 
     def right_click(self, widget, button, time):
         #create popup menu

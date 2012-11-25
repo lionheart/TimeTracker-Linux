@@ -190,9 +190,7 @@ class logicFunctions(logicHelpers):
                     self.last_text = self.current_text
                     self.last_notes = self.current_notes
                     self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current_text)
-                    self.timetracker_window.show()
-                    self.timetracker_window.present()
-                    self.set_entries() #not necessary, jic
+                    self.refresh_and_show()
                     self.interval_dialog_instance = self.interval_dialog("Are you still working on this task?")
                 elif self.running and self.away_from_desk and not self.interval_dialog_showing:
                     self.harvest.update(self.current_entry_id, {#append to existing timer
@@ -201,18 +199,23 @@ class logicFunctions(logicHelpers):
                           'project_id': self.current_project_id,
                           'task_id': self.current_task_id
                     })
-                    self._do_refresh()
+                    self.refresh_and_show()
 
 
     def _update_status(self):
         if self.harvest:
             status = "%s for %s" %(self.current_task, self.current_project) if self.running else "Stopped"
-            self.statusbar.push(0, "%s" % status)
+        else:
+            status = "Not Connected"
+
+        self.statusbar.push(0, "%s" % status)
 
     def _set_counter_label(self):
         if self.harvest:
             self.counter_label.set_text(
                 "%s Entries %0.02f hours Total" % (self.entries_count, self.today_total_hours))
+        else:
+            self.counter_label.set_text("")
 
     def get_notes(self, old_notes = None):
         notes = old_notes if old_notes else "" #sanitize None
