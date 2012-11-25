@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
+  <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkAboutDialog" id="about_dialog">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -238,12 +239,11 @@ You should also get your employer (if you work as a programmer) or school, if an
 The GNU General Public License does not permit incorporating your program into proprietary programs. If your program is a subroutine library, you may consider it more useful to permit linking proprietary applications with the library. If this is what you want to do, use the GNU Lesser General Public License instead of this License. But first, please read &lt;http://www.gnu.org/philosophy/why-not-lgpl.html&gt;.</property>
     <property name="authors">Alex Goretoy</property>
     <child internal-child="vbox">
-      <object class="GtkBox" id="aboutdialog">
+      <object class="GtkVBox" id="aboutdialog">
         <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
-          <object class="GtkButtonBox" id="aboutdialog-action_area1">
+          <object class="GtkHButtonBox" id="aboutdialog-action_area1">
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
           </object>
@@ -267,11 +267,11 @@ The GNU General Public License does not permit incorporating your program into p
     <property name="skip_taskbar_hint">True</property>
     <property name="buttons">ok-cancel</property>
     <child internal-child="vbox">
-      <object class="GtkBox" id="messagedialog-vbox">
+      <object class="GtkVBox" id="messagedialog-vbox">
         <property name="can_focus">False</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
-          <object class="GtkButtonBox" id="messagedialog-action_area">
+          <object class="GtkHButtonBox" id="messagedialog-action_area">
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
           </object>
@@ -287,6 +287,7 @@ The GNU General Public License does not permit incorporating your program into p
   </object>
   <object class="GtkWindow" id="preferences_window">
     <property name="can_focus">False</property>
+    <property name="tooltip_text" translatable="yes">if empty get password from keyring when valid password saved before(linux only)</property>
     <property name="title" translatable="yes">Preferences</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -320,7 +321,6 @@ The GNU General Public License does not permit incorporating your program into p
                     <child>
                       <object class="GtkCheckButton" id="show_notification_checkbutton">
                         <property name="label" translatable="yes">Show notification on Interval elapsed</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -356,12 +356,10 @@ The GNU General Public License does not permit incorporating your program into p
                     <child>
                       <object class="GtkCheckButton" id="countdown_checkbutton">
                         <property name="label" translatable="yes">Show countdown clock in status area</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
                         <property name="use_action_appearance">False</property>
-                        <property name="xalign">0.5</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
                       </object>
@@ -393,7 +391,6 @@ The GNU General Public License does not permit incorporating your program into p
                     <child>
                       <object class="GtkCheckButton" id="show_timetracker_checkbutton">
                         <property name="label" translatable="yes">Show TimeTracker window on Interval elapsed</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -450,6 +447,8 @@ The GNU General Public License does not permit incorporating your program into p
                         <property name="invisible_char_set">True</property>
                         <property name="primary_icon_activatable">False</property>
                         <property name="secondary_icon_activatable">False</property>
+                        <property name="primary_icon_sensitive">True</property>
+                        <property name="secondary_icon_sensitive">True</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -522,6 +521,8 @@ The GNU General Public License does not permit incorporating your program into p
                         <property name="invisible_char_set">True</property>
                         <property name="primary_icon_activatable">False</property>
                         <property name="secondary_icon_activatable">False</property>
+                        <property name="primary_icon_sensitive">True</property>
+                        <property name="secondary_icon_sensitive">True</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -568,6 +569,8 @@ The GNU General Public License does not permit incorporating your program into p
                         <property name="invisible_char_set">True</property>
                         <property name="primary_icon_activatable">False</property>
                         <property name="secondary_icon_activatable">False</property>
+                        <property name="primary_icon_sensitive">True</property>
+                        <property name="secondary_icon_sensitive">True</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -617,6 +620,8 @@ The GNU General Public License does not permit incorporating your program into p
                         <property name="invisible_char_set">True</property>
                         <property name="primary_icon_activatable">False</property>
                         <property name="secondary_icon_activatable">False</property>
+                        <property name="primary_icon_sensitive">True</property>
+                        <property name="secondary_icon_sensitive">True</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -647,7 +652,6 @@ The GNU General Public License does not permit incorporating your program into p
                     <child>
                       <object class="GtkCheckButton" id="save_password_checkbutton">
                         <property name="label" translatable="yes">Save password to keyring</property>
-                        <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -678,9 +682,6 @@ The GNU General Public License does not permit incorporating your program into p
                   <object class="GtkLabel" id="prefs_message_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <attributes>
-                      <attribute name="font-desc" value=""/>
-                    </attributes>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -701,7 +702,6 @@ The GNU General Public License does not permit incorporating your program into p
                         <child>
                           <object class="GtkButton" id="save_preferences_button">
                             <property name="label">gtk-save</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
@@ -1005,7 +1005,6 @@ tip: press ctrl+enter to submit selected entry and notes</property>
                             <child>
                               <object class="GtkButton" id="stop_all_button">
                                 <property name="label">gtk-stop</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="use_action_appearance">False</property>
@@ -1020,7 +1019,6 @@ tip: press ctrl+enter to submit selected entry and notes</property>
                             <child>
                               <object class="GtkButton" id="submit_button">
                                 <property name="label">gtk-add</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
@@ -1069,7 +1067,6 @@ tip: press ctrl+enter to submit selected entry and notes</property>
                   <object class="GtkStatusbar" id="statusbar">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="orientation">vertical</property>
                     <property name="spacing">2</property>
                   </object>
                   <packing>
