@@ -191,7 +191,6 @@ class logicFunctions(logicHelpers):
                     self.last_text = self.current_text
                     self.last_notes = self.current_notes
                     self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current_text)
-                    self.refresh_and_show()
                     self.interval_dialog_instance = self.interval_dialog("Are you still working on this task?")
                 elif self.running and self.away_from_desk and not self.interval_dialog_showing:
                     #keep the meter running
@@ -201,7 +200,8 @@ class logicFunctions(logicHelpers):
                           'project_id': self.current_project_id,
                           'task_id': self.current_task_id
                     })
-                    self.refresh_and_show()
+
+                self.refresh_and_show()
 
 
     def _update_status(self):
