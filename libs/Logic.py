@@ -1,5 +1,7 @@
 import os, sys, math
-import gtk, gobject
+import gtk
+
+import gobject
 from time import time, sleep, mktime
 import string
 

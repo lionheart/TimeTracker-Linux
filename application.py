@@ -1,30 +1,42 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
+import sys
 
 import pygtk
-
 pygtk.require('2.0')
 
-import gtk
-import gtk.gdk
-import pango
-import gobject
+if sys.platform != "win32":
+    try:
+        print "Using gi"
+        from gi.repository import Gtk as gtk
+        from gi.repository import GObject as gobject
+        from gi.repository import Gdk as gdk
+    except ImportError:
+        print "Using gtk"
+        import gtk
+        import gtk.gdk as gdk
+        import gobject
+else:
+    import gtk
+    import gtk.gdk as gdk
+    import gobject
 
+#import pango
 from threading import Thread, Lock
 from thread import error as thread_error
 
 from random import Random, randint, sample
 from time import sleep, time
 
-import os
-import sys
+
 
 import gettext
 from gettext import gettext as _
 
 gettext.textdomain(__file__[:-3]) #set app file location without .py as the textdomain for translations
 
-gtk.gdk.threads_init()
+gdk.threads_init()
 
 path = os.path.dirname(os.path.abspath(__file__))
 
@@ -45,14 +57,14 @@ class App(uiSignals, uiLogic):
 
     @staticmethod
     def main( *args, **kwargs ):
-        gtk.gdk.threads_enter()
+        gdk.threads_enter()
 
         try:
             gtk.main()
         except (KeyboardInterrupt, SystemExit):
             kwargs.get("application").quit_gracefully() #defined inside of logic
 
-        gtk.gdk.threads_leave()
+        gdk.threads_leave()
         return
 
     @staticmethod

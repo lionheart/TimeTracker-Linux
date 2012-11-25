@@ -1,9 +1,18 @@
-import gtk
 import os, sys
+
+if sys.platform != "win32":
+    try:
+        from gi.repository import Gtk as gtk
+        from gi.repository import GObject as gobject
+        from gi.repository import Builder as Builder
+    except ImportError:
+        import gtk
+        from gtk import Builder as Builder
+
 import re
 from types import *
 
-class uiBuilder(gtk.Builder):
+class uiBuilder(Builder):
     Gtk_Widget_List = [
         'GtkWindow', 'GtkDialog', 'GtkFileChooserDialog',
         'GtkAboutDialog', 'GtkColorSelectionDialog', 'GtkFileChooserDialog',
@@ -49,7 +58,13 @@ class uiBuilder(gtk.Builder):
                     setattr(self, names[i], self.get_object(names[i]))
 
     def connect_widgets(self, parent):
-        self.connect_signals(self)
+        '''
+        This function connects all the signals in the ui files to all the function found in App instance
+        self - connected
+        parent - discarded
+        '''
+        #self.connect_signals(self)
+        pass
 
     def builder_build(self, *args, **kwargs):
         widget_list_dict = kwargs.get('widget_list_dict', {})
