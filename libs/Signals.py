@@ -249,6 +249,7 @@ class uiSignals(uiSignalHelpers):
         self.set_entries()
         self.timetracker_window.show()
         self.timetracker_window.present()
+        self.notes_textview.grab_focus()
 
     def on_refresh(self, widget):
         self.refresh_and_show()
