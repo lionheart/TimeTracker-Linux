@@ -9,9 +9,6 @@ class uiSignalHelpers(object):
         super(uiSignalHelpers, self).__init__(*args, **kwargs)
         #print 'signal helpers __init__'
 
-        #warning message dialog instance, to close after stop_interval
-        self.message_dialog_instance = None
-
     def callback(self, *args, **kwargs):
         super(uiSignalHelpers, self).callback(*args, **kwargs)
         #print 'signal helpers callback'
@@ -125,11 +122,9 @@ class uiSignals(uiSignalHelpers):
 
     def on_interval_dialog(self, dialog, a): #interval_dialog callback
         if a == gtk.RESPONSE_NO:
-            if not self.timetracker_window.is_active():#show timetracker window if not shown
-                self.timetracker_window.show()
-                self.timetracker_window.present()
+            self.refresh_and_show()
         else:
-            self.timetracker_window.hide() #hide timetracker and continue task
+            #keep the timer running
             notes = self.get_notes(self.last_notes)
             hours = "%0.02f" % round(float(self.last_hours) + float(self.interval), 2)
             entry = self.harvest.update(self.last_entry_id, {#append to existing timer
@@ -138,6 +133,8 @@ class uiSignals(uiSignalHelpers):
                   'project_id': self.last_project_id,
                   'task_id': self.last_task_id
             })
+            self.refresh_and_show()
+            self.timetracker_window.hide() #hide timetracker and continue task
 
         dialog.destroy()
 
@@ -160,8 +157,8 @@ class uiSignals(uiSignalHelpers):
         if self.running: #if running it will turn off, lets empty the comboboxes
             #stop the timer
             #self.toggle_current_timer(self.current_entry_id) #maybe add pref option to kill timer on pref change?
-            if self.message_dialog_instance:
-                self.message_dialog_instance.hide() #hide the dialog
+            if self.interval_dialog_instance:
+                self.interval_dialog_instance.hide() #hide the dialog
 
         self.get_prefs()
         if self.connect_to_harvest():

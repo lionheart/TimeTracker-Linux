@@ -109,6 +109,8 @@ class logicFunctions(logicHelpers):
         self.interval_timer_timeout_instance = None #gint of the timeout_add for interval
         self.elapsed_timer_timeout_instance = None #gint of the timeout for elapsed time
 
+        self.interval_dialog_instance = None
+
         #harvest login
         self.username = None #current logged in user email
         self.uri = None #current uri
@@ -575,15 +577,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         try:
             self.harvest = Harvest(self.uri, self.username, self.password)
 
-            self.set_entries()
-
             #by this time no error means valid login, so lets save it to config
             self.save_config()
 
             self.set_message_text("%s Logged In" % self.username)
+
             self.preferences_window.hide()
-            self.timetracker_window.show()
-            self.timetracker_window.present()
+            self.refresh_and_show()
             return True
 
         except HarvestError as e:
