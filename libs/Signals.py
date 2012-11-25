@@ -9,6 +9,9 @@ class uiSignalHelpers(object):
         super(uiSignalHelpers, self).__init__(*args, **kwargs)
         #print 'signal helpers __init__'
 
+        #warning message dialog instance, to close after stop_interval
+        self.message_dialog_instance = None
+
     def callback(self, *args, **kwargs):
         super(uiSignalHelpers, self).callback(*args, **kwargs)
         #print 'signal helpers callback'

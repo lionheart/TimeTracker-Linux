@@ -109,9 +109,6 @@ class logicFunctions(logicHelpers):
         self.interval_timer_timeout_instance = None #gint of the timeout_add for interval
         self.elapsed_timer_timeout_instance = None #gint of the timeout for elapsed time
 
-        #warning message dialog instance, to close after stop_interval
-        self.message_dialog_instance = None
-
         #harvest login
         self.username = None #current logged in user email
         self.uri = None #current uri
