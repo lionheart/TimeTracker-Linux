@@ -68,7 +68,8 @@ class uiSignalHelpers(object):
                 self.timetracker_window.present()
 
             self.interval_dialog_showing = True
-            self.message_dialog_instance = self.question_message(self.timetracker_window, message, self.on_interval_dialog)
+            return self.question_message(self.timetracker_window, message, self.on_interval_dialog)
+        return None
 
     def stop_interval_dialog(self, message):
         if not self.stop_interval_dialog_showing:
@@ -77,7 +78,8 @@ class uiSignalHelpers(object):
                 self.timetracker_window.present()
 
             self.stop_interval_dialog_showing = True
-            self.stop_interval_dialog_instance = self.information_message(self.timetracker_window, message, self.on_stopped)
+            return self.information_message(self.timetracker_window, message, self.on_stopped)
+        return None
 
     def set_custom_label(self, widget, text):
         #set custom label on stock button
@@ -99,7 +101,7 @@ class uiSignals(uiSignalHelpers):
         self.timetracker_window.connect("window-state-event", self.window_state)
         self.about_dialog.connect("delete-event", lambda w, e: w.hide() or True)
         self.about_dialog.connect("response", lambda w, e: w.hide() or True)
-
+        self.notes_textview.connect('key_press_event', self.on_textview_ctrl_enter)
 
     def callback(self, *args, **kwargs): #stub
         super(uiSignals, self).callback(*args, **kwargs) #executed after init, hopefully this will let me inject interrupts
@@ -127,19 +129,26 @@ class uiSignals(uiSignalHelpers):
 
     def on_interval_dialog(self, dialog, a): #interval_dialog callback
         if a == gtk.RESPONSE_NO:
-            if not self.timetracker_window.is_active():#show timetracker window if not shown
-                self.timetracker_window.show()
-                self.timetracker_window.present()
+            self.refresh_and_show()
         else:
-            self.timetracker_window.hide() #hide timetracker and continue task
-            notes = self.get_notes(self.last_notes)
-            hours = "%0.02f" % round(float(self.last_hours) + float(self.interval), 2)
-            entry = self.harvest.update(self.last_entry_id, {#append to existing timer
-                  'notes': notes,
-                  'hours': hours,
-                  'project_id': self.last_project_id,
-                  'task_id': self.last_task_id
+            #keep the timer running
+            self.running = True
+            self.current_selected_project_id = self.last_project_id
+            self.current_selected_task_id = self.last_task_id
+            self.current_notes = self.get_notes(self.last_notes)
+            self.current_hours = "%0.02f" % round(float(self.last_hours) + float(self.interval), 2)
+            self.current_text = self.last_text
+            self.current_entry_id = self.last_entry_id
+            entry = self.harvest.update(self.current_entry_id, {#append to existing timer
+                  'notes': self.current_notes,
+                  'hours': self.current_hours,
+                  'project_id': self.current_project_id,
+                  'task_id': self.current_task_id
             })
+
+            self.refresh_and_show()
+
+            self.timetracker_window.hide() #hide timetracker and continue task
 
         dialog.destroy()
 
@@ -147,6 +156,13 @@ class uiSignals(uiSignalHelpers):
 
         self.interval_dialog_showing = False
 
+    def on_textview_ctrl_enter(self, widget, event):
+        '''
+        submit clicked event on ctrl+enter in notes textview
+        '''
+        if event.state == gtk.gdk.CONTROL_MASK and \
+           gtk.gdk.keyval_name(event.keyval) == "Return":
+            self.submit_button.emit('clicked')
     def on_stopped(self, dialog):
         if not self.timetracker_window.is_active():
             self.timetracker_window.show()
@@ -162,8 +178,8 @@ class uiSignals(uiSignalHelpers):
         if self.running: #if running it will turn off, lets empty the comboboxes
             #stop the timer
             #self.toggle_current_timer(self.current_entry_id) #maybe add pref option to kill timer on pref change?
-            if self.message_dialog_instance:
-                self.message_dialog_instance.hide() #hide the dialog
+            if self.interval_dialog_instance:
+                self.interval_dialog_instance.hide() #hide the dialog
 
         self.get_prefs()
         if self.connect_to_harvest():
@@ -213,7 +229,7 @@ class uiSignals(uiSignalHelpers):
         self.append_add_entry()
 
         self.set_entries()
-
+        self.notes_textview.grab_focus()
 
 
     def on_stop_timer(self, widget):
@@ -226,16 +242,16 @@ class uiSignals(uiSignalHelpers):
 
         gtk.main_quit()
 
-    def _do_refresh(self):
+    def refresh_and_show(self):
         self.set_entries()
         self.timetracker_window.show()
         self.timetracker_window.present()
 
     def on_refresh(self, widget):
-        self._do_refresh()
+        self.refresh_and_show()
 
     def left_click(self, widget):
-        self._do_refresh()
+        self.refresh_and_show()
 
     def right_click(self, widget, button, time):
         #create popup menu

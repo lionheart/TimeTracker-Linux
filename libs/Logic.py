@@ -111,8 +111,7 @@ class logicFunctions(logicHelpers):
         self.interval_timer_timeout_instance = None #gint of the timeout_add for interval
         self.elapsed_timer_timeout_instance = None #gint of the timeout for elapsed time
 
-        #warning message dialog instance, to close after stop_interval
-        self.message_dialog_instance = None
+        self.interval_dialog_instance = None
 
         #harvest login
         self.username = None #current logged in user email
@@ -122,6 +121,10 @@ class logicFunctions(logicHelpers):
         self.harvest = None #harvest instance
 
         self.interval = 0.33 #default 20 minute interval
+        self.show_countdown = False
+        self.save_passwords = True
+        self.show_timetracker = True
+        self.show_notification = True
 
         self.projects = [] #list of projects, used in comboboxes
         self.tasks = [] #list of tasks per project, under project index, for comboboxes
@@ -188,29 +191,33 @@ class logicFunctions(logicHelpers):
                     self.last_text = self.current_text
                     self.last_notes = self.current_notes
                     self.call_notify("TimeTracker", "Are you still working on?\n%s" % self.current_text)
-                    self.timetracker_window.show()
-                    self.timetracker_window.present()
-                    self.set_entries() #not necessary, jic
+                    self.refresh_and_show()
                     self.interval_dialog_instance = self.interval_dialog("Are you still working on this task?")
                 elif self.running and self.away_from_desk and not self.interval_dialog_showing:
+                    #keep the meter running
                     self.harvest.update(self.current_entry_id, {#append to existing timer
                           'notes': self.get_notes(self.current_notes),
                           'hours': round(float(self.current_hours) + float(self.interval), 2),
                           'project_id': self.current_project_id,
                           'task_id': self.current_task_id
                     })
-                    self._do_refresh()
+                    self.refresh_and_show()
 
 
     def _update_status(self):
         if self.harvest:
             status = "%s for %s" %(self.current_task, self.current_project) if self.running else "Stopped"
-            self.statusbar.push(0, "%s" % status)
+        else:
+            status = "Not Connected"
+
+        self.statusbar.push(0, "%s" % status)
 
     def _set_counter_label(self):
         if self.harvest:
             self.counter_label.set_text(
                 "%s Entries %0.02f hours Total" % (self.entries_count, self.today_total_hours))
+        else:
+            self.counter_label.set_text("")
 
     def get_notes(self, old_notes = None):
         notes = old_notes if old_notes else "" #sanitize None
@@ -577,15 +584,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         try:
             self.harvest = Harvest(self.uri, self.username, self.password)
 
-            self.set_entries()
-
             #by this time no error means valid login, so lets save it to config
             self.save_config()
 
             self.set_message_text("%s Logged In" % self.username)
+
             self.preferences_window.hide()
-            self.timetracker_window.show()
-            self.timetracker_window.present()
+            self.refresh_and_show()
             return True
 
         except HarvestError as e:
