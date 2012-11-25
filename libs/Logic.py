@@ -9,15 +9,17 @@ from dateutil.tz import tzoffset
 
 from base64 import b64encode
 import ConfigParser
-import keyring
+if sys.platform != 'win32':
+    import keyring
 
-from gnomekeyring import IOError as KeyRingError
+    from gnomekeyring import IOError as KeyRingError
 
 from datetime import datetime, timedelta
 from Harvest import Harvest, HarvestError, HarvestStatus
 
-from Notifier import Notifier
-from StatusButton import StatusButton
+if sys.platform != "win32":
+    from Notifier import Notifier
+    from StatusButton import StatusButton
 
 class InterfaceException(Exception):
     pass
@@ -387,19 +389,21 @@ class logicFunctions(logicHelpers):
         self.config.write(open(self.config_filename, 'w'))
 
     def get_password(self):
-        if self.username:
-            try:
-                return keyring.get_password('TimeTracker', self.username)
-            except KeyRingError, e:
-                try: #try again, just in case
-                    return keyring.get_password('TimeTracker', self.username)
-                except KeyRingError as e:
-                    self.warning_message(self.preferences_window, "Unable to get Password from Gnome KeyRing")
-                    exit(1)
+	    if sys.platform != "win32":
+			if self.username:
+				try:
+					return keyring.get_password('TimeTracker', self.username)
+				except KeyRingError, e:
+					try: #try again, just in case
+						return keyring.get_password('TimeTracker', self.username)
+					except KeyRingError as e:
+						self.warning_message(self.preferences_window, "Unable to get Password from Gnome KeyRing")
+						exit(1)
 
     def save_password(self):
-        if self.save_passwords and self.username and self.password:
-            keyring.set_password('TimeTracker', self.username, self.password)
+		if sys.platform != "win32":
+			if self.save_passwords and self.username and self.password:
+				keyring.set_password('TimeTracker', self.username, self.password)
 
 
     def format_time(self, seconds):
@@ -421,11 +425,12 @@ class logicFunctions(logicHelpers):
         self._status_button.stop_pulsing()
 
     def call_notify(self, summary=None, message=None, reminder_message_func=None, show=True):
-        if self.string_to_bool(self.show_notification):
-            if show:
-                self._notifier.begin(summary, message, reminder_message_func)
-            else:
-                self._notifier.end()
+        if sys.platform != "win32":
+            if self.string_to_bool(self.show_notification):
+                if show:
+                    self._notifier.begin(summary, message, reminder_message_func)
+                else:
+                    self._notifier.end()
 
 class uiLogic(uiBuilder, uiCreator, logicFunctions):
     def __init__(self,*args, **kwargs):
@@ -479,10 +484,11 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
         self.center_windows(self.timetracker_window, self.preferences_window)
 
         self.start_elapsed_timer()
-
-        self._status_button = StatusButton()
-        self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
-
+		
+        if sys.platform != "win32":
+            self._status_button = StatusButton()
+            self._notifier = Notifier('TimeTracker', gtk.STOCK_DIALOG_INFO, self._status_button)
+			
         self.about_dialog.set_logo(gtk.gdk.pixbuf_new_from_file(media_path + "logo.svg"))
 
         return self
@@ -709,7 +715,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                                  'project_id': self.current_selected_project_id,
                                  'task_id': self.current_selected_task_id
                             })
-
+                            print entry
                             got_one = True
                             break
 
@@ -723,7 +729,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             'project_id': self.current_selected_project_id,
                             'task_id': self.current_selected_task_id
                         })
-
+                        print entry
                     if 'timer_started_at' in entry and 'id' in entry: #stop the timer if adding it has started it
                         self.harvest.toggle_timer(entry['id'])
                 else:
@@ -741,7 +747,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                                  'project_id': self.current_selected_project_id,
                                  'task_id': self.current_selected_task_id
                             })
-
+                            print entry
                             got_one = True
                             break
 
@@ -754,7 +760,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             'project_id': self.current_selected_project_id,
                             'task_id': self.current_selected_task_id
                         })
-
+                        print entry
                     if 'timer_started_at' in entry and 'id' in entry: #stop the timer if it was started by harvest, do timing locally
                         self.harvest.toggle_timer(entry['id'])
 

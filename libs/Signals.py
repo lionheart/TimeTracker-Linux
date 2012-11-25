@@ -1,3 +1,4 @@
+import sys
 import gtk
 
 from datetime import datetime
@@ -105,6 +106,12 @@ class uiSignals(uiSignalHelpers):
         #print 'signals callback'
         self.icon.connect('activate', self.left_click)
         self.icon.connect("popup-menu", self.right_click)
+        if sys.platform == "win32":
+            from gtkwin32 import GTKWin32Ext
+            self.timetracker_window.realize()
+            self.win32ext = GTKWin32Ext(self.timetracker_window)
+
+            self.win32ext.add_notify_icon()
 
     def before_init(self): #stub for later
         #print 'signals before init'
