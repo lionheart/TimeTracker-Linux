@@ -70,7 +70,8 @@ class uiSignalHelpers(object):
                 self.timetracker_window.present()
 
             self.interval_dialog_showing = True
-            self.message_dialog_instance = self.question_message(self.timetracker_window, message, self.on_interval_dialog)
+            return self.question_message(self.timetracker_window, message, self.on_interval_dialog)
+        return None
 
     def stop_interval_dialog(self, message):
         if not self.stop_interval_dialog_showing:
@@ -79,7 +80,8 @@ class uiSignalHelpers(object):
                 self.timetracker_window.present()
 
             self.stop_interval_dialog_showing = True
-            self.stop_interval_dialog_instance = self.information_message(self.timetracker_window, message, self.on_stopped)
+            return self.information_message(self.timetracker_window, message, self.on_stopped)
+        return None
 
     def set_custom_label(self, widget, text):
         #set custom label on stock button
