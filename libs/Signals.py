@@ -163,6 +163,7 @@ class uiSignals(uiSignalHelpers):
         if event.state == gtk.gdk.CONTROL_MASK and \
            gtk.gdk.keyval_name(event.keyval) == "Return":
             self.submit_button.emit('clicked')
+
     def on_stopped(self, dialog):
         if not self.timetracker_window.is_active():
             self.timetracker_window.show()
@@ -233,7 +234,9 @@ class uiSignals(uiSignalHelpers):
 
 
     def on_stop_timer(self, widget):
-        self.toggle_current_timer(self.current_entry_id)
+        if self.is_running():
+            self.refactor_time()
+
 
 
     def on_quit(self, widget):
