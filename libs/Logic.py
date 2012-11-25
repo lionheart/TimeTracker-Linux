@@ -736,14 +736,14 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.last_hours = "%0.02f" % round(float(self.current_hours) - float(interval), 2)
             self.last_text = self.current_text
             self.last_entry_id = self.current_entry_id
-            print self.last_hours
+            #print self.last_hours
             entry = self.harvest.update(self.last_entry_id, {#append to existing timer
                 'notes': self.last_notes,
                 'hours': self.last_hours,
                 'project_id': self.last_project_id,
                 'task_id': self.last_task_id
             })
-            print entry
+            #print entry
         self.refresh_and_show()
 
     def append_add_entry(self):
@@ -761,7 +761,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                         if (entry['project_id'] == self.current_selected_project_id\
                             and entry['task_id'] == self.current_selected_task_id)\
                             and self.current_hours: #current running time with timedelta added from timer
-                            print '1'
+                            #print '1'
 
                             notes = entry['notes'] if entry.has_key('notes') else None
                             notes = self.get_notes(notes)
@@ -772,13 +772,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                                  'project_id': self.current_selected_project_id,
                                  'task_id': self.current_selected_task_id
                             })
-                            print entry
+                            #print entry
                             got_one = True
                             break
 
                     if not got_one:
                         #not the same project task as last one, add new entry
-                        print '2'
+                        #print '2'
 
                         entry = self.harvest.add({
                             'notes': self.get_notes(),
@@ -786,7 +786,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             'project_id': self.current_selected_project_id,
                             'task_id': self.current_selected_task_id
                         })
-                        print entry
+                        #print entry
                     if 'timer_started_at' in entry and 'id' in entry: #stop the timer if adding it has started it
                         self.harvest.toggle_timer(entry['id'])
                 else:
@@ -795,7 +795,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                         if (entry['project_id'] == self.current_selected_project_id\
                             and entry['task_id'] == self.current_selected_task_id): #found existing project/task entry for today, just append to it
                             #self.harvest.toggle_timer(entry['id'])
-                            print '3'
+                            #print '3'
 
                             notes = entry['notes'] if entry.has_key('notes') else None
                             entry = self.harvest.update(entry['id'], {#append to existing timer
@@ -804,20 +804,20 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                                  'project_id': self.current_selected_project_id,
                                  'task_id': self.current_selected_task_id
                             })
-                            print entry
+                            #print entry
                             got_one = True
                             break
 
                     if not got_one:
                         #not the same project task as last one, add new entry
-                        print '4'
+                        #print '4'
                         entry = self.harvest.add({
                             'notes': self.get_notes(),
                             'hours': self.interval,
                             'project_id': self.current_selected_project_id,
                             'task_id': self.current_selected_task_id
                         })
-                        print entry
+                        #print entry
                     if 'timer_started_at' in entry and 'id' in entry: #stop the timer if it was started by harvest, do timing locally
                         self.harvest.toggle_timer(entry['id'])
 
