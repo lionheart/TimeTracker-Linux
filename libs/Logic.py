@@ -746,7 +746,6 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             })
             #print entry
             self.set_entries()
-        self.refresh_and_show()
 
     def append_add_entry(self):
         if self.harvest: #we have to be connected
