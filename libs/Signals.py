@@ -230,6 +230,8 @@ class uiSignals(uiSignalHelpers):
         self.append_add_entry()
 
         self.set_entries()
+
+        self.set_textview_text(self.notes_textview, "")
         self.notes_textview.grab_focus()
 
 
