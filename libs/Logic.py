@@ -434,13 +434,6 @@ class logicFunctions(logicHelpers):
 				keyring.set_password('TimeTracker', self.username, self.password)
 
 
-    def format_time(self, seconds):
-        minutes = math.floor(seconds / 60)
-        if minutes > 1:
-            return "%d minutes" % minutes
-        else:
-            return "%d minute" % minutes
-
     def set_message_text(self, text):
         self.prefs_message_label.set_text(text)
         self.main_message_label.set_text(text)
