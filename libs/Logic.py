@@ -783,7 +783,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                     if not got_one:
                         #not the same project task as last one, add new entry
                         print 'running and doesnt exist'
-
+                        self.stop_and_refactor_time() #refactor any previous time alloted to a task
                         entry = self.harvest.add({
                             'notes': self.get_notes(),
                             'hours': self.interval,
