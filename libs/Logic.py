@@ -272,6 +272,9 @@ class logicFunctions(logicHelpers):
         self.username = self.harvest_email_entry.get_text()
         self.uri = self.harvest_url_entry.get_text()
         self.password = self.harvest_password_entry.get_text()
+        if sys.platform != "win32":
+            if self.password == "":
+                self.password = self.get_password()
 
         self.interval = self.interval_entry.get_text()
         self._interval = int(round(3600 * float(self.interval)))
@@ -405,7 +408,7 @@ class logicFunctions(logicHelpers):
 						return keyring.get_password('TimeTracker', self.username)
 					except KeyRingError as e:
 						self.warning_message(self.preferences_window, "Unable to get Password from Gnome KeyRing")
-						exit(1)
+        return ""
 
     def save_password(self):
 		if sys.platform != "win32":
