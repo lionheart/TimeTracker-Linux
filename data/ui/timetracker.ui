@@ -962,7 +962,8 @@ The GNU General Public License does not permit incorporating your program into p
                                     <property name="height_request">80</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
-                                    <property name="tooltip_text" translatable="yes">new task notes/current task notes</property>
+                                    <property name="tooltip_text" translatable="yes">new task notes/current task notes
+tip: press ctrl+enter to submit selected entry and notes</property>
                                   </object>
                                 </child>
                               </object>
