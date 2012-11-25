@@ -767,6 +767,11 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             and self.current_hours: #current running time with timedelta added from timer
                             print 'running and exists'
 
+                            project = self.projects[self.current_selected_project_id]
+                            task = self.tasks[self.current_selected_project_id][self.current_selected_task_id]
+                            self.stop_and_refactor_time(
+                                "#SwitchTo %s - %s " % (project, task)) #refactor any previous time alloted to a task
+
                             notes = entry['notes'] if entry.has_key('notes') else None
                             notes = self.get_notes(notes)
 
@@ -787,12 +792,13 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                         project = self.projects[project_id]
                         task_id = self.get_combobox_selection(self.task_combobox)
                         task = self.tasks[project_id][task_id]
+                        notes = self.get_notes()
                         self.stop_and_refactor_time("#SwitchTo %s - %s "%(project, task)) #refactor any previous time alloted to a task
                         entry = self.harvest.add({
-                            'notes': self.get_notes(),
+                            'notes': notes,
                             'hours': self.interval,
-                            'project_id': self.current_selected_project_id,
-                            'task_id': self.current_selected_task_id
+                            'project_id': project_id,
+                            'task_id': task_id
                         })
                         #print entry
                     if 'timer_started_at' in entry and 'id' in entry: #stop the timer if adding it has started it
