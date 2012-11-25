@@ -275,7 +275,16 @@ class logicFunctions(logicHelpers):
             if self.password == "":
                 self.password = self.get_password()
 
-        self.interval = self.interval_entry.get_text()
+        self.interval = float(self.interval_entry.get_text())
+        if self.interval < 0.01:
+            self.interval = 0.01
+
+
+        if self.interval > 2: #make timetracker bug you at least every 2 hours max
+            self.interval = 2
+
+        self.interval_entry.set_text("%s"%self.interval)
+
         self._interval = int(round(3600 * float(self.interval)))
 
         self.show_countdown = self.string_to_bool(self.countdown_checkbutton.get_active())
