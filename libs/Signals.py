@@ -181,6 +181,7 @@ class uiSignals(uiSignalHelpers):
             #self.toggle_current_timer(self.current_entry_id) #maybe add pref option to kill timer on pref change?
             if self.interval_dialog_instance:
                 self.interval_dialog_instance.hide() #hide the dialog
+            self.stop_and_refactor_time()
 
         self.get_prefs()
         if self.connect_to_harvest():
@@ -236,10 +237,7 @@ class uiSignals(uiSignalHelpers):
 
 
     def on_stop_timer(self, widget):
-        if self.is_running():
-            self.refactor_time()
-
-
+        self.stop_and_refactor_time()
 
     def on_quit(self, widget):
         if self.running and self.harvest:

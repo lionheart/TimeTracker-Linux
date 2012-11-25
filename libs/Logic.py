@@ -219,20 +219,30 @@ class logicFunctions(logicHelpers):
         else:
             self.counter_label.set_text("")
 
-    def get_notes(self, old_notes = None):
+    def get_notes(self, old_notes = None, append_note = ""):
+        '''
+        get_notes
+        old_notes - notes to prepend to notes found in textview
+        append_note - append note to notes, used to leave action in timer notes, eg. stopped timer
+        '''
         notes = old_notes if old_notes else "" #sanitize None
 
+        current_time = datetime.time(datetime.now()).strftime("%H:%M") #for prepending to note
+
         note = self.get_textview_text(self.notes_textview)
-        if note and note.strip("\n"):
-            current_time = datetime.time(datetime.now()).strftime("%H:%M")
+        if note and note.strip("\n") != "":#prepend time to note if new note not empty
             note = "%s: %s" % (current_time, note)
 
-        if notes != "":#any previous notes? prepend previous to new note
+        if notes != "":#any previous notes? concat notes
             if note:
                 notes = "%s\n%s" % (notes, note)
             #otherwise continue, keep the old notes
         else:#must be new or empty
             notes = note
+
+        if append_note != "":
+            notes = "%s\n%s: %s" % (notes, current_time, append_note)
+
         return notes.strip("\n")
 
     def set_prefs(self):
@@ -702,14 +712,34 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 return True
         return False
 
-    def get_elapsed_time_diff(self, timestamp):
+    def _get_elapsed_time_diff(self, timestamp):
         if timestamp:
             if float(timestamp + self._interval) > float(mktime(datetime.utcnow().timetuple())):
                 return float(timestamp + self._interval) - float(mktime(datetime.utcnow().timetuple()))
         return False
 
-    def refactor_time(self):
-        pass
+    def stop_and_refactor_time(self):
+        if self.is_running(self.current_updated_at):
+            secs = self._get_elapsed_time_diff(self.current_updated_at) #seconds left to run this timer
+            interval = round(float(self.interval) * (secs / self._interval),2) # interval to subract from already alloted time
+            print secs, interval
+            #keep the timer running
+            self.running = False
+            self.last_project_id = self.current_project_id
+            self.last_task_id = self.current_task_id
+            self.last_notes = self.get_notes(self.current_notes)
+            self.last_hours = "%0.02f" % round(float(self.current_hours) - float(interval), 2)
+            self.last_text = self.current_text
+            self.last_entry_id = self.current_entry_id
+            print self.last_hours
+            '''entry = self.harvest.update(self.last_entry_id, {#append to existing timer
+                'notes': self.last_notes,
+                'hours': self.last_hours,
+                'project_id': self.last_project_id,
+                'task_id': self.last_task_id
+            })
+            print entry'''
+        self.refresh_and_show()
 
     def append_add_entry(self):
         if self.harvest: #we have to be connected
