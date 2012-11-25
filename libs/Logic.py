@@ -765,7 +765,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                         if (entry['project_id'] == self.current_selected_project_id\
                             and entry['task_id'] == self.current_selected_task_id)\
                             and self.current_hours: #current running time with timedelta added from timer
-                            #print '1'
+                            print 'running and exists'
 
                             notes = entry['notes'] if entry.has_key('notes') else None
                             notes = self.get_notes(notes)
@@ -782,7 +782,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
                     if not got_one:
                         #not the same project task as last one, add new entry
-                        #print '2'
+                        print 'running and doesnt exist'
 
                         entry = self.harvest.add({
                             'notes': self.get_notes(),
@@ -799,7 +799,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                         if (entry['project_id'] == self.current_selected_project_id\
                             and entry['task_id'] == self.current_selected_task_id): #found existing project/task entry for today, just append to it
                             #self.harvest.toggle_timer(entry['id'])
-                            #print '3'
+                            print 'not running and exists'
 
                             notes = entry['notes'] if entry.has_key('notes') else None
                             entry = self.harvest.update(entry['id'], {#append to existing timer
@@ -814,7 +814,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
                     if not got_one:
                         #not the same project task as last one, add new entry
-                        #print '4'
+                        print 'not running and doesnt exist'
                         entry = self.harvest.add({
                             'notes': self.get_notes(),
                             'hours': self.interval,
