@@ -216,7 +216,7 @@ class uiSignals(uiSignalHelpers):
         self.append_add_entry()
 
         self.set_entries()
-
+        self.notes_textview.grab_focus()
 
 
     def on_stop_timer(self, widget):
