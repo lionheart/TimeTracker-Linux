@@ -1,4 +1,4 @@
-[![Build status](https://secure.travis-ci.org/gxela/TimeTracker.png?branch=master)](https://secure.travis-ci.org/gxela/TimeTracker)
+![Build status](https://secure.travis-ci.org/gxela/TimeTracker.png?branch=master)](https://secure.travis-ci.org/gxela/TimeTracker)
 
 #[TimeTracker](http://aurora.io/timetracker)
 ----
@@ -11,7 +11,7 @@ Basic and Advanced. They are different in that, Basic uses no working parts and 
 ##
 
 ###Basic Interface
-[![Basic Interface](https://raw.github.com/gxela/TimeTracker/85889dabfe521f46399e5e3642bad86ccf6fdf44/data/media/screenshot-timetracker-basic.png)
+![Basic Interface](https://raw.github.com/gxela/TimeTracker/85889dabfe521f46399e5e3642bad86ccf6fdf44/data/media/screenshot-timetracker-basic.png)
 
 * Harvest timer never runs. No moving parts. The interval you set in preferences is incremented to the desired entry on submit.
 * Notes are appended to the current running entry project task
@@ -20,7 +20,7 @@ Basic and Advanced. They are different in that, Basic uses no working parts and 
 ##
 
 ###Advanced Interface
-[![Advanced Interface](https://raw.github.com/gxela/TimeTracker/f80cec38dc54ef342a7d64e7b6ffef0615a1b362/data/media/screenshot-timetracker-advanced.png)
+![Advanced Interface](https://raw.github.com/gxela/TimeTracker/f80cec38dc54ef342a7d64e7b6ffef0615a1b362/data/media/screenshot-timetracker-advanced.png)
 
 * Harvest meter is running. **Don't Forget To Stop The Timer**
 * Start, Stop, Modify entries of projects and tasks
