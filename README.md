@@ -2,14 +2,15 @@
 
 #[TimeTracker](http://aurora.io/timetracker)
 ----
+
 *This Software is still beta*, please use at your own risk.
+
+##About
 
 Track time with your harvestapp.com account while working on projects.
 >
 Currently there are two different ways to handle time tracking with TimeTracker.     
 Basic and Advanced. They are different in that, Basic uses no working parts and Advanced utilizes harvest api to run the timer. 
-
-##About
 
 ###Basic Interface
 ![Basic Interface](https://raw.github.com/gxela/TimeTracker/85889dabfe521f46399e5e3642bad86ccf6fdf44/data/media/screenshot-timetracker-basic.png)
