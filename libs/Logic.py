@@ -683,8 +683,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 _updated_at_time = mktime(entry['updated_at'].timetuple())
 
                 stopped = False
-                last_line = entry["notes"].split("\n")[-1]
-                if last_line.split(" ")[-1] == "#TimerStopped" or last_line.find("#SwitchTo") > -1:
+                last_line = entry["notes"].split("\n")[-1] if entry.has_key("notes") else ""
+                if last_line and (last_line.split(" ")[-1] == "#TimerStopped" or last_line.find("#SwitchTo") > -1):
                     stopped = True
 
                 if self.is_running(_updated_at_time, stopped):
