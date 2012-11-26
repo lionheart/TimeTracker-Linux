@@ -43,3 +43,13 @@ Basic and Advanced. They are different in that, Basic uses no working parts and 
 ###Linux
 
 ###Mac
+
+## Details
+
+* License: [MIT](https://github.com/gxela/TimeTracker/blob/master/LICENSE).
+
+## Engage
+
+* [Discussion list](https://groups.google.com/d/forum/aurora-timetracker)
+* [File an issue](http://goretoy.myjetbrains.com/youtrack/issues/TimeTracker)
+* [Working with the TimeTracker code](https://github.com/gxela/TimeTracker/blob/master/docs/CONTRIBUTING.md)
