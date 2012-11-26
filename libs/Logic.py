@@ -630,8 +630,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.running = False
             self.attention = "ERROR: %s" % e
             self.set_message_text("Error\r\n%s" % e)
-            return self.not_connected()
-
+            raise e
 
     def _setup_current_data(self, harvest_data):
         self.entries_count = len(harvest_data['day_entries'])
@@ -683,7 +682,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 _updated_at_time = mktime(entry['updated_at'].timetuple())
 
                 stopped = False
-                last_line = entry["notes"].split("\n")[-1]
+
+                last_line = entry["notes"].split("\n")[-1] if entry.has_key("notes") else ""
                 if last_line.split(" ")[-1] == "#TimerStopped" or last_line.find("#SwitchTo") > -1:
                     stopped = True
 
