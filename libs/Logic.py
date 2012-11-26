@@ -609,29 +609,28 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
         try:
             self.harvest = Harvest(self.uri, self.username, self.password)
-
-            #by this time no error means valid login, so lets save it to config
-            self.save_config()
-
-            self.set_message_text("%s Logged In" % self.username)
-
-            self.preferences_window.hide()
-            self.refresh_and_show()
-            return True
-
         except HarvestError as e:
             self.running = False
             self.attention = "Unable to Connect to Harvest!"
             self.set_message_text("Unable to Connect to Harvest\r\n%s" % e)
-            self.warning_message(self.timetracker_window, "Error Connecting!\r\n%s" % e )
+            self.warning_message(self.timetracker_window, "Error Connecting!\r\n%s" % e)
             return self.not_connected()
         except Exception as e:
             #catch all other exceptions
             self.running = False
             self.attention = "ERROR: %s" % e
             self.set_message_text("Error\r\n%s" % e)
-            return self.not_connected()
+            raise e
 
+        #by this time no error means valid login, so lets save it to config
+        self.save_config()
+        self.set_message_text("%s Logged In" % self.username)
+
+        self.preferences_window.hide()
+        self.refresh_and_show()
+
+        #all should be fine by now, return true
+        return True
 
     def _setup_current_data(self, harvest_data):
         self.entries_count = len(harvest_data['day_entries'])
@@ -683,8 +682,10 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 _updated_at_time = mktime(entry['updated_at'].timetuple())
 
                 stopped = False
-                last_line = entry["notes"].split("\n")[-1] if entry.has_key("notes") else ""
-                if last_line and (last_line.split(" ")[-1] == "#TimerStopped" or last_line.find("#SwitchTo") > -1):
+
+                last_line = entry["notes"].split("\n")[-1] if entry.has_key("notes") and entry['notes'] else ""
+
+                if last_line.split(" ")[-1] == "#TimerStopped" or last_line.find("#SwitchTo") > -1:
                     stopped = True
 
                 if self.is_running(_updated_at_time, stopped):
