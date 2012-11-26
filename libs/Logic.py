@@ -729,6 +729,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
     def stop_and_refactor_time(self, task_type = ""):
         if self.is_running(self.current_updated_at):
+            #TODO: figure out how to keep track on lost seconds and add them up them auto correct,
+            #also handle(when dialog yes response) the time when interval dialog is showing and the timer is actually stopped
             secs = self._get_elapsed_time_diff(self.current_updated_at) #seconds left to run this timer
             interval = round(float(self.interval) * (secs / self._interval),2) # interval to subract from already alloted time
 
@@ -782,9 +784,14 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             notes = entry['notes'] if entry.has_key('notes') else None
                             notes = self.get_notes(notes)
 
+                            if str(entry['id']) != str(self.last_entry_id): #dont increment timer if only append note to current timer
+                                hours = round(float(entry['hours']) + float(self.interval), 2) #task switched
+                            else:
+                                hours = round(float(entry['hours']), 2) # same task as before, since interval timer running no need to increment time again
+
                             entry = self.harvest.update(entry['id'], {#append to existing timer
                                  'notes': notes,
-                                 'hours': round(float(entry['hours']) + float(self.interval), 2),
+                                 'hours': hours,
                                  'project_id': self.current_selected_project_id,
                                  'task_id': self.current_selected_task_id
                             })
