@@ -31,7 +31,7 @@ Basic and Advanced. They are different in that, Basic uses no working parts and 
 
 ##Prerequisites
 
-    * [pygtk](http://pypi.python.org/pypi/requests) for Harvest API Client
+    * [pygtk](http://www.pygtk.org/) for GUI
     * [pytz](http://pypi.python.org/pypi/pytz) for timezone stuff(may remove dependency soon)
     * [dateutil](http://pypi.python.org/pypi/python-dateutil)
     * [requests](http://pypi.python.org/pypi/requests) for Harvest API Client
