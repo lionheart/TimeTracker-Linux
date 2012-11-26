@@ -2,6 +2,7 @@
 
 #[TimeTracker](http://aurora.io/timetracker)
 ----
+*This Software is still beta*, please use at your own risk.
 
 Track time with your harvestapp.com account while working on projects.
 >
