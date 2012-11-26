@@ -9,7 +9,7 @@ Track time with your harvestapp.com account while working on projects.
 Currently there are two different ways to handle time tracking with TimeTracker.     
 Basic and Advanced. They are different in that, Basic uses no working parts and Advanced utilizes harvest api to run the timer. 
 
-##
+##About
 
 ###Basic Interface
 ![Basic Interface](https://raw.github.com/gxela/TimeTracker/85889dabfe521f46399e5e3642bad86ccf6fdf44/data/media/screenshot-timetracker-basic.png)
@@ -27,3 +27,18 @@ Basic and Advanced. They are different in that, Basic uses no working parts and 
 * Start, Stop, Modify entries of projects and tasks
 * Notification Message on Interval
 * Clear lingering timers from previous days that may be still running(7 days back by default)
+
+##Prerequisites
+
+    * [pygtk](http://pypi.python.org/pypi/requests) for Harvest API Client
+    * [pytz](http://pypi.python.org/pypi/pytz) for timezone stuff(may remove dependency soon)
+    * [dateutil](http://pypi.python.org/pypi/python-dateutil)
+    * [requests](http://pypi.python.org/pypi/requests) for Harvest API Client
+
+##Install
+
+###Windows
+
+###Linux
+
+###Mac
