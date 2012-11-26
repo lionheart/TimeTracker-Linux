@@ -1,6 +1,6 @@
 ![Build status](https://secure.travis-ci.org/gxela/TimeTracker.png?branch=master)
 
-#[TimeTracker](http://aurora.io/timetracker)
+#[TimeTracker](http://aurora.io/timetracker) 1.3.3.7 Basic
 ----
 
 *This Software is still beta*, please use at your own risk.
@@ -45,11 +45,13 @@ Basic and Advanced. They are different in that, Basic uses no working parts and 
 ###Mac
 
 ## Details
-
-* License: [MIT](https://github.com/gxela/TimeTracker/blob/master/LICENSE).
+* Changes: [Changes](https://github.com/gxela/TimeTracker/blob/master/CHANGES).
+* License: [MIT](https://github.com/gxela/TimeTracker/blob/master/LICENSE)
 
 ## Engage
 
 * [Discussion list](https://groups.google.com/d/forum/aurora-timetracker)
 * [File an issue](http://goretoy.myjetbrains.com/youtrack/issues/TimeTracker)
 * [Working with the TimeTracker code](https://github.com/gxela/TimeTracker/blob/master/CONTRIBUTING.md)
+
+#
