@@ -684,6 +684,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                 stopped = False
 
                 last_line = entry["notes"].split("\n")[-1] if entry.has_key("notes") and entry['notes'] else ""
+
                 if last_line.split(" ")[-1] == "#TimerStopped" or last_line.find("#SwitchTo") > -1:
                     stopped = True
 
