@@ -8,4 +8,4 @@ bin/
 build/
 local/
 *.egg-info/
-*.cfg
+data/config/*.cfg
