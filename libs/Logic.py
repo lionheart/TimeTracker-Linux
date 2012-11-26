@@ -84,6 +84,8 @@ class logicFunctions(logicHelpers):
         #timer state
         self.running = False #timer is running and tracking time
 
+        self.interval = None #object attr default
+
         #timeout instances
         self.interval_timer_timeout_instance = None #gint of the timeout_add for interval
         self.elapsed_timer_timeout_instance = None #gint of the timeout for elapsed time
