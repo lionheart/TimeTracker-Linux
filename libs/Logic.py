@@ -825,9 +825,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             #self.harvest.toggle_timer(entry['id'])
                             #print 'not running and exists'
 
-                            notes = entry['notes'] if entry.has_key('notes') else None
                             entry = self.harvest.update(entry['id'], {#append to existing timer
-                                 'notes': self.get_notes(notes),
+                                 'notes': self.get_notes(entry['notes']),
                                  'hours': round(float(entry['hours']) + float(self.interval), 2),
                                  'project_id': self.current_selected_project_id,
                                  'task_id': self.current_selected_task_id
