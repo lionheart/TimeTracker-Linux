@@ -1,4 +1,4 @@
-![Build status](https://secure.travis-ci.org/gxela/TimeTracker.png?branch=master)](https://secure.travis-ci.org/gxela/TimeTracker)
+![Build status](https://secure.travis-ci.org/gxela/TimeTracker.png?branch=master)
 
 #[TimeTracker](http://aurora.io/timetracker)
 ----
