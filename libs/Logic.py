@@ -224,7 +224,7 @@ class logicFunctions(logicHelpers):
         else:
             self.counter_label.set_text("")
 
-    def get_notes(self, old_notes = None, get_text = True, append_note = ""):
+    def get_notes(self, old_notes = None, get_text = True, append_note = "", start = False):
         '''
         get_notes
         old_notes - notes to prepend to notes found in textview
@@ -240,7 +240,10 @@ class logicFunctions(logicHelpers):
             note = ""
 
         if note and note.strip("\n") != "":#prepend time to note if new note not empty
-            note = "%s: %s" % (current_time, note)
+            if start:
+                note = "%s: %s #TimerStarted" % (current_time, note)
+            else:
+                note = "%s: %s" % (current_time, note)
 
         if notes != "":#any previous notes? concat notes
             if note:
@@ -250,7 +253,7 @@ class logicFunctions(logicHelpers):
             notes = note
 
         if append_note != "":
-            notes = "%s\n%s,%s: %s" % (notes, current_time, self.interval, append_note)
+            notes = "%s\n%s: %s" % (notes, current_time, append_note)
 
         return notes.strip("\n")
 
@@ -780,9 +783,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             task = self.tasks[self.current_selected_project_id][self.current_selected_task_id]
                             self.stop_and_refactor_time(
                                 "#SwitchTo %s - %s " % (project, task)) #refactor any previous time alloted to a task
-                            #print 'running and exists', self.current_hours, self.last_hours
-                            notes = entry['notes'] if entry.has_key('notes') else None
-                            notes = self.get_notes(notes)
+                            print 'running and exists', self.current_hours, self.last_hours
+                            notes = self.get_notes(entry['notes'])
 
                             if str(entry['id']) != str(self.last_entry_id): #dont increment timer if only append note to current timer
                                 hours = round(float(entry['hours']) + float(self.interval), 2) #task switched
@@ -801,12 +803,12 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
                     if not got_one:
                         #not the same project task as last one, add new entry
-                        #print 'running and doesnt exist'
+                        print 'running and doesnt exist'
                         project_id = self.get_combobox_selection(self.project_combobox)
                         project = self.projects[project_id]
                         task_id = self.get_combobox_selection(self.task_combobox)
                         task = self.tasks[project_id][task_id]
-                        notes = self.get_notes()
+                        notes = self.get_notes(None, True, "", True), #TimerStarted
                         self.stop_and_refactor_time("#SwitchTo %s - %s "%(project, task)) #refactor any previous time alloted to a task
                         entry = self.harvest.add({
                             'notes': notes,
@@ -823,7 +825,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                         if (entry['project_id'] == self.current_selected_project_id\
                             and entry['task_id'] == self.current_selected_task_id): #found existing project/task entry for today, just append to it
                             #self.harvest.toggle_timer(entry['id'])
-                            #print 'not running and exists'
+                            print 'not running and exists'
 
                             entry = self.harvest.update(entry['id'], {#append to existing timer
                                  'notes': self.get_notes(entry['notes']),
@@ -837,9 +839,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
                     if not got_one:
                         #not the same project task as last one, add new entry
-                        #print 'not running and doesnt exist'
+                        print 'not running and doesnt exist'
                         entry = self.harvest.add({
-                            'notes': self.get_notes(),
+                            'notes': self.get_notes(None, True, "", True), #TimerStarted
                             'hours': self.interval,
                             'project_id': self.current_selected_project_id,
                             'task_id': self.current_selected_task_id
