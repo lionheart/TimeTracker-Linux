@@ -782,8 +782,8 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             task = self.tasks[self.current_selected_project_id][self.current_selected_task_id]
                             self.stop_and_refactor_time(
                                 "#SwitchTo %s " % task) #refactor any previous time alloted to a task
-                            print 'running and exists', self.current_hours, self.last_hours
-                            notes = self.get_notes(entry['notes'])
+                            print 'running and exists', entry['hours'], self.current_hours, self.last_hours
+                            notes = self.get_notes(entry['notes'], True, "", True)
 
                             if str(entry['id']) != str(self.last_entry_id): #dont increment timer if only append note to current timer
                                 hours = round(float(entry['hours']) + float(self.interval), 2) #task switched
