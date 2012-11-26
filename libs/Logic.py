@@ -684,7 +684,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
 
                 stopped = False
                 last_line = entry["notes"].split("\n")[-1]
-                if last_line.split(" ")[-1] == "#TimerStopped":
+                if last_line.split(" ")[-1] == "#TimerStopped" or last_line.find("#SwitchTo") > -1:
                     stopped = True
 
                 if self.is_running(_updated_at_time, stopped):
@@ -742,7 +742,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
             self.last_task_id = self.current_task_id
 
             if task_type != "":
-                self.last_notes = self.get_notes(self.current_notes, False, "%s #TimerStopped"%task_type) # task switched
+                self.last_notes = self.get_notes(self.current_notes, False, "%s"%task_type) # task switched
             else:
                 self.last_notes = self.get_notes(self.current_notes, True, "#TimerStopped") #timer stopped
                 
