@@ -779,10 +779,9 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             and self.current_hours: #current running time with timedelta added from timer
                             #print 'running and exists', self.current_hours, self.last_hours
 
-                            project = self.projects[self.current_selected_project_id]
                             task = self.tasks[self.current_selected_project_id][self.current_selected_task_id]
                             self.stop_and_refactor_time(
-                                "#SwitchTo %s - %s " % (project, task)) #refactor any previous time alloted to a task
+                                "#SwitchTo %s " % task) #refactor any previous time alloted to a task
                             print 'running and exists', self.current_hours, self.last_hours
                             notes = self.get_notes(entry['notes'])
 
@@ -805,11 +804,10 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                         #not the same project task as last one, add new entry
                         print 'running and doesnt exist'
                         project_id = self.get_combobox_selection(self.project_combobox)
-                        project = self.projects[project_id]
                         task_id = self.get_combobox_selection(self.task_combobox)
                         task = self.tasks[project_id][task_id]
                         notes = self.get_notes(None, True, "", True), #TimerStarted
-                        self.stop_and_refactor_time("#SwitchTo %s - %s "%(project, task)) #refactor any previous time alloted to a task
+                        self.stop_and_refactor_time("#SwitchTo %s "%task) #refactor any previous time alloted to a task
                         entry = self.harvest.add({
                             'notes': notes,
                             'hours': self.interval,
@@ -828,7 +826,7 @@ class uiLogic(uiBuilder, uiCreator, logicFunctions):
                             print 'not running and exists'
 
                             entry = self.harvest.update(entry['id'], {#append to existing timer
-                                 'notes': self.get_notes(entry['notes']),
+                                 'notes': self.get_notes(entry['notes'], True, "", True),
                                  'hours': round(float(entry['hours']) + float(self.interval), 2),
                                  'project_id': self.current_selected_project_id,
                                  'task_id': self.current_selected_task_id
